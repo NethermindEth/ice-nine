@@ -8,3 +8,11 @@ members = [
 version = "0.1.0"
 edition = "2021"
 license = "?"
+
+[workspace.dependencies]
+anyhow = "1.0.95"
+async-trait = "0.1.84"
+crb = "0.0.22"
+futures = "0.3.31"
+serde = "1.0.217"
+tokio = "1.42.0"
