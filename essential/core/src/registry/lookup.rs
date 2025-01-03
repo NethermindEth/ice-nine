@@ -10,6 +10,12 @@ pub struct Lookup<A> {
     _type: PhantomData<A>,
 }
 
+impl<A> Lookup<A> {
+    pub fn key() -> Self {
+        Self { _type: PhantomData }
+    }
+}
+
 impl<A: Agent> Request for Lookup<A> {
     type Response = Address<A>;
 }

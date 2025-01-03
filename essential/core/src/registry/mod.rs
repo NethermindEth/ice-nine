@@ -1,4 +1,6 @@
+pub mod add;
 pub mod lookup;
+pub mod remove;
 
 use crb::agent::{Agent, AgentSession};
 use typedmap::TypedDashMap;

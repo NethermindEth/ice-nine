@@ -1,5 +1,5 @@
 [package]
-name = "i9-plugin-slack"
+name = "ice-nine-plugin-slack"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

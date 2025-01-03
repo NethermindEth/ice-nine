@@ -1,5 +1,5 @@
 [package]
-name = "i9-core"
+name = "ice-nine-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-    "i9/*",
+    "essential/*",
+    "plugins/*",
 ]
 
 [workspace.package]
