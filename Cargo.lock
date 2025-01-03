@@ -425,6 +425,7 @@ dependencies = [
  "crb",
  "envy",
  "serde",
+ "typedmap",
 ]
 
 [[package]]
