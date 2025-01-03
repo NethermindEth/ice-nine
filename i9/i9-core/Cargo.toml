@@ -8,3 +8,5 @@ license.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
+envy.workspace = true
+serde.workspace = true
