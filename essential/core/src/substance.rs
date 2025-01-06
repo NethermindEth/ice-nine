@@ -1,10 +1,22 @@
-use anyhow::Result;
+use anyhow::{anyhow as err, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Standalone, Supervisor, SupervisorSession, InContext, Next};
 use crate::keeper::{Keeper, KeeperAddress};
+use crate::particle::ParticleSetup;
+use std::marker::PhantomData;
 
 pub struct Substance {
     keeper: Option<KeeperAddress>,
+}
+
+impl Substance {
+    fn get_setup(&self) -> Result<ParticleSetup> {
+        let keeper = self.keeper.clone()
+            .ok_or_else(|| err!("Keeper is not started"))?;
+        Ok(ParticleSetup {
+            keeper,
+        })
+    }
 }
 
 impl Standalone for Substance {}
@@ -46,4 +58,8 @@ impl InContext<Configure> for Substance {
         self.keeper = Some(keeper);
         Ok(Next::process())
     }
+}
+
+struct AddParticle<P> {
+    _type: PhantomData<P>,
 }

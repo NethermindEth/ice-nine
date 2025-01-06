@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
-#[derive(Deref, DerefMut, From)]
+#[derive(Deref, DerefMut, From, Clone)]
 pub struct KeeperAddress {
     address: Address<Keeper>,
 }
