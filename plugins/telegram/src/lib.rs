@@ -1,9 +1,9 @@
-use anyhow::Result;
+use anyhow::{anyhow as err, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
 use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
 use serde::Deserialize;
-use teloxide_core::{prelude::Requester, Bot};
+use teloxide_core::{prelude::Requester, types::UpdateKind, Bot};
 
 pub struct TelegramParticle {
     keeper: KeeperClient,
@@ -47,6 +47,27 @@ impl DoAsync<Configure> for TelegramParticle {
         let bot = Bot::new(&config.api_key);
         bot.get_me().await?;
         self.bot = Some(bot);
-        Ok(Next::todo("Not yet implemented!"))
+        Ok(Next::do_async(DrainUpdates))
+    }
+}
+
+struct DrainUpdates;
+
+#[async_trait]
+impl DoAsync<DrainUpdates> for TelegramParticle {
+    async fn repeat(&mut self, _: &mut DrainUpdates) -> Result<Option<Next<Self>>> {
+        let bot = self
+            .bot
+            .as_mut()
+            .ok_or_else(|| err!("Bot has not configured"))?;
+        let updates = bot.get_updates().await?;
+        for update in updates {
+            if let UpdateKind::Message(message) = update.kind {
+                if let Some(text) = message.text() {
+                    bot.send_message(message.chat.id, text).await?;
+                }
+            }
+        }
+        Ok(None)
     }
 }
