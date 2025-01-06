@@ -1,8 +1,8 @@
-use anyhow::{anyhow as err, Result};
+use anyhow::{anyhow as err, Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Standalone, Supervisor, SupervisorSession, InContext, Next};
+use crb::agent::{Agent, Standalone, Supervisor, SupervisorSession, InContext, Next, OnEvent};
 use crate::keeper::{Keeper, KeeperAddress};
-use crate::particle::ParticleSetup;
+use crate::particle::{Particle, ParticleSetup};
 use std::marker::PhantomData;
 
 pub struct Substance {
@@ -40,6 +40,7 @@ impl Agent for Substance {
 
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum Group {
+    Keeper,
     Particles,
 }
 
@@ -53,7 +54,7 @@ struct Configure;
 impl InContext<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
-        let addr = ctx.spawn_agent(agent, Group::Particles);
+        let addr = ctx.spawn_agent(agent, Group::Keeper);
         let keeper = KeeperAddress::from(addr);
         self.keeper = Some(keeper);
         Ok(Next::process())
@@ -62,4 +63,19 @@ impl InContext<Configure> for Substance {
 
 struct AddParticle<P> {
     _type: PhantomData<P>,
+}
+
+#[async_trait]
+impl<P> OnEvent<AddParticle<P>> for Substance
+where
+    P: Particle,
+{
+    type Error = Error;
+
+    async fn handle(&mut self, _: AddParticle<P>, ctx: &mut Self::Context) -> Result<()> {
+        let setup = self.get_setup()?;
+        let agent = P::construct(setup);
+        let _addr = ctx.spawn_agent(agent, Group::Particles);
+        Ok(())
+    }
 }
