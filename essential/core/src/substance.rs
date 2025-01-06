@@ -1,12 +1,27 @@
 use anyhow::{anyhow as err, Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Standalone, Supervisor, SupervisorSession, InContext, Next, OnEvent};
-use crate::keeper::{Keeper, KeeperAddress};
+use derive_more::{Deref, DerefMut, From};
+use crb::agent::{Agent, Address, Standalone, Supervisor, SupervisorSession, InContext, Next, OnEvent};
+use crate::keeper::{Keeper, KeeperClient};
 use crate::particle::{Particle, ParticleSetup};
 use std::marker::PhantomData;
 
+#[derive(Deref, DerefMut, From, Clone)]
+pub struct SubstanceClient {
+    address: Address<Substance>,
+}
+
+impl SubstanceClient {
+    pub fn add_particle<P: Particle>(&self) -> Result<()> {
+        let msg = AddParticle::<P> {
+            _type: PhantomData,
+        };
+        self.address.event(msg)
+    }
+}
+
 pub struct Substance {
-    keeper: Option<KeeperAddress>,
+    keeper: Option<KeeperClient>,
 }
 
 impl Substance {
@@ -55,7 +70,7 @@ impl InContext<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
         let addr = ctx.spawn_agent(agent, Group::Keeper);
-        let keeper = KeeperAddress::from(addr);
+        let keeper = KeeperClient::from(addr);
         self.keeper = Some(keeper);
         Ok(Next::process())
     }

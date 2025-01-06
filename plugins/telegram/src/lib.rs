@@ -1,11 +1,19 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
-use ice_nine_core::{Config, KeeperAddress};
+use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
 use serde::Deserialize;
 
 pub struct TelegramParticle {
-    keeper: KeeperAddress,
+    keeper: KeeperClient,
+}
+
+impl Particle for TelegramParticle {
+    fn construct(setup: ParticleSetup) -> Self {
+        Self {
+            keeper: setup.keeper,
+        }
+    }
 }
 
 impl Agent for TelegramParticle {
@@ -31,6 +39,7 @@ struct Configure;
 #[async_trait]
 impl DoAsync<Configure> for TelegramParticle {
     async fn once(&mut self, _: &mut Configure) -> Result<Next<Self>> {
+        println!("Configuring...");
         let config: TelegramConfig = self.keeper.get_config().await?;
         println!("Config for telegram is loaded!");
         Ok(Next::todo("Not yet implemented!"))

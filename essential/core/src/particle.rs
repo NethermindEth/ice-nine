@@ -1,8 +1,8 @@
 use crb::agent::Agent;
-use crate::keeper::KeeperAddress;
+use crate::keeper::KeeperClient;
 
 pub struct ParticleSetup {
-    pub keeper: KeeperAddress,
+    pub keeper: KeeperClient,
 }
 
 pub trait Particle: Agent<Context: Default> {
