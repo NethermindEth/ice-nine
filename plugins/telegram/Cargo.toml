@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-core"
+name = "ice-nine-plugin-telegram"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,7 +8,6 @@ license.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
-derive_more = "1.0.0"
-envy.workspace = true
+ice-nine-core.workspace = true
 serde.workspace = true
-typedmap = "0.6.0"
+teloxide-core = "0.10.1"
