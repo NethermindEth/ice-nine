@@ -83,10 +83,7 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "character-agent"
 version = "0.0.1"
 dependencies = [
- "anyhow",
- "crb",
  "ice-nine-core",
- "tokio",
 ]
 
 [[package]]
@@ -115,29 +112,28 @@ dependencies = [
 
 [[package]]
 name = "crb"
-version = "0.0.23"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38d9718bd2abfa5e31701cc6110806cc312e3957a084610305cf5d0bdd159eb1"
+checksum = "3f52a140597546a79a523f6263ef5cb8da74bf4c23e344d3e78e6f609bd9b831"
 dependencies = [
  "crb-agent",
+ "crb-agent-ext",
  "crb-core",
  "crb-pipeline",
  "crb-runtime",
- "crb-send",
- "crb-superagent",
+ "crb-supervisor",
 ]
 
 [[package]]
 name = "crb-agent"
-version = "0.0.23"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfab6653467c92080cd0b037021ba392aacb1cdd20446f154305b18a1fd7628c"
+checksum = "2334f97630829b8051883d4f62e532d2a5f9a28655fa37875c6bc6aff119d49f"
 dependencies = [
  "anyhow",
  "async-trait",
  "crb-core",
  "crb-runtime",
- "crb-send",
  "derive_more 1.0.0",
  "futures",
  "log",
@@ -145,10 +141,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "crb-core"
-version = "0.0.23"
+name = "crb-agent-ext"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbcb2697771356c5b47a2d541b6e9c8c1390bbaa79485ece946daf28445c5bf3"
+checksum = "e3120a07edc7aa3a83a3b2dee55edaf3b636ba4b91f67e59ec7fdfb5aeb1becc"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb-agent",
+ "crb-core",
+ "crb-runtime",
+ "futures",
+ "log",
+ "thiserror",
+]
+
+[[package]]
+name = "crb-core"
+version = "0.0.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bdc6ef45db9011faa4f73dbfc04a655480ba597fbd915c0d81725e8522922273"
 dependencies = [
  "derive_more 1.0.0",
  "event-listener",
@@ -165,16 +177,16 @@ dependencies = [
 
 [[package]]
 name = "crb-pipeline"
-version = "0.0.23"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82bc83cb29cb5b76be411d7c9d98596eb1e551d4ebb11bccd81ed66ac0042462"
+checksum = "6888df8fa72df6a295ed8e72f0c8a2a93c574a922a13dedb9f1dd133f1704b24"
 dependencies = [
  "anyhow",
  "async-trait",
  "crb-agent",
  "crb-core",
  "crb-runtime",
- "crb-superagent",
+ "crb-supervisor",
  "derive_more 1.0.0",
  "log",
  "typedmap",
@@ -182,9 +194,9 @@ dependencies = [
 
 [[package]]
 name = "crb-runtime"
-version = "0.0.23"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef25caa36605224ddc28ec8021d477684debf75559dd8d33ab3be1ccf9fd1c66"
+checksum = "98d221aea5ba49c47c411f3cfff74c29aec5e75e6b16fe983b482547e7dbe986"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -195,19 +207,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "crb-send"
-version = "0.0.23"
+name = "crb-supervisor"
+version = "0.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2612110c0b398a1ac5450aeb44a4de8ee355ae6655b048c835fb8f3afd1f1a74"
-dependencies = [
- "anyhow",
-]
-
-[[package]]
-name = "crb-superagent"
-version = "0.0.23"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "53a23a0c76ff2c8387838d5d7d27d99bb895c070d1b4e8dc172a9efb9c5e4a93"
+checksum = "74cd20d63d9a9120a35099ca107967ea57530a8b6fb9c402b51df6ee2be677f3"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -215,9 +218,7 @@ dependencies = [
  "crb-core",
  "crb-runtime",
  "derive_more 1.0.0",
- "futures",
  "log",
- "thiserror",
  "typed-slab",
 ]
 
@@ -433,10 +434,6 @@ dependencies = [
  "serde",
  "typedmap",
 ]
-
-[[package]]
-name = "ice-nine-plugin-slack"
-version = "0.0.1"
 
 [[package]]
 name = "js-sys"

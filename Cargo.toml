@@ -3,17 +3,21 @@ resolver = "2"
 members = [
     "essential/*",
     "plugins/*",
+    "examples/*",
+]
+exclude = [
+    # "examples",
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 license = "?"
 
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.84"
-crb = "0.0.22"
+crb = "0.0.23"
 envy = "0.4.2"
 futures = "0.3.31"
 serde = "1.0.217"
