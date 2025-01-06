@@ -798,6 +798,7 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "envy",
+ "log",
  "serde",
  "typedmap",
 ]
