@@ -1,20 +1,21 @@
-use anyhow::{anyhow as err, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
+use crb::core::types::Slot;
 use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
 use serde::Deserialize;
 use teloxide_core::{prelude::Requester, types::UpdateKind, Bot};
 
 pub struct TelegramParticle {
     keeper: KeeperClient,
-    bot: Option<Bot>,
+    bot: Slot<Bot>,
 }
 
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             keeper: setup.keeper,
-            bot: None,
+            bot: Slot::empty(),
         }
     }
 }
@@ -46,7 +47,7 @@ impl DoAsync<Configure> for TelegramParticle {
         let config: TelegramConfig = self.keeper.get_config().await?;
         let bot = Bot::new(&config.api_key);
         bot.get_me().await?;
-        self.bot = Some(bot);
+        self.bot.fill(bot)?;
         Ok(Next::do_async(DrainUpdates))
     }
 }
@@ -56,10 +57,7 @@ struct DrainUpdates;
 #[async_trait]
 impl DoAsync<DrainUpdates> for TelegramParticle {
     async fn repeat(&mut self, _: &mut DrainUpdates) -> Result<Option<Next<Self>>> {
-        let bot = self
-            .bot
-            .as_mut()
-            .ok_or_else(|| err!("Bot has not configured"))?;
+        let bot = self.bot.get_mut()?;
         let updates = bot.get_updates().await?;
         for update in updates {
             if let UpdateKind::Message(message) = update.kind {
