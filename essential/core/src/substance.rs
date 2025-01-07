@@ -1,11 +1,13 @@
-use anyhow::{anyhow as err, Error, Result};
-use async_trait::async_trait;
-use derive_more::{Deref, DerefMut, From};
-use crb::agent::{Agent, Address, Standalone, Supervisor, SupervisorSession, InContext, Next, OnEvent};
 use crate::keeper::{Keeper, KeeperClient};
 use crate::particle::{Particle, ParticleSetup};
-use std::marker::PhantomData;
+use anyhow::{anyhow as err, Error, Result};
+use async_trait::async_trait;
+use crb::agent::{
+    Address, Agent, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
+};
+use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
+use std::marker::PhantomData;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct SubstanceClient {
@@ -14,9 +16,7 @@ pub struct SubstanceClient {
 
 impl SubstanceClient {
     pub fn add_particle<P: Particle>(&self) -> Result<()> {
-        let msg = AddParticle::<P> {
-            _type: PhantomData,
-        };
+        let msg = AddParticle::<P> { _type: PhantomData };
         self.address.event(msg)
     }
 }
@@ -27,11 +27,11 @@ pub struct Substance {
 
 impl Substance {
     fn get_setup(&self) -> Result<ParticleSetup> {
-        let keeper = self.keeper.clone()
+        let keeper = self
+            .keeper
+            .clone()
             .ok_or_else(|| err!("Keeper is not started"))?;
-        Ok(ParticleSetup {
-            keeper,
-        })
+        Ok(ParticleSetup { keeper })
     }
 }
 
@@ -39,9 +39,7 @@ impl Standalone for Substance {}
 
 impl Substance {
     pub fn new() -> Self {
-        Self {
-            keeper: None,
-        }
+        Self { keeper: None }
     }
 }
 

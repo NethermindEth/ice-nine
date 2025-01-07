@@ -1,5 +1,5 @@
-use crb::agent::Agent;
 use crate::keeper::KeeperClient;
+use crb::agent::Agent;
 
 pub struct ParticleSetup {
     pub keeper: KeeperClient,

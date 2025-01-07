@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Address, AddressExt, OnRequest, Request};
+use crb::agent::{Address, AddressExt, Agent, AgentSession, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
@@ -29,8 +29,7 @@ pub struct Keeper {}
 
 impl Keeper {
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 }
 
@@ -45,9 +44,7 @@ pub struct GetConfig<C> {
 
 impl<C> Default for GetConfig<C> {
     fn default() -> Self {
-        Self {
-            _type: PhantomData,
-        }
+        Self { _type: PhantomData }
     }
 }
 
