@@ -14,9 +14,10 @@ AI agents that work everywhere.
 - AI-driven trading bots
 - Chatbots
 
-###  Features
+###  Features (goals)
 
 - Built on Rust and implemented as hybrid actor-state machines.
 - Supports various LLMs, tools, and extensibility.
+- Hot model swapping without restarting.
+- Distributed agents, the ability to run components on different machines.
 - Provides a dynamic user interface (*UI9*) that is automatically generated for interacting with a network of agents.
-
