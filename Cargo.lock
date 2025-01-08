@@ -1052,6 +1052,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ice-nine-plugin-model-openai"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-openai",
+ "async-trait",
+ "crb",
+ "ice-nine-core",
+ "serde",
+]
+
+[[package]]
 name = "icu_collections"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1323,18 +1335,6 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys 0.52.0",
-]
-
-[[package]]
-name = "model-openai"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-openai",
- "async-trait",
- "crb",
- "ice-nine-core",
- "serde",
 ]
 
 [[package]]
@@ -2433,6 +2433,7 @@ dependencies = [
  "env_logger",
  "ice-nine-core",
  "ice-nine-plugin-messaging-telegram",
+ "ice-nine-plugin-model-openai",
  "tokio",
 ]
 

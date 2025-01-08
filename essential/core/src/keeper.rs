@@ -11,19 +11,22 @@ pub struct KeeperClient {
 }
 
 impl KeeperClient {
-    pub async fn get_config<C>(&self) -> Result<C>
+    pub async fn get_config<C>(&self, namespace: &str) -> Result<C>
     where
         C: Config,
     {
-        let request = GetConfig::<C>::default();
+        let request = GetConfig::<C> {
+            namespace: namespace.to_string(),
+            _type: PhantomData,
+        };
         let config = self.address.interact(request)?.await?;
         Ok(config)
     }
 }
 
-pub trait Config: DeserializeOwned + Send + 'static {
-    const NAMESPACE: &'static str;
-}
+pub trait Config: DeserializeOwned + Send + 'static {}
+
+impl<T> Config for T where Self: DeserializeOwned + Send + 'static {}
 
 pub struct Keeper {}
 
@@ -52,13 +55,8 @@ impl DoSync<LoadDotEnv> for Keeper {
 }
 
 pub struct GetConfig<C> {
+    namespace: String,
     _type: PhantomData<C>,
-}
-
-impl<C> Default for GetConfig<C> {
-    fn default() -> Self {
-        Self { _type: PhantomData }
-    }
 }
 
 impl<C: Config> Request for GetConfig<C> {
@@ -67,8 +65,8 @@ impl<C: Config> Request for GetConfig<C> {
 
 #[async_trait]
 impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
-    async fn on_request(&mut self, _: GetConfig<C>, _: &mut Self::Context) -> Result<C> {
-        let mut ns = C::NAMESPACE.to_uppercase();
+    async fn on_request(&mut self, msg: GetConfig<C>, _: &mut Self::Context) -> Result<C> {
+        let mut ns = msg.namespace.to_uppercase();
         ns.push('_');
         let config: C = envy::prefixed(ns).from_env()?;
         Ok(config)

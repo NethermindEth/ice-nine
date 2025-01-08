@@ -10,4 +10,5 @@ crb.workspace = true
 env_logger.workspace = true
 ice-nine-core.path = "../../essential/core"
 ice-nine-plugin-messaging-telegram.path = "../../plugins/messaging-telegram"
+ice-nine-plugin-model-openai.path = "../../plugins/model-openai"
 tokio.workspace = true
