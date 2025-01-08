@@ -1,7 +1,7 @@
 use anyhow::Result;
 use crb::agent::Standalone;
 use ice_nine_core::{Substance, SubstanceClient};
-use ice_nine_plugin_telegram::TelegramParticle;
+use ice_nine_plugin_messaging_telegram::TelegramParticle;
 
 #[tokio::main]
 async fn main() -> Result<()> {

@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-slack"
+name = "ice-nine-plugin-exchange-dydx"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

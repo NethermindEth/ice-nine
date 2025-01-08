@@ -4,11 +4,12 @@ use crb::agent::{Agent, AgentSession, DoAsync, Next};
 use crb::core::types::Slot;
 use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
 use serde::Deserialize;
-use teloxide_core::{prelude::Requester, types::UpdateKind, Bot};
+use teloxide_core::{payloads::GetUpdatesSetters, prelude::Requester, types::UpdateKind, Bot};
 
 pub struct TelegramParticle {
     keeper: KeeperClient,
     bot: Slot<Bot>,
+    offset: i32,
 }
 
 impl Particle for TelegramParticle {
@@ -16,6 +17,7 @@ impl Particle for TelegramParticle {
         Self {
             keeper: setup.keeper,
             bot: Slot::empty(),
+            offset: 0,
         }
     }
 }
@@ -58,8 +60,9 @@ struct DrainUpdates;
 impl DoAsync<DrainUpdates> for TelegramParticle {
     async fn repeat(&mut self, _: &mut DrainUpdates) -> Result<Option<Next<Self>>> {
         let bot = self.bot.get_mut()?;
-        let updates = bot.get_updates().await?;
+        let updates = bot.get_updates().offset(self.offset).await?;
         for update in updates {
+            self.offset = update.id.as_offset();
             if let UpdateKind::Message(message) = update.kind {
                 if let Some(text) = message.text() {
                     bot.send_message(message.chat.id, text).await?;

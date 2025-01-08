@@ -10,5 +10,5 @@ crb = "0.0.24"
 dotenvy = "0.15.7"
 env_logger = "0.11.6"
 ice-nine-core.path = "../../essential/core"
-ice-nine-plugin-telegram.path = "../../plugins/telegram"
+ice-nine-plugin-messaging-telegram.path = "../../plugins/messaging-telegram"
 tokio.workspace = true

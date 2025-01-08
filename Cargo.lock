@@ -792,11 +792,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-plugin-slack"
+name = "ice-nine-plugin-exchange-dydx"
 version = "0.0.1"
 
 [[package]]
-name = "ice-nine-plugin-telegram"
+name = "ice-nine-plugin-messaging-telegram"
 version = "0.0.1"
 dependencies = [
  "anyhow",
@@ -1804,7 +1804,7 @@ dependencies = [
  "dotenvy",
  "env_logger",
  "ice-nine-core",
- "ice-nine-plugin-telegram",
+ "ice-nine-plugin-messaging-telegram",
  "tokio",
 ]
 
