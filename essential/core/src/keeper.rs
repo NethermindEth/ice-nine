@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, AgentSession, OnRequest, Request};
+use crb::agent::{Address, AddressExt, Agent, AgentSession, DoSync, Next, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
@@ -36,6 +36,19 @@ impl Keeper {
 impl Agent for Keeper {
     type Context = AgentSession<Self>;
     type Output = ();
+
+    fn begin(&mut self) -> Next<Self> {
+        Next::do_sync(LoadDotEnv)
+    }
+}
+
+struct LoadDotEnv;
+
+impl DoSync<LoadDotEnv> for Keeper {
+    fn once(&mut self, _: &mut LoadDotEnv) -> Result<Next<Self>> {
+        dotenvy::dotenv()?;
+        Ok(Next::events())
+    }
 }
 
 pub struct GetConfig<C> {

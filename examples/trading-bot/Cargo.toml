@@ -7,7 +7,6 @@ edition.workspace = true
 [dependencies]
 anyhow.workspace = true
 crb.workspace = true
-dotenvy.workspace = true
 env_logger.workspace = true
 ice-nine-core.path = "../../essential/core"
 ice-nine-plugin-messaging-telegram.path = "../../plugins/messaging-telegram"

@@ -1,14 +1,13 @@
 use anyhow::Result;
-use crb::agent::Standalone;
+use crb::agent::{Equip, Standalone};
 use ice_nine_core::{Substance, SubstanceClient};
 use ice_nine_plugin_messaging_telegram::TelegramParticle;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenvy::dotenv()?;
     env_logger::try_init()?;
     let substance = Substance::new();
-    let mut addr: SubstanceClient = substance.spawn().into();
+    let mut addr: SubstanceClient = substance.spawn().equip();
     addr.add_particle::<TelegramParticle>()?;
     addr.join().await?;
     Ok(())
