@@ -1,0 +1,8 @@
+[package]
+name = "ui9-tool-tui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ratatui = "0.29.0"
