@@ -1,13 +1,15 @@
 use crate::keeper::{Keeper, KeeperClient};
 use crate::particle::{Particle, ParticleSetup};
-use anyhow::{anyhow as err, Error, Result};
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, Equip, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
 };
+use crb::core::Slot;
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;
+use crate::conversation_router::{ConversationRouterClient, ConversationRouter};
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct SubstanceClient {
@@ -22,16 +24,18 @@ impl SubstanceClient {
 }
 
 pub struct Substance {
-    keeper: Option<KeeperClient>,
+    keeper: Slot<KeeperClient>,
+    conversation_router: Slot<ConversationRouterClient>,
 }
 
 impl Substance {
-    fn get_setup(&self) -> Result<ParticleSetup> {
-        let keeper = self
-            .keeper
-            .clone()
-            .ok_or_else(|| err!("Keeper is not started"))?;
-        Ok(ParticleSetup { keeper })
+    fn get_setup(&mut self) -> Result<ParticleSetup> {
+        let keeper = self.keeper.get_mut()?.clone();
+        let conversation_router = self.conversation_router.get_mut()?.clone();
+        Ok(ParticleSetup {
+            keeper,
+            conversation_router,
+        })
     }
 }
 
@@ -39,7 +43,10 @@ impl Standalone for Substance {}
 
 impl Substance {
     pub fn new() -> Self {
-        Self { keeper: None }
+        Self {
+            keeper: Slot::empty(),
+            conversation_router: Slot::empty(),
+        }
     }
 }
 
@@ -54,7 +61,7 @@ impl Agent for Substance {
 
 #[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Hash)]
 pub enum Group {
-    Keeper,
+    Services,
     Particles,
 }
 
@@ -68,8 +75,13 @@ struct Configure;
 impl InContext<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
-        let keeper = ctx.spawn_agent(agent, Group::Keeper).equip();
-        self.keeper = Some(keeper);
+        let addr = ctx.spawn_agent(agent, Group::Services);
+        self.keeper.fill(addr.equip())?;
+
+        let agent = ConversationRouter::new();
+        let addr = ctx.spawn_agent(agent, Group::Services);
+        self.conversation_router.fill(addr.equip())?;
+
         Ok(Next::events())
     }
 }

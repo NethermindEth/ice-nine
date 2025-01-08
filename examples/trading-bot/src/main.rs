@@ -8,6 +8,7 @@ async fn main() -> Result<()> {
     env_logger::try_init()?;
     let substance = Substance::new();
     let mut addr: SubstanceClient = substance.spawn().equip();
+    // addr.add_particle::<OpenAIParticle>()?;
     addr.add_particle::<TelegramParticle>()?;
     addr.join().await?;
     Ok(())

@@ -2,8 +2,9 @@
 resolver = "2"
 members = [
     "essential/*",
-    "plugins/*",
     "examples/*",
+    "interface/*",
+    "plugins/*",
 ]
 exclude = [
     # "examples",
