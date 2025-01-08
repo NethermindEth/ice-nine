@@ -1,5 +1,5 @@
-use crate::keeper::KeeperClient;
 use crate::conversation_router::ConversationRouterClient;
+use crate::keeper::KeeperClient;
 use crb::agent::Agent;
 
 pub struct ParticleSetup {

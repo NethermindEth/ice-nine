@@ -1,3 +1,4 @@
+use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
@@ -34,15 +35,6 @@ impl Agent for TelegramParticle {
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(Configure)
     }
-}
-
-#[derive(Deserialize)]
-struct TelegramConfig {
-    api_key: String,
-}
-
-impl Config for TelegramConfig {
-    const NAMESPACE: &'static str = "TELEGRAM";
 }
 
 struct Configure;

@@ -1,3 +1,4 @@
+use crate::conversation_router::{ConversationRouter, ConversationRouterClient};
 use crate::keeper::{Keeper, KeeperClient};
 use crate::particle::{Particle, ParticleSetup};
 use anyhow::{Error, Result};
@@ -9,7 +10,6 @@ use crb::core::Slot;
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;
-use crate::conversation_router::{ConversationRouterClient, ConversationRouter};
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct SubstanceClient {
