@@ -71,7 +71,7 @@ impl InContext<Configure> for Substance {
         let addr = ctx.spawn_agent(agent, Group::Keeper);
         let keeper = KeeperClient::from(addr);
         self.keeper = Some(keeper);
-        Ok(Next::process())
+        Ok(Next::events())
     }
 }
 

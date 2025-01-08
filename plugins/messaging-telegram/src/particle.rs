@@ -68,7 +68,7 @@ impl InContext<SpawnWorkers> for TelegramParticle {
         let address = ctx.address().clone();
         let drainer = TelegramDrainer::new(address, bot);
         ctx.spawn_agent(drainer, ());
-        Ok(Next::process())
+        Ok(Next::events())
     }
 }
 
