@@ -55,7 +55,6 @@ impl DoAsync<Configure> for TelegramParticle {
         let bot = Bot::new(&config.api_key);
         bot.get_me().await?;
         self.bot.fill(bot)?;
-
         Ok(Next::in_context(SpawnWorkers))
     }
 }
@@ -66,7 +65,8 @@ struct SpawnWorkers;
 impl InContext<SpawnWorkers> for TelegramParticle {
     async fn handle(&mut self, _: SpawnWorkers, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let bot = self.bot.get_mut()?.clone();
-        let drainer = TelegramDrainer::new(ctx.address().clone(), bot);
+        let address = ctx.address().clone();
+        let drainer = TelegramDrainer::new(address, bot);
         ctx.spawn_agent(drainer, ());
         Ok(Next::process())
     }
