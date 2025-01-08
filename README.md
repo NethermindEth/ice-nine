@@ -1,4 +1,4 @@
-<img src="assets/ice-nine-logo.png" width="200px" align="right" />
+<img src="https://nethermindeth.github.io/ice-nine/assets/ice-nine-logo.png" width="300px"/>
 
 ### Ice-Nine
 
