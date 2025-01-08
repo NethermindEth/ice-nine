@@ -1,12 +1,12 @@
 [package]
 publish = false
-name = "character-agent"
+name = "trading-bot"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-crb = "0.0.23"
+crb = "0.0.24"
 dotenvy = "0.15.7"
 env_logger = "0.11.6"
 ice-nine-core.path = "../../essential/core"

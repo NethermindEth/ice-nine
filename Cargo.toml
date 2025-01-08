@@ -16,8 +16,8 @@ license = "?"
 
 [workspace.dependencies]
 anyhow = "1.0.95"
-async-trait = "0.1.84"
-crb = "0.0.23"
+async-trait = "0.1.85"
+crb = "0.0.24"
 derive_more = "1.0.0"
 envy = "0.4.2"
 futures = "0.3.31"
