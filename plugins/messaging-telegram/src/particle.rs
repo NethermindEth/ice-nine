@@ -6,8 +6,7 @@ use crb::agent::{
     Agent, Context, DoAsync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
 };
 use crb::core::types::Slot;
-use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
-use serde::Deserialize;
+use ice_nine_core::{KeeperClient, Particle, ParticleSetup};
 use teloxide_core::{prelude::Requester, types::Message, Bot};
 
 pub struct TelegramParticle {

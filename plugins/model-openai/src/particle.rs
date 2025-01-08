@@ -1,10 +1,8 @@
 use crate::config::OpenAIConfig;
-use anyhow::{Error, Result};
+use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, InContext, Next, OnEvent, Supervisor};
-use crb::core::types::Slot;
-use ice_nine_core::{Config, KeeperClient, Particle, ParticleSetup};
-use serde::Deserialize;
+use crb::agent::{Agent, AgentSession, DoAsync, Next};
+use ice_nine_core::{KeeperClient, Particle, ParticleSetup};
 
 pub struct OpenAIParticle {
     keeper: KeeperClient,
