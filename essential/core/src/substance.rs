@@ -3,7 +3,7 @@ use crate::particle::{Particle, ParticleSetup};
 use anyhow::{anyhow as err, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
+    Address, Agent, Equip, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
 };
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
@@ -68,8 +68,7 @@ struct Configure;
 impl InContext<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
-        let addr = ctx.spawn_agent(agent, Group::Keeper);
-        let keeper = KeeperClient::from(addr);
+        let keeper = ctx.spawn_agent(agent, Group::Keeper).equip();
         self.keeper = Some(keeper);
         Ok(Next::events())
     }

@@ -216,7 +216,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 [[package]]
 name = "crb"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "crb-agent",
  "crb-core",
@@ -229,7 +229,7 @@ dependencies = [
 [[package]]
 name = "crb-agent"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -245,7 +245,7 @@ dependencies = [
 [[package]]
 name = "crb-core"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
  "derive_more 1.0.0",
@@ -264,7 +264,7 @@ dependencies = [
 [[package]]
 name = "crb-pipeline"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -280,7 +280,7 @@ dependencies = [
 [[package]]
 name = "crb-runtime"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -293,7 +293,7 @@ dependencies = [
 [[package]]
 name = "crb-send"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
 ]
@@ -301,7 +301,7 @@ dependencies = [
 [[package]]
 name = "crb-superagent"
 version = "0.0.24"
-source = "git+https://github.com/runtime-blocks/crb#717671f29c060d5f62cb9ef1418a591edbe2728e"
+source = "git+https://github.com/runtime-blocks/crb#0381796f2d3318f12bcfbc40d64aea9324c51281"
 dependencies = [
  "anyhow",
  "async-trait",
