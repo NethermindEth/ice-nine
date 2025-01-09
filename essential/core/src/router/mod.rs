@@ -4,17 +4,23 @@ use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Next, OnEvent, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
+use model::{Model, ModelClient};
+use std::collections::HashMap;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct RouterClient {
     address: Address<Router>,
 }
 
-pub struct Router {}
+pub struct Router {
+    models: HashMap<String, ModelClient>,
+}
 
 impl Router {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            models: HashMap::new(),
+        }
     }
 }
 
