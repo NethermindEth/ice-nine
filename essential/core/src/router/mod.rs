@@ -8,7 +8,7 @@ use model::{Model, ModelClient};
 use std::collections::HashMap;
 
 #[derive(Deref, DerefMut, From, Clone)]
-pub struct RouterClient {
+pub struct RouterLink {
     address: Address<Router>,
 }
 

@@ -1,6 +1,6 @@
-use crate::keeper::{Keeper, KeeperClient};
+use crate::keeper::{Keeper, KeeperLink};
 use crate::particle::{Particle, ParticleSetup};
-use crate::router::{Router, RouterClient};
+use crate::router::{Router, RouterLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -12,11 +12,11 @@ use std::any::type_name;
 use std::marker::PhantomData;
 
 #[derive(Deref, DerefMut, From, Clone)]
-pub struct SubstanceClient {
+pub struct SubstanceLink {
     address: Address<Substance>,
 }
 
-impl SubstanceClient {
+impl SubstanceLink {
     pub fn add_particle<P: Particle>(&self) -> Result<()> {
         let msg = AddParticle::<P> { _type: PhantomData };
         self.address.event(msg)
@@ -24,8 +24,8 @@ impl SubstanceClient {
 }
 
 pub struct Substance {
-    keeper: Slot<KeeperClient>,
-    router: Slot<RouterClient>,
+    keeper: Slot<KeeperLink>,
+    router: Slot<RouterLink>,
 }
 
 impl Substance {

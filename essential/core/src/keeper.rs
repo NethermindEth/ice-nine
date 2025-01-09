@@ -6,11 +6,11 @@ use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
 #[derive(Deref, DerefMut, From, Clone)]
-pub struct KeeperClient {
+pub struct KeeperLink {
     address: Address<Keeper>,
 }
 
-impl KeeperClient {
+impl KeeperLink {
     pub async fn get_config<C>(&self, namespace: &str) -> Result<C>
     where
         C: Config,

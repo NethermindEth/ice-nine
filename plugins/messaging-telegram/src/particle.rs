@@ -6,13 +6,13 @@ use crb::agent::{
     Agent, Context, DoAsync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
 };
 use crb::core::types::Slot;
-use ice_nine_core::{KeeperClient, Particle, ParticleSetup};
+use ice_nine_core::{KeeperLink, Particle, ParticleSetup};
 use teloxide_core::{prelude::Requester, types::Message, Bot};
 
 const NAMESPACE: &'static str = "TELEGRAM";
 
 pub struct TelegramParticle {
-    keeper: KeeperClient,
+    keeper: KeeperLink,
     client: Slot<Bot>,
 }
 

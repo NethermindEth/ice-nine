@@ -6,14 +6,14 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{ChatRequest, ChatResponse, KeeperClient, Model, Particle, ParticleSetup};
+use ice_nine_core::{ChatRequest, ChatResponse, KeeperLink, Model, Particle, ParticleSetup};
 
 const NAMESPACE: &'static str = "OPENAI";
 
 type Client = OpenAIClient<OpenAIConfig>;
 
 pub struct OpenAIParticle {
-    keeper: KeeperClient,
+    keeper: KeeperLink,
     client: Slot<Client>,
 }
 
