@@ -1125,6 +1125,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "crb",
+ "derive_more 1.0.0",
  "ice-nine-core",
  "serde",
  "teloxide-core",

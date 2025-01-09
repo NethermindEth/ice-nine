@@ -1,3 +1,4 @@
+use crate::client::Client;
 use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::{Error, Result};
@@ -14,8 +15,7 @@ use ice_nine_core::{
 use std::collections::HashSet;
 use teloxide_core::{
     prelude::Requester,
-    types::{ChatAction, ChatId, Message},
-    Bot,
+    types::{ChatId, Message},
 };
 
 const NAMESPACE: &'static str = "TELEGRAM";
@@ -23,7 +23,7 @@ const NAMESPACE: &'static str = "TELEGRAM";
 pub struct TelegramParticle {
     links: SubstanceLinks,
     model: ModelLink,
-    client: Slot<Bot>,
+    client: Slot<Client>,
 
     typing: HashSet<ChatId>,
     interval: Option<Interval>,
@@ -62,7 +62,7 @@ impl DoAsync<Configure> for TelegramParticle {
     async fn once(&mut self, _: &mut Configure) -> Result<Next<Self>> {
         println!("Configuring...");
         let config: TelegramConfig = self.links.keeper.get_config(NAMESPACE).await?;
-        let client = Bot::new(&config.api_key);
+        let client = Client::new(&config.api_key);
         client.get_me().await?;
         self.client.fill(client)?;
         Ok(Next::in_context(SpawnWorkers))
@@ -96,7 +96,7 @@ impl OnEvent<Message> for TelegramParticle {
         if let Some(text) = message.text() {
             let chat_id = message.chat.id;
             self.typing.insert(chat_id);
-            client.send_chat_action(chat_id, ChatAction::Typing).await?;
+            client.typing(chat_id).await.ok();
 
             let request = ChatRequest::user(&text);
             let address = ctx.address().clone();
@@ -129,9 +129,7 @@ impl OnTick for TelegramParticle {
     async fn on_tick(&mut self, _: &(), _ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         for chat_id in &self.typing {
-            client
-                .send_chat_action(*chat_id, ChatAction::Typing)
-                .await?;
+            client.typing(*chat_id).await.ok();
         }
         Ok(())
     }
