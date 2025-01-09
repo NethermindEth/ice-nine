@@ -3,17 +3,17 @@ use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequest;
 use async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, DoAsync, Next};
+use crb::agent::{Agent, AgentSession, Context, InContext, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{ChatRequest, ChatResponse, KeeperLink, Model, Particle, ParticleSetup};
+use ice_nine_core::{ChatRequest, ChatResponse, Model, Particle, ParticleSetup, SubstanceLinks};
 
 const NAMESPACE: &'static str = "OPENAI";
 
 type Client = OpenAIClient<OpenAIConfig>;
 
 pub struct OpenAIParticle {
-    keeper: KeeperLink,
+    links: SubstanceLinks,
     client: Slot<Client>,
 }
 
@@ -22,7 +22,7 @@ impl Model for OpenAIParticle {}
 impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            keeper: setup.keeper,
+            links: setup.links,
             client: Slot::empty(),
         }
     }
@@ -33,20 +33,25 @@ impl Agent for OpenAIParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::do_async(Configure)
+        Next::in_context(Configure)
     }
 }
 
 struct Configure;
 
 #[async_trait]
-impl DoAsync<Configure> for OpenAIParticle {
-    async fn once(&mut self, _: &mut Configure) -> Result<Next<Self>> {
+impl InContext<Configure> for OpenAIParticle {
+    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
-        let config: OpenAIConfig = self.keeper.get_config(NAMESPACE).await?;
+
+        let config: OpenAIConfig = self.links.keeper.get_config(NAMESPACE).await?;
         let client = Client::with_config(config);
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
+
+        let address = ctx.address().clone();
+        self.links.router.add_model(address)?;
+
         Ok(Next::events())
     }
 }

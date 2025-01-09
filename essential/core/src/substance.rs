@@ -1,6 +1,6 @@
-use crate::keeper::{Keeper, KeeperLink};
-use crate::particle::{Particle, ParticleSetup};
-use crate::router::{Router, RouterLink};
+use crate::keeper::Keeper;
+use crate::particle::{Particle, ParticleSetup, SubstanceLinks};
+use crate::router::Router;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -24,15 +24,13 @@ impl SubstanceLink {
 }
 
 pub struct Substance {
-    keeper: Slot<KeeperLink>,
-    router: Slot<RouterLink>,
+    links: Slot<SubstanceLinks>,
 }
 
 impl Substance {
     fn get_setup(&mut self) -> Result<ParticleSetup> {
-        let keeper = self.keeper.get_mut()?.clone();
-        let router = self.router.get_mut()?.clone();
-        Ok(ParticleSetup { keeper, router })
+        let links = self.links.get_mut()?.clone();
+        Ok(ParticleSetup { links })
     }
 }
 
@@ -41,8 +39,7 @@ impl Standalone for Substance {}
 impl Substance {
     pub fn new() -> Self {
         Self {
-            keeper: Slot::empty(),
-            router: Slot::empty(),
+            links: Slot::empty(),
         }
     }
 }
@@ -72,12 +69,13 @@ struct Configure;
 impl InContext<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
-        let addr = ctx.spawn_agent(agent, Group::Services);
-        self.keeper.fill(addr.equip())?;
+        let keeper = ctx.spawn_agent(agent, Group::Services).equip();
 
         let agent = Router::new();
-        let addr = ctx.spawn_agent(agent, Group::Services);
-        self.router.fill(addr.equip())?;
+        let router = ctx.spawn_agent(agent, Group::Services).equip();
+
+        let links = SubstanceLinks { keeper, router };
+        self.links.fill(links)?;
 
         Ok(Next::events())
     }

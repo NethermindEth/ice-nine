@@ -6,13 +6,13 @@ use crb::agent::{
     Agent, Context, DoAsync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
 };
 use crb::core::types::Slot;
-use ice_nine_core::{KeeperLink, Particle, ParticleSetup};
+use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks};
 use teloxide_core::{prelude::Requester, types::Message, Bot};
 
 const NAMESPACE: &'static str = "TELEGRAM";
 
 pub struct TelegramParticle {
-    keeper: KeeperLink,
+    links: SubstanceLinks,
     client: Slot<Bot>,
 }
 
@@ -23,7 +23,7 @@ impl Supervisor for TelegramParticle {
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            keeper: setup.keeper,
+            links: setup.links,
             client: Slot::empty(),
         }
     }
@@ -44,7 +44,7 @@ struct Configure;
 impl DoAsync<Configure> for TelegramParticle {
     async fn once(&mut self, _: &mut Configure) -> Result<Next<Self>> {
         println!("Configuring...");
-        let config: TelegramConfig = self.keeper.get_config(NAMESPACE).await?;
+        let config: TelegramConfig = self.links.keeper.get_config(NAMESPACE).await?;
         let client = Bot::new(&config.api_key);
         client.get_me().await?;
         self.client.fill(client)?;

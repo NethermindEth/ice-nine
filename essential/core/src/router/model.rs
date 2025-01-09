@@ -1,7 +1,5 @@
-use anyhow::Result;
-use async_trait::async_trait;
 use crb::agent::{Address, AddressExt};
-use crb::superagent::{OnRequest, Request, Responder};
+use crb::superagent::{Fetcher, OnRequest, Request};
 use derive_more::{Deref, DerefMut};
 
 pub trait Model: OnRequest<ChatRequest> {}
@@ -31,21 +29,24 @@ pub struct ChatResponse {
 }
 
 #[derive(Deref, DerefMut)]
-pub struct ModelClient {
+pub struct ModelLink {
     address: Box<dyn ModelAddress>,
 }
 
-#[async_trait]
-pub trait ModelAddress: Send {
-    async fn chat(&mut self, request: ChatRequest) -> Responder<ChatRequest>;
+impl<M: Model> From<Address<M>> for ModelLink {
+    fn from(addr: Address<M>) -> Self {
+        Self {
+            address: Box::new(addr),
+        }
+    }
 }
 
-#[async_trait]
-impl<M> ModelAddress for Address<M>
-where
-    M: Model,
-{
-    async fn chat(&mut self, request: ChatRequest) -> Responder<ChatRequest> {
+pub trait ModelAddress: Send {
+    fn chat(&mut self, request: ChatRequest) -> Fetcher<ChatRequest>;
+}
+
+impl<M: Model> ModelAddress for Address<M> {
+    fn chat(&mut self, request: ChatRequest) -> Fetcher<ChatRequest> {
         self.interact(request)
     }
 }

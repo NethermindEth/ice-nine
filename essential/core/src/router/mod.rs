@@ -1,25 +1,46 @@
 pub mod model;
 
-use anyhow::{Error, Result};
+use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Next, OnEvent, OnRequest, Request};
-use derive_more::{Deref, DerefMut, From};
-use model::{Model, ModelClient};
-use std::collections::HashMap;
+use crb::agent::{
+    Address, Agent, AgentSession, Context, Equip, Interaction, Next, OnEvent, OnRequest,
+    OnResponse, Responder,
+};
+use crb::core::Slot;
+use crb::superagent::interaction::Output;
+use derive_more::{Deref, DerefMut, From, Into};
+use model::{ChatRequest, ChatResponse, Model, ModelLink};
+use typed_slab::TypedSlab;
+
+#[derive(From, Into)]
+pub struct ReqId(usize);
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct RouterLink {
     address: Address<Router>,
 }
 
+impl RouterLink {
+    pub fn add_model<M>(&mut self, addr: Address<M>) -> Result<()>
+    where
+        M: Model,
+    {
+        let msg = AddModel { link: addr.equip() };
+        self.address.event(msg)?;
+        Ok(())
+    }
+}
+
 pub struct Router {
-    models: HashMap<String, ModelClient>,
+    model: Slot<ModelLink>,
+    requests: TypedSlab<ReqId, Responder<ChatRequest>>,
 }
 
 impl Router {
     pub fn new() -> Self {
         Self {
-            models: HashMap::new(),
+            model: Slot::empty(),
+            requests: TypedSlab::default(),
         }
     }
 }
@@ -33,28 +54,49 @@ impl Agent for Router {
     }
 }
 
-pub struct AddModel {}
+pub struct AddModel {
+    link: ModelLink,
+}
 
 #[async_trait]
 impl OnEvent<AddModel> for Router {
     type Error = Error;
 
-    async fn handle(&mut self, _: AddModel, _ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, msg: AddModel, _ctx: &mut Self::Context) -> Result<()> {
+        self.model.fill(msg.link)?;
         Ok(())
     }
 }
 
-pub struct TextRequest {
-    text: String,
-}
-
-impl Request for TextRequest {
-    type Response = ();
+#[async_trait]
+impl OnRequest<ChatRequest> for Router {
+    async fn handle(
+        &mut self,
+        lookup: Interaction<ChatRequest>,
+        ctx: &mut Self::Context,
+    ) -> Result<()> {
+        let model = self.model.get_mut()?;
+        let address = ctx.address().clone();
+        let req_id = self.requests.insert(lookup.responder);
+        model.chat(lookup.request).forward_to(address, req_id);
+        Ok(())
+    }
 }
 
 #[async_trait]
-impl OnRequest<TextRequest> for Router {
-    async fn on_request(&mut self, _lookup: TextRequest, _: &mut Self::Context) -> Result<()> {
+impl OnResponse<ChatRequest, ReqId> for Router {
+    async fn on_response(
+        &mut self,
+        resp: Output<ChatResponse>,
+        req_id: ReqId,
+        _ctx: &mut Self::Context,
+    ) -> Result<()> {
+        let responder = self
+            .requests
+            .remove(req_id)
+            .ok_or_else(|| anyhow!("No responder"))?;
+        let response = resp?;
+        responder.send(response)?;
         Ok(())
     }
 }
