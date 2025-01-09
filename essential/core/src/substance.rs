@@ -1,6 +1,6 @@
-use crate::conversation_router::{ConversationRouter, ConversationRouterClient};
 use crate::keeper::{Keeper, KeeperClient};
 use crate::particle::{Particle, ParticleSetup};
+use crate::router::{Router, RouterClient};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -25,17 +25,14 @@ impl SubstanceClient {
 
 pub struct Substance {
     keeper: Slot<KeeperClient>,
-    conversation_router: Slot<ConversationRouterClient>,
+    router: Slot<RouterClient>,
 }
 
 impl Substance {
     fn get_setup(&mut self) -> Result<ParticleSetup> {
         let keeper = self.keeper.get_mut()?.clone();
-        let conversation_router = self.conversation_router.get_mut()?.clone();
-        Ok(ParticleSetup {
-            keeper,
-            conversation_router,
-        })
+        let router = self.router.get_mut()?.clone();
+        Ok(ParticleSetup { keeper, router })
     }
 }
 
@@ -45,7 +42,7 @@ impl Substance {
     pub fn new() -> Self {
         Self {
             keeper: Slot::empty(),
-            conversation_router: Slot::empty(),
+            router: Slot::empty(),
         }
     }
 }
@@ -78,9 +75,9 @@ impl InContext<Configure> for Substance {
         let addr = ctx.spawn_agent(agent, Group::Services);
         self.keeper.fill(addr.equip())?;
 
-        let agent = ConversationRouter::new();
+        let agent = Router::new();
         let addr = ctx.spawn_agent(agent, Group::Services);
-        self.conversation_router.fill(addr.equip())?;
+        self.router.fill(addr.equip())?;
 
         Ok(Next::events())
     }

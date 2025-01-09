@@ -1,22 +1,24 @@
+pub mod model;
+
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Next, OnEvent, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 
 #[derive(Deref, DerefMut, From, Clone)]
-pub struct ConversationRouterClient {
-    address: Address<ConversationRouter>,
+pub struct RouterClient {
+    address: Address<Router>,
 }
 
-pub struct ConversationRouter {}
+pub struct Router {}
 
-impl ConversationRouter {
+impl Router {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl Agent for ConversationRouter {
+impl Agent for Router {
     type Context = AgentSession<Self>;
     type Output = ();
 
@@ -28,7 +30,7 @@ impl Agent for ConversationRouter {
 pub struct AddModel {}
 
 #[async_trait]
-impl OnEvent<AddModel> for ConversationRouter {
+impl OnEvent<AddModel> for Router {
     type Error = Error;
 
     async fn handle(&mut self, _: AddModel, _ctx: &mut Self::Context) -> Result<()> {
@@ -45,7 +47,7 @@ impl Request for TextRequest {
 }
 
 #[async_trait]
-impl OnRequest<TextRequest> for ConversationRouter {
+impl OnRequest<TextRequest> for Router {
     async fn on_request(&mut self, _lookup: TextRequest, _: &mut Self::Context) -> Result<()> {
         Ok(())
     }

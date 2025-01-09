@@ -1,9 +1,14 @@
+use crate::convert;
 use anyhow::Result;
+use async_openai::types::{ChatCompletionRequestMessage, CreateChatCompletionRequest};
 use async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
 use crb::core::types::Slot;
-use ice_nine_core::{KeeperClient, Particle, ParticleSetup};
+use crb::superagent::OnRequest;
+use ice_nine_core::{
+    ChatRequest, ChatResponse, KeeperClient, Message, Model, Particle, ParticleSetup, Role,
+};
 
 const NAMESPACE: &'static str = "OPENAI";
 
@@ -13,6 +18,8 @@ pub struct OpenAIParticle {
     keeper: KeeperClient,
     client: Slot<Client>,
 }
+
+impl Model for OpenAIParticle {}
 
 impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
@@ -43,5 +50,22 @@ impl DoAsync<Configure> for OpenAIParticle {
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnRequest<ChatRequest> for OpenAIParticle {
+    async fn on_request(
+        &mut self,
+        msg: ChatRequest,
+        _: &mut Self::Context,
+    ) -> Result<ChatResponse> {
+        let client = self.client.get_mut()?;
+        // TODO: Sequental, but could be executed in the reactor
+        let mut request = CreateChatCompletionRequest::default();
+        let messages = msg.messages.into_iter().map(convert::message);
+        request.messages.extend(messages);
+        let response = client.chat().create(request).await?;
+        todo!()
     }
 }
