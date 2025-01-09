@@ -1,6 +1,6 @@
 use crate::convert;
 use anyhow::Result;
-use async_openai::types::CreateChatCompletionRequest;
+use async_openai::types::CreateChatCompletionRequestArgs;
 use async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, InContext, Next};
@@ -65,9 +65,11 @@ impl OnRequest<ChatRequest> for OpenAIParticle {
     ) -> Result<ChatResponse> {
         let client = self.client.get_mut()?;
         // TODO: Sequental, but could be executed in the reactor
-        let mut request = CreateChatCompletionRequest::default();
-        let messages = msg.messages.into_iter().map(convert::message);
-        request.messages.extend(messages);
+        let messages: Vec<_> = msg.messages.into_iter().map(convert::message).collect();
+        let request = CreateChatCompletionRequestArgs::default()
+            .model("gpt-4o")
+            .messages(messages)
+            .build()?;
         let response = client.chat().create(request).await?;
         let messages = response
             .choices
