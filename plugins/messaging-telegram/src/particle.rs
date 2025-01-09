@@ -7,7 +7,12 @@ use crb::agent::{
 };
 use crb::core::types::Slot;
 use ice_nine_core::{ChatRequest, ModelLink, Particle, ParticleSetup, SubstanceLinks};
-use teloxide_core::{prelude::Requester, types::Message, Bot};
+use std::collections::HashSet;
+use teloxide_core::{
+    prelude::Requester,
+    types::{ChatId, Message},
+    Bot,
+};
 
 const NAMESPACE: &'static str = "TELEGRAM";
 
@@ -15,6 +20,8 @@ pub struct TelegramParticle {
     links: SubstanceLinks,
     model: ModelLink,
     client: Slot<Bot>,
+
+    typing: HashSet<ChatId>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -28,6 +35,7 @@ impl Particle for TelegramParticle {
             links: setup.links,
             model,
             client: Slot::empty(),
+            typing: HashSet::new(),
         }
     }
 }
@@ -75,6 +83,11 @@ impl OnEvent<Message> for TelegramParticle {
     async fn handle(&mut self, message: Message, _ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         if let Some(text) = message.text() {
+            let chat_id = message.sender_chat.as_ref().map(|chat| chat.id);
+            if let Some(chat_id) = chat_id {
+                self.typing.insert(chat_id);
+            }
+
             let request = ChatRequest::user(&text);
             let response = self.model.chat(request).await?;
             let text = response.squash();
@@ -83,3 +96,12 @@ impl OnEvent<Message> for TelegramParticle {
         Ok(())
     }
 }
+
+/*
+    async move {
+        loop {
+            bot.send_chat_action(chat_id, ChatAction::Typing).await?;
+            typing_interval.tick().await;
+        }
+    }
+*/
