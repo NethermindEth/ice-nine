@@ -5,4 +5,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+crb.workspace = true
+crossterm = "0.28.1"
 ratatui = "0.29.0"
+tokio.workspace = true

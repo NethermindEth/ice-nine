@@ -2667,7 +2667,12 @@ version = "0.0.1"
 name = "ui9-tool-tui"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "crossterm",
  "ratatui",
+ "tokio",
 ]
 
 [[package]]
