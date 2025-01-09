@@ -42,7 +42,7 @@ impl InContext<Configure> for TuiApp {
         let address = ctx.address().clone();
         let drainer = EventsDrainer::new(address);
         ctx.spawn_agent(drainer, ());
-        Ok(Next::events())
+        Ok(Next::do_sync(Render))
     }
 }
 
@@ -54,7 +54,7 @@ impl OnEvent<Event> for TuiApp {
     async fn handle(&mut self, event: Event, ctx: &mut Self::Context) -> Result<()> {
         let next_state = match event {
             Event::Key(event) => {
-                Next::done()
+                Next::do_async(Terminate)
             }
             _ => {
                 Next::do_sync(Render)
