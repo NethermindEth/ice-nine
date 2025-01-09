@@ -1,6 +1,6 @@
 use anyhow::Result;
-use ui9_tool_tui::TuiApp;
 use crb::agent::Runnable;
+use ui9_tool_tui::TuiApp;
 
 #[tokio::main]
 async fn main() -> Result<()> {

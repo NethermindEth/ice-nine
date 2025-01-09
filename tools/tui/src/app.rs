@@ -1,10 +1,12 @@
 use crate::events::EventsDrainer;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
+use crb::agent::{
+    Agent, Context, DoAsync, DoSync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
+};
+use crb::core::Slot;
 use crossterm::event::Event;
 use ratatui::{DefaultTerminal, Frame};
-use crb::agent::{Agent, SupervisorSession, DoAsync, Next, OnEvent, DoSync, InContext, Supervisor, Context};
-use crb::core::Slot;
 
 pub struct TuiApp {
     terminal: Slot<DefaultTerminal>,
@@ -31,7 +33,6 @@ impl Agent for TuiApp {
     }
 }
 
-
 struct Configure;
 
 #[async_trait]
@@ -46,19 +47,14 @@ impl InContext<Configure> for TuiApp {
     }
 }
 
-
 #[async_trait]
 impl OnEvent<Event> for TuiApp {
     type Error = Error;
 
     async fn handle(&mut self, event: Event, ctx: &mut Self::Context) -> Result<()> {
         let next_state = match event {
-            Event::Key(event) => {
-                Next::do_async(Terminate)
-            }
-            _ => {
-                Next::do_sync(Render)
-            }
+            Event::Key(event) => Next::do_async(Terminate),
+            _ => Next::do_sync(Render),
         };
         ctx.do_next(next_state);
         Ok(())
