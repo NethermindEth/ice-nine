@@ -1,6 +1,7 @@
 use crb::agent::{Address, AddressExt};
 use crb::superagent::{Fetcher, OnRequest, Request};
 use derive_more::{Deref, DerefMut};
+use std::sync::Arc;
 
 pub trait Model: OnRequest<ChatRequest> {}
 
@@ -19,6 +20,18 @@ pub struct ChatRequest {
     pub messages: Vec<Message>,
 }
 
+impl ChatRequest {
+    pub fn user(text: &str) -> Self {
+        let message = Message {
+            role: Role::User,
+            content: text.to_string(),
+        };
+        Self {
+            messages: vec![message],
+        }
+    }
+}
+
 impl Request for ChatRequest {
     type Response = ChatResponse;
 }
@@ -28,25 +41,35 @@ pub struct ChatResponse {
     pub messages: Vec<Message>,
 }
 
-#[derive(Deref, DerefMut)]
+impl ChatResponse {
+    pub fn squash(&self) -> String {
+        let mut text = String::new();
+        for msg in &self.messages {
+            text.push_str(&msg.content);
+        }
+        text
+    }
+}
+
+#[derive(Deref, DerefMut, Clone)]
 pub struct ModelLink {
-    address: Box<dyn ModelAddress>,
+    address: Arc<dyn ModelAddress>,
 }
 
 impl<M: Model> From<Address<M>> for ModelLink {
     fn from(addr: Address<M>) -> Self {
         Self {
-            address: Box::new(addr),
+            address: Arc::new(addr),
         }
     }
 }
 
-pub trait ModelAddress: Send {
-    fn chat(&mut self, request: ChatRequest) -> Fetcher<ChatRequest>;
+pub trait ModelAddress: Sync + Send {
+    fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest>;
 }
 
 impl<M: Model> ModelAddress for Address<M> {
-    fn chat(&mut self, request: ChatRequest) -> Fetcher<ChatRequest> {
+    fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest> {
         self.interact(request)
     }
 }

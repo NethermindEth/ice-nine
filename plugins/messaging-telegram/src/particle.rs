@@ -6,13 +6,14 @@ use crb::agent::{
     Agent, Context, DoAsync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
 };
 use crb::core::types::Slot;
-use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks};
+use ice_nine_core::{ChatRequest, ModelLink, Particle, ParticleSetup, SubstanceLinks};
 use teloxide_core::{prelude::Requester, types::Message, Bot};
 
 const NAMESPACE: &'static str = "TELEGRAM";
 
 pub struct TelegramParticle {
     links: SubstanceLinks,
+    model: ModelLink,
     client: Slot<Bot>,
 }
 
@@ -22,8 +23,10 @@ impl Supervisor for TelegramParticle {
 
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
+        let model = setup.links.router.model();
         Self {
             links: setup.links,
+            model,
             client: Slot::empty(),
         }
     }
@@ -72,6 +75,9 @@ impl OnEvent<Message> for TelegramParticle {
     async fn handle(&mut self, message: Message, _ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         if let Some(text) = message.text() {
+            let request = ChatRequest::user(&text);
+            let response = self.model.chat(request).await?;
+            let text = response.squash();
             client.send_message(message.chat.id, text).await?;
         }
         Ok(())

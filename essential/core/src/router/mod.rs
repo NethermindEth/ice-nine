@@ -29,6 +29,10 @@ impl RouterLink {
         self.address.event(msg)?;
         Ok(())
     }
+
+    pub fn model(&self) -> ModelLink {
+        self.address.clone().equip()
+    }
 }
 
 pub struct Router {
@@ -44,6 +48,8 @@ impl Router {
         }
     }
 }
+
+impl Model for Router {}
 
 impl Agent for Router {
     type Context = AgentSession<Self>;
