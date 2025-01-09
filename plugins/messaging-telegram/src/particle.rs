@@ -94,6 +94,10 @@ impl OnEvent<Message> for TelegramParticle {
     async fn handle(&mut self, message: Message, ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         if let Some(text) = message.text() {
+            if text.starts_with('/') {
+                // TODO: Commands handling
+                return Ok(());
+            }
             let chat_id = message.chat.id;
             self.typing.insert(chat_id);
             client.typing(chat_id).await.ok();

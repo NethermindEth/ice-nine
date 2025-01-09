@@ -1,4 +1,5 @@
 use crate::events::EventsDrainer;
+use crate::state::AppState;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -6,16 +7,18 @@ use crb::agent::{
 };
 use crb::core::Slot;
 use crossterm::event::Event;
-use ratatui::{DefaultTerminal, Frame};
+use ratatui::DefaultTerminal;
 
 pub struct TuiApp {
     terminal: Slot<DefaultTerminal>,
+    state: AppState,
 }
 
 impl TuiApp {
     pub fn new() -> Self {
         Self {
             terminal: Slot::empty(),
+            state: AppState::new(),
         }
     }
 }
@@ -66,7 +69,7 @@ struct Render;
 impl DoSync<Render> for TuiApp {
     fn once(&mut self, _: &mut Render) -> Result<Next<Self>> {
         let terminal = self.terminal.get_mut()?;
-        terminal.draw(render)?;
+        terminal.draw(|frame| self.state.render(frame))?;
         Ok(Next::events())
     }
 }
@@ -79,8 +82,4 @@ impl DoAsync<Terminate> for TuiApp {
         ratatui::try_restore()?;
         Ok(Next::done())
     }
-}
-
-fn render(frame: &mut Frame) {
-    frame.render_widget("UI9", frame.area());
 }
