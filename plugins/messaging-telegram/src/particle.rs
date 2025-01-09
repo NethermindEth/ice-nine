@@ -82,6 +82,7 @@ impl InContext<SpawnWorkers> for TelegramParticle {
         let address = ctx.address().clone();
         let duration = Duration::from_secs(1);
         let interval = Interval::new(address, duration, ());
+        self.interval = Some(interval);
         Ok(Next::events())
     }
 }
@@ -91,9 +92,11 @@ impl OnEvent<Message> for TelegramParticle {
     type Error = Error;
 
     async fn handle(&mut self, message: Message, ctx: &mut Self::Context) -> Result<()> {
+        let client = self.client.get_mut()?;
         if let Some(text) = message.text() {
             let chat_id = message.chat.id;
             self.typing.insert(chat_id);
+            client.send_chat_action(chat_id, ChatAction::Typing).await?;
 
             let request = ChatRequest::user(&text);
             let address = ctx.address().clone();
@@ -122,7 +125,7 @@ impl OnResponse<ChatRequest, ChatId> for TelegramParticle {
 
 #[async_trait]
 impl OnTick for TelegramParticle {
-    async fn on_tick(&mut self, tag: &(), _ctx: &mut Self::Context) -> Result<()> {
+    async fn on_tick(&mut self, _: &(), _ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         for chat_id in &self.typing {
             client

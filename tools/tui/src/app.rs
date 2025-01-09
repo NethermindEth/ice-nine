@@ -53,7 +53,7 @@ impl OnEvent<Event> for TuiApp {
 
     async fn handle(&mut self, event: Event, ctx: &mut Self::Context) -> Result<()> {
         let next_state = match event {
-            Event::Key(event) => Next::do_async(Terminate),
+            Event::Key(_event) => Next::do_async(Terminate),
             _ => Next::do_sync(Render),
         };
         ctx.do_next(next_state);
