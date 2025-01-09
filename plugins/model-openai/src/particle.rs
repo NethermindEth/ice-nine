@@ -1,14 +1,12 @@
 use crate::convert;
 use anyhow::Result;
-use async_openai::types::{ChatCompletionRequestMessage, CreateChatCompletionRequest};
+use async_openai::types::CreateChatCompletionRequest;
 use async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, DoAsync, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{
-    ChatRequest, ChatResponse, KeeperClient, Message, Model, Particle, ParticleSetup, Role,
-};
+use ice_nine_core::{ChatRequest, ChatResponse, KeeperClient, Model, Particle, ParticleSetup};
 
 const NAMESPACE: &'static str = "OPENAI";
 
@@ -66,6 +64,11 @@ impl OnRequest<ChatRequest> for OpenAIParticle {
         let messages = msg.messages.into_iter().map(convert::message);
         request.messages.extend(messages);
         let response = client.chat().create(request).await?;
-        todo!()
+        let messages = response
+            .choices
+            .into_iter()
+            .filter_map(convert::choice)
+            .collect();
+        Ok(ChatResponse { messages })
     }
 }

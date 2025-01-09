@@ -17,3 +17,16 @@ pub fn message(from: ModelMessage) -> ChatCompletionRequestMessage {
         }
     }
 }
+
+pub fn choice(from: ChatChoice) -> Option<ModelMessage> {
+    let role = match from.message.role {
+        Role::System => ModelRole::Developer,
+        Role::User => ModelRole::User,
+        _ => {
+            return None;
+        }
+    };
+    let content = from.message.content?;
+    let message = ModelMessage { role, content };
+    Some(message)
+}
