@@ -25,15 +25,13 @@ impl Agent for TelegramDrainer {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::do_async(DrainMessages)
+        Next::do_async(())
     }
 }
 
-struct DrainMessages;
-
 #[async_trait]
-impl DoAsync<DrainMessages> for TelegramDrainer {
-    async fn repeat(&mut self, _: &mut DrainMessages) -> Result<Option<Next<Self>>> {
+impl DoAsync for TelegramDrainer {
+    async fn repeat(&mut self, _: &mut ()) -> Result<Option<Next<Self>>> {
         let updates = self.bot.get_updates().offset(self.offset).await?;
         for update in updates {
             self.offset = update.id.as_offset();
