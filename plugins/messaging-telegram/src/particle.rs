@@ -115,10 +115,11 @@ impl OnResponse<ChatRequest, ChatId> for TelegramParticle {
         _ctx: &mut Self::Context,
     ) -> Result<()> {
         self.typing.remove(&chat_id);
-        // TODO: Show error to the chat?
         let client = self.client.get_mut()?;
+        // TODO: Show error to the chat?
         let text = response?.squash();
         client.send_message(chat_id, text).await?;
+        // The message sending cleans a typing status
         Ok(())
     }
 }
