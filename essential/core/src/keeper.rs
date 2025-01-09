@@ -19,7 +19,7 @@ impl KeeperClient {
             namespace: namespace.to_string(),
             _type: PhantomData,
         };
-        let config = self.address.interact(request)?.await?;
+        let config = self.address.interact(request).await?;
         Ok(config)
     }
 }
