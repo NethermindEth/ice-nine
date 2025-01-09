@@ -3,14 +3,18 @@ use crate::drainer::TelegramDrainer;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Agent, Context, DoAsync, InContext, Next, OnEvent, Supervisor, SupervisorSession,
+    Agent, Context, DoAsync, InContext, Next, OnEvent, OnResponse, Output, Supervisor,
+    SupervisorSession,
 };
-use crb::core::types::Slot;
-use ice_nine_core::{ChatRequest, ModelLink, Particle, ParticleSetup, SubstanceLinks};
+use crb::core::{time::Duration, types::Slot};
+use crb::superagent::{Interval, OnTick};
+use ice_nine_core::{
+    ChatRequest, ChatResponse, ModelLink, Particle, ParticleSetup, SubstanceLinks,
+};
 use std::collections::HashSet;
 use teloxide_core::{
     prelude::Requester,
-    types::{ChatId, Message},
+    types::{ChatAction, ChatId, Message},
     Bot,
 };
 
@@ -22,6 +26,7 @@ pub struct TelegramParticle {
     client: Slot<Bot>,
 
     typing: HashSet<ChatId>,
+    interval: Option<Interval>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -36,6 +41,7 @@ impl Particle for TelegramParticle {
             model,
             client: Slot::empty(),
             typing: HashSet::new(),
+            interval: None,
         }
     }
 }
@@ -72,6 +78,10 @@ impl InContext<SpawnWorkers> for TelegramParticle {
         let address = ctx.address().clone();
         let drainer = TelegramDrainer::new(address, client);
         ctx.spawn_agent(drainer, ());
+
+        let address = ctx.address().clone();
+        let duration = Duration::from_secs(1);
+        let interval = Interval::new(address, duration, ());
         Ok(Next::events())
     }
 }
@@ -80,28 +90,45 @@ impl InContext<SpawnWorkers> for TelegramParticle {
 impl OnEvent<Message> for TelegramParticle {
     type Error = Error;
 
-    async fn handle(&mut self, message: Message, _ctx: &mut Self::Context) -> Result<()> {
-        let client = self.client.get_mut()?;
+    async fn handle(&mut self, message: Message, ctx: &mut Self::Context) -> Result<()> {
         if let Some(text) = message.text() {
-            let chat_id = message.sender_chat.as_ref().map(|chat| chat.id);
-            if let Some(chat_id) = chat_id {
-                self.typing.insert(chat_id);
-            }
+            let chat_id = message.chat.id;
+            self.typing.insert(chat_id);
 
             let request = ChatRequest::user(&text);
-            let response = self.model.chat(request).await?;
-            let text = response.squash();
-            client.send_message(message.chat.id, text).await?;
+            let address = ctx.address().clone();
+            self.model.chat(request).forward_to(address, chat_id);
         }
         Ok(())
     }
 }
 
-/*
-    async move {
-        loop {
-            bot.send_chat_action(chat_id, ChatAction::Typing).await?;
-            typing_interval.tick().await;
-        }
+#[async_trait]
+impl OnResponse<ChatRequest, ChatId> for TelegramParticle {
+    async fn on_response(
+        &mut self,
+        response: Output<ChatResponse>,
+        chat_id: ChatId,
+        _ctx: &mut Self::Context,
+    ) -> Result<()> {
+        self.typing.remove(&chat_id);
+        // TODO: Show error to the chat?
+        let client = self.client.get_mut()?;
+        let text = response?.squash();
+        client.send_message(chat_id, text).await?;
+        Ok(())
     }
-*/
+}
+
+#[async_trait]
+impl OnTick for TelegramParticle {
+    async fn on_tick(&mut self, tag: &(), _ctx: &mut Self::Context) -> Result<()> {
+        let client = self.client.get_mut()?;
+        for chat_id in &self.typing {
+            client
+                .send_chat_action(*chat_id, ChatAction::Typing)
+                .await?;
+        }
+        Ok(())
+    }
+}
