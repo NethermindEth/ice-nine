@@ -15,6 +15,12 @@ pub fn message(from: ModelMessage) -> ChatCompletionRequestMessage {
             message.content = content;
             ChatCompletionRequestMessage::from(message)
         }
+        ModelRole::Assistant => {
+            let mut message = ChatCompletionRequestAssistantMessage::default();
+            let content = ChatCompletionRequestAssistantMessageContent::Text(from.content);
+            message.content = Some(content);
+            ChatCompletionRequestMessage::from(message)
+        }
     }
 }
 
@@ -22,6 +28,7 @@ pub fn choice(from: ChatChoice) -> Option<ModelMessage> {
     let role = match from.message.role {
         Role::System => ModelRole::Developer,
         Role::User => ModelRole::User,
+        Role::Assistant => ModelRole::Assistant,
         _ => {
             return None;
         }

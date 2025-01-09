@@ -8,6 +8,7 @@ pub trait Model: OnRequest<ChatRequest> {}
 pub enum Role {
     Developer,
     User,
+    Assistant,
 }
 
 pub struct Message {
