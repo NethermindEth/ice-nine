@@ -11,7 +11,7 @@ use ice_nine_core::{
 };
 
 pub struct OpenAIParticle {
-    links: SubstanceLinks,
+    substance: SubstanceLinks,
     client: Slot<Client>,
 }
 
@@ -20,7 +20,7 @@ impl Model for OpenAIParticle {}
 impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            links: setup.links,
+            substance: setup.links,
             client: Slot::empty(),
         }
     }
@@ -42,13 +42,13 @@ impl InContext<Configure> for OpenAIParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
 
-        let config: OpenAIConfig = self.links.keeper.get_config().await?;
+        let config: OpenAIConfig = self.substance.config().await?;
         let client = Client::with_config(config.0);
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
 
         let address = ctx.address().clone();
-        self.links.router.add_model(address)?;
+        self.substance.router.add_model(address)?;
 
         Ok(Next::events())
     }

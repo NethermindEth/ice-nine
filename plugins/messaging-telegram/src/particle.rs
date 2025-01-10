@@ -16,7 +16,7 @@ use teloxide_core::{
 };
 
 pub struct TelegramParticle {
-    links: SubstanceLinks,
+    substance: SubstanceLinks,
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
@@ -30,7 +30,7 @@ impl Supervisor for TelegramParticle {
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            links: setup.links,
+            substance: setup.links,
             client: Slot::empty(),
             typing: HashSet::new(),
             interval: None,
@@ -53,7 +53,7 @@ struct Configure;
 impl InContext<Configure> for TelegramParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
-        let config: TelegramConfig = self.links.keeper.get_config().await?;
+        let config: TelegramConfig = self.substance.config().await?;
         let client = Client::new(&config.api_key);
         client.get_me().await?;
         self.client.fill(client)?;
@@ -89,7 +89,10 @@ impl OnEvent<Message> for TelegramParticle {
 
             let request = ChatRequest::user(&text);
             let address = ctx.address().clone();
-            self.links.router.chat(request).forward_to(address, chat_id);
+            self.substance
+                .router
+                .chat(request)
+                .forward_to(address, chat_id);
         }
         Ok(())
     }
