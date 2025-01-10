@@ -9,7 +9,7 @@ use crb::agent::{
 use crb::core::Slot;
 use crb::superagent::interaction::Output;
 use derive_more::{From, Into};
-use model::{ChatRequest, ChatResponse, Model, ModelLink};
+use model::{ChatRequest, ChatResponse, ModelLink};
 use typed_slab::TypedSlab;
 
 #[derive(From, Into)]
@@ -28,8 +28,6 @@ impl ReasoningRouter {
         }
     }
 }
-
-impl Model for ReasoningRouter {}
 
 impl Agent for ReasoningRouter {
     type Context = AgentSession<Self>;

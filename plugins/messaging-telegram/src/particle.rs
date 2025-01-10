@@ -9,9 +9,7 @@ use crb::agent::{
 };
 use crb::core::{time::Duration, types::Slot};
 use crb::superagent::{Interval, OnTick};
-use ice_nine_core::{
-    ChatRequest, ChatResponse, ModelLink, Particle, ParticleSetup, SubstanceLinks,
-};
+use ice_nine_core::{ChatRequest, ChatResponse, Particle, ParticleSetup, SubstanceLinks};
 use std::collections::HashSet;
 use teloxide_core::{
     prelude::Requester,
@@ -22,7 +20,6 @@ const NAMESPACE: &'static str = "TELEGRAM";
 
 pub struct TelegramParticle {
     links: SubstanceLinks,
-    model: ModelLink,
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
@@ -35,10 +32,8 @@ impl Supervisor for TelegramParticle {
 
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
-        let model = setup.links.router.model();
         Self {
             links: setup.links,
-            model,
             client: Slot::empty(),
             typing: HashSet::new(),
             interval: None,
@@ -104,7 +99,7 @@ impl OnEvent<Message> for TelegramParticle {
 
             let request = ChatRequest::user(&text);
             let address = ctx.address().clone();
-            self.model.chat(request).forward_to(address, chat_id);
+            self.links.router.chat(request).forward_to(address, chat_id);
         }
         Ok(())
     }

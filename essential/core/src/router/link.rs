@@ -1,8 +1,9 @@
-use super::model::{Model, ModelLink};
+use super::model::{ChatRequest, Model, ModelLink};
 use super::ReasoningRouter;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Equip, OnEvent};
+use crb::agent::{Address, AddressExt, Equip, OnEvent};
+use crb::superagent::Fetcher;
 use derive_more::{Deref, DerefMut, From};
 
 #[derive(Deref, DerefMut, From, Clone)]
@@ -20,8 +21,8 @@ impl RouterLink {
         Ok(())
     }
 
-    pub fn model(&self) -> ModelLink {
-        self.address.clone().equip()
+    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest> {
+        self.interact(request)
     }
 }
 

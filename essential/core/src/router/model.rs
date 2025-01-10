@@ -74,3 +74,17 @@ impl<M: Model> ModelAddress for Address<M> {
         self.interact(request)
     }
 }
+
+#[derive(Default)]
+pub struct ToolingChatRequest {
+    pub messages: Vec<Message>,
+}
+
+impl Request for ToolingChatRequest {
+    type Response = ToolingChatResponse;
+}
+
+#[derive(Default)]
+pub struct ToolingChatResponse {
+    pub messages: Vec<Message>,
+}
