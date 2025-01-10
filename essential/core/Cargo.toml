@@ -13,5 +13,6 @@ dotenvy.workspace = true
 envy.workspace = true
 log.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 typed-slab = "0.2.0"
 typedmap = "0.6.0"

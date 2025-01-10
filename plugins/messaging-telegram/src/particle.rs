@@ -1,7 +1,7 @@
 use crate::client::Client;
 use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
-use anyhow::{Error, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
     Agent, Context, InContext, Next, OnEvent, OnResponse, Output, Supervisor, SupervisorSession,
@@ -74,8 +74,6 @@ impl InContext<Configure> for TelegramParticle {
 
 #[async_trait]
 impl OnEvent<Message> for TelegramParticle {
-    type Error = Error;
-
     async fn handle(&mut self, message: Message, ctx: &mut Self::Context) -> Result<()> {
         let client = self.client.get_mut()?;
         if let Some(text) = message.text() {

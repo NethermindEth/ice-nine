@@ -2300,6 +2300,7 @@ dependencies = [
  "envy",
  "log",
  "serde",
+ "serde_json",
  "typed-slab",
  "typedmap",
 ]

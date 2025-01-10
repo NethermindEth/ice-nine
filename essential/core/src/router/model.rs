@@ -1,6 +1,6 @@
 use super::types::{ChatRequest, ToolingChatRequest};
 use super::{ReasoningRouter, RouterLink};
-use anyhow::{Error, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Equip, OnEvent};
 use crb::superagent::{Fetcher, OnRequest};
@@ -53,8 +53,6 @@ pub struct AddModel {
 
 #[async_trait]
 impl OnEvent<AddModel> for ReasoningRouter {
-    type Error = Error;
-
     async fn handle(&mut self, msg: AddModel, _ctx: &mut Self::Context) -> Result<()> {
         self.models.push(msg.link);
         Ok(())

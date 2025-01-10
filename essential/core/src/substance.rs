@@ -1,7 +1,7 @@
 use crate::keeper::Keeper;
 use crate::particle::{Particle, ParticleSetup, SubstanceLinks};
 use crate::router::ReasoningRouter;
-use anyhow::{Error, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, Equip, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
@@ -90,8 +90,6 @@ impl<P> OnEvent<AddParticle<P>> for Substance
 where
     P: Particle,
 {
-    type Error = Error;
-
     async fn handle(&mut self, _: AddParticle<P>, ctx: &mut Self::Context) -> Result<()> {
         log::info!("Add particle: {}", type_name::<P>());
         let setup = self.get_setup()?;
