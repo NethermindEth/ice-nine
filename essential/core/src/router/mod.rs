@@ -9,7 +9,7 @@ use crb::agent::{
 use crb::core::Slot;
 use crb::superagent::interaction::Output;
 use derive_more::{From, Into};
-use model::{ChatRequest, ChatResponse, ModelLink};
+use model::{ChatRequest, ModelLink, ToolingChatRequest, ToolingChatResponse};
 use typed_slab::TypedSlab;
 
 #[derive(From, Into)]
@@ -48,16 +48,17 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
         let model = self.model.get_mut()?;
         let address = ctx.address().clone();
         let req_id = self.requests.insert(lookup.responder);
-        model.chat(lookup.request).forward_to(address, req_id);
+        let request = lookup.request.with_tools();
+        model.chat(request).forward_to(address, req_id);
         Ok(())
     }
 }
 
 #[async_trait]
-impl OnResponse<ChatRequest, ReqId> for ReasoningRouter {
+impl OnResponse<ToolingChatRequest, ReqId> for ReasoningRouter {
     async fn on_response(
         &mut self,
-        resp: Output<ChatResponse>,
+        resp: Output<ToolingChatResponse>,
         req_id: ReqId,
         _ctx: &mut Self::Context,
     ) -> Result<()> {
@@ -65,7 +66,7 @@ impl OnResponse<ChatRequest, ReqId> for ReasoningRouter {
             .requests
             .remove(req_id)
             .ok_or_else(|| anyhow!("No responder"))?;
-        let response = resp?;
+        let response = resp?.without_tools();
         responder.send(response)?;
         Ok(())
     }

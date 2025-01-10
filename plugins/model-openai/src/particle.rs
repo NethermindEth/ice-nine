@@ -6,7 +6,9 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, InContext, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{ChatRequest, ChatResponse, Model, Particle, ParticleSetup, SubstanceLinks};
+use ice_nine_core::{
+    Model, Particle, ParticleSetup, SubstanceLinks, ToolingChatRequest, ToolingChatResponse,
+};
 
 const NAMESPACE: &'static str = "OPENAI";
 
@@ -57,12 +59,12 @@ impl InContext<Configure> for OpenAIParticle {
 }
 
 #[async_trait]
-impl OnRequest<ChatRequest> for OpenAIParticle {
+impl OnRequest<ToolingChatRequest> for OpenAIParticle {
     async fn on_request(
         &mut self,
-        msg: ChatRequest,
+        msg: ToolingChatRequest,
         _: &mut Self::Context,
-    ) -> Result<ChatResponse> {
+    ) -> Result<ToolingChatResponse> {
         let client = self.client.get_mut()?;
         // TODO: Sequental, but could be executed in the reactor
         let messages: Vec<_> = msg.messages.into_iter().map(convert::message).collect();
@@ -76,6 +78,6 @@ impl OnRequest<ChatRequest> for OpenAIParticle {
             .into_iter()
             .filter_map(convert::choice)
             .collect();
-        Ok(ChatResponse { messages })
+        Ok(ToolingChatResponse { messages })
     }
 }

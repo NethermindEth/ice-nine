@@ -3,7 +3,7 @@ use crb::superagent::{Fetcher, OnRequest, Request};
 use derive_more::{Deref, DerefMut};
 use std::sync::Arc;
 
-pub trait Model: OnRequest<ChatRequest> {}
+pub trait Model: OnRequest<ToolingChatRequest> {}
 
 pub enum Role {
     Developer,
@@ -19,6 +19,14 @@ pub struct Message {
 #[derive(Default)]
 pub struct ChatRequest {
     pub messages: Vec<Message>,
+}
+
+impl ChatRequest {
+    pub fn with_tools(self) -> ToolingChatRequest {
+        ToolingChatRequest {
+            messages: self.messages,
+        }
+    }
 }
 
 impl ChatRequest {
@@ -66,11 +74,11 @@ impl<M: Model> From<Address<M>> for ModelLink {
 }
 
 pub trait ModelAddress: Sync + Send {
-    fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest>;
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest>;
 }
 
 impl<M: Model> ModelAddress for Address<M> {
-    fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest> {
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest> {
         self.interact(request)
     }
 }
@@ -87,4 +95,12 @@ impl Request for ToolingChatRequest {
 #[derive(Default)]
 pub struct ToolingChatResponse {
     pub messages: Vec<Message>,
+}
+
+impl ToolingChatResponse {
+    pub fn without_tools(self) -> ChatResponse {
+        ChatResponse {
+            messages: self.messages,
+        }
+    }
 }
