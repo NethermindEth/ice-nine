@@ -1,46 +1,26 @@
+pub mod link;
 pub mod model;
 
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Context, Equip, Interaction, Next, OnEvent, OnRequest,
-    OnResponse, Responder,
+    Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
 };
 use crb::core::Slot;
 use crb::superagent::interaction::Output;
-use derive_more::{Deref, DerefMut, From, Into};
+use derive_more::{From, Into};
 use model::{ChatRequest, ChatResponse, Model, ModelLink};
 use typed_slab::TypedSlab;
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
 
-#[derive(Deref, DerefMut, From, Clone)]
-pub struct RouterLink {
-    address: Address<Router>,
-}
-
-impl RouterLink {
-    pub fn add_model<M>(&mut self, addr: Address<M>) -> Result<()>
-    where
-        M: Model,
-    {
-        let msg = AddModel { link: addr.equip() };
-        self.address.event(msg)?;
-        Ok(())
-    }
-
-    pub fn model(&self) -> ModelLink {
-        self.address.clone().equip()
-    }
-}
-
-pub struct Router {
+pub struct ReasoningRouter {
     model: Slot<ModelLink>,
     requests: TypedSlab<ReqId, Responder<ChatRequest>>,
 }
 
-impl Router {
+impl ReasoningRouter {
     pub fn new() -> Self {
         Self {
             model: Slot::empty(),
@@ -49,9 +29,9 @@ impl Router {
     }
 }
 
-impl Model for Router {}
+impl Model for ReasoningRouter {}
 
-impl Agent for Router {
+impl Agent for ReasoningRouter {
     type Context = AgentSession<Self>;
     type Output = ();
 
@@ -60,22 +40,8 @@ impl Agent for Router {
     }
 }
 
-pub struct AddModel {
-    link: ModelLink,
-}
-
 #[async_trait]
-impl OnEvent<AddModel> for Router {
-    type Error = Error;
-
-    async fn handle(&mut self, msg: AddModel, _ctx: &mut Self::Context) -> Result<()> {
-        self.model.fill(msg.link)?;
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl OnRequest<ChatRequest> for Router {
+impl OnRequest<ChatRequest> for ReasoningRouter {
     async fn handle(
         &mut self,
         lookup: Interaction<ChatRequest>,
@@ -90,7 +56,7 @@ impl OnRequest<ChatRequest> for Router {
 }
 
 #[async_trait]
-impl OnResponse<ChatRequest, ReqId> for Router {
+impl OnResponse<ChatRequest, ReqId> for ReasoningRouter {
     async fn on_response(
         &mut self,
         resp: Output<ChatResponse>,

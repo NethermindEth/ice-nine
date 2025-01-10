@@ -1,6 +1,6 @@
 use crate::keeper::Keeper;
 use crate::particle::{Particle, ParticleSetup, SubstanceLinks};
-use crate::router::Router;
+use crate::router::ReasoningRouter;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -71,7 +71,7 @@ impl InContext<Configure> for Substance {
         let agent = Keeper::new();
         let keeper = ctx.spawn_agent(agent, Group::Services).equip();
 
-        let agent = Router::new();
+        let agent = ReasoningRouter::new();
         let router = ctx.spawn_agent(agent, Group::Services).equip();
 
         let links = SubstanceLinks { keeper, router };
