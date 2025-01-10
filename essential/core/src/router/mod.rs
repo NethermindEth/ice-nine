@@ -1,29 +1,30 @@
 pub mod link;
 pub mod model;
+pub mod tool;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
     Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
 };
-use crb::core::Slot;
 use crb::superagent::interaction::Output;
 use derive_more::{From, Into};
-use model::{ChatRequest, ModelLink, ToolingChatRequest, ToolingChatResponse};
+use link::ModelLink;
+use model::{ChatRequest, ToolingChatRequest, ToolingChatResponse};
 use typed_slab::TypedSlab;
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
 
 pub struct ReasoningRouter {
-    model: Slot<ModelLink>,
+    models: Vec<ModelLink>,
     requests: TypedSlab<ReqId, Responder<ChatRequest>>,
 }
 
 impl ReasoningRouter {
     pub fn new() -> Self {
         Self {
-            model: Slot::empty(),
+            models: Vec::new(),
             requests: TypedSlab::default(),
         }
     }
@@ -45,7 +46,12 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
         lookup: Interaction<ChatRequest>,
         ctx: &mut Self::Context,
     ) -> Result<()> {
-        let model = self.model.get_mut()?;
+        // TODO: Picking model strategy
+        let model = self
+            .models
+            .first()
+            .ok_or_else(|| anyhow!("Models are not installed"))?;
+
         let address = ctx.address().clone();
         let req_id = self.requests.insert(lookup.responder);
         let request = lookup.request.with_tools();

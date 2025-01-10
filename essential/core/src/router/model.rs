@@ -3,8 +3,6 @@ use crb::superagent::{Fetcher, OnRequest, Request};
 use derive_more::{Deref, DerefMut};
 use std::sync::Arc;
 
-pub trait Model: OnRequest<ToolingChatRequest> {}
-
 pub enum Role {
     Developer,
     User,
@@ -57,29 +55,6 @@ impl ChatResponse {
             text.push_str(&msg.content);
         }
         text
-    }
-}
-
-#[derive(Deref, DerefMut, Clone)]
-pub struct ModelLink {
-    address: Arc<dyn ModelAddress>,
-}
-
-impl<M: Model> From<Address<M>> for ModelLink {
-    fn from(addr: Address<M>) -> Self {
-        Self {
-            address: Arc::new(addr),
-        }
-    }
-}
-
-pub trait ModelAddress: Sync + Send {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest>;
-}
-
-impl<M: Model> ModelAddress for Address<M> {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest> {
-        self.interact(request)
     }
 }
 
