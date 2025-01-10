@@ -5,7 +5,7 @@ use tokio::runtime::Runtime;
 use ui9_tool_dashboard::{App, AppUi};
 
 fn main() -> Result<()> {
-    console_subscriber::init();
+    // console_subscriber::init();
     let app = App::new();
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();
