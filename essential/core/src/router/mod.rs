@@ -1,5 +1,6 @@
 pub mod model;
 pub mod tool;
+pub mod tool_interaction;
 pub mod types;
 
 use anyhow::{anyhow, Result};
@@ -13,7 +14,7 @@ use model::ModelLink;
 use std::collections::HashMap;
 use tool::{ToolId, ToolLink};
 use typed_slab::TypedSlab;
-use types::{ChatRequest, ToolingChatRequest, ToolingChatResponse};
+use types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatResponse};
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
@@ -26,7 +27,7 @@ pub struct RouterLink {
 pub struct ReasoningRouter {
     models: Vec<ModelLink>,
     tools: HashMap<ToolId, ToolLink>,
-    requests: TypedSlab<ReqId, Responder<ChatRequest>>,
+    requests: TypedSlab<ReqId, Responder<ChatResponse>>,
 }
 
 impl ReasoningRouter {

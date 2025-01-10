@@ -34,3 +34,16 @@ impl InContext<Configure> for DyDxParticle {
         Ok(Next::events())
     }
 }
+
+/*
+#[async_trait]
+impl OnRequest<()> for DyDxParticle {
+    async fn on_request(
+        &mut self,
+        msg: (),
+        _: &mut Self::Context,
+    ) -> Result<()> {
+        Ok(())
+    }
+}
+*/
