@@ -2307,6 +2307,14 @@ dependencies = [
 [[package]]
 name = "ice-nine-plugin-exchange-dydx"
 version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "ice-nine-core",
+ "serde",
+]
 
 [[package]]
 name = "ice-nine-plugin-messaging-telegram"

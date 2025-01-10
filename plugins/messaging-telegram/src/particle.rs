@@ -4,8 +4,7 @@ use crate::drainer::TelegramDrainer;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Agent, Context, DoAsync, InContext, Next, OnEvent, OnResponse, Output, Supervisor,
-    SupervisorSession,
+    Agent, Context, InContext, Next, OnEvent, OnResponse, Output, Supervisor, SupervisorSession,
 };
 use crb::core::{time::Duration, types::Slot};
 use crb::superagent::{Interval, OnTick};
@@ -15,8 +14,6 @@ use teloxide_core::{
     prelude::Requester,
     types::{ChatId, Message},
 };
-
-const NAMESPACE: &'static str = "TELEGRAM";
 
 pub struct TelegramParticle {
     links: SubstanceLinks,
@@ -46,29 +43,21 @@ impl Agent for TelegramParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::do_async(Configure)
+        Next::in_context(Configure)
     }
 }
 
 struct Configure;
 
 #[async_trait]
-impl DoAsync<Configure> for TelegramParticle {
-    async fn once(&mut self, _: &mut Configure) -> Result<Next<Self>> {
+impl InContext<Configure> for TelegramParticle {
+    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
-        let config: TelegramConfig = self.links.keeper.get_config(NAMESPACE).await?;
+        let config: TelegramConfig = self.links.keeper.get_config().await?;
         let client = Client::new(&config.api_key);
         client.get_me().await?;
         self.client.fill(client)?;
-        Ok(Next::in_context(SpawnWorkers))
-    }
-}
 
-struct SpawnWorkers;
-
-#[async_trait]
-impl InContext<SpawnWorkers> for TelegramParticle {
-    async fn handle(&mut self, _: SpawnWorkers, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let client = self.client.get_mut()?.clone();
         let address = ctx.address().clone();
         let drainer = TelegramDrainer::new(address, client);
@@ -78,6 +67,7 @@ impl InContext<SpawnWorkers> for TelegramParticle {
         let duration = Duration::from_secs(1);
         let interval = Interval::new(address, duration, ());
         self.interval = Some(interval);
+
         Ok(Next::events())
     }
 }

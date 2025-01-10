@@ -5,3 +5,9 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+crb.workspace = true
+derive_more.workspace = true
+ice-nine-core.workspace = true
+serde.workspace = true

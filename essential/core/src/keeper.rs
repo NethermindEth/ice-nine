@@ -5,28 +5,28 @@ use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 
+pub trait Config: DeserializeOwned + Send + 'static {
+    const NAMESPACE: &str;
+}
+
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct KeeperLink {
     address: Address<Keeper>,
 }
 
 impl KeeperLink {
-    pub async fn get_config<C>(&self, namespace: &str) -> Result<C>
+    pub async fn get_config<C>(&self) -> Result<C>
     where
         C: Config,
     {
         let request = GetConfig::<C> {
-            namespace: namespace.to_string(),
+            namespace: C::NAMESPACE.to_string(),
             _type: PhantomData,
         };
         let config = self.address.interact(request).await?;
         Ok(config)
     }
 }
-
-pub trait Config: DeserializeOwned + Send + 'static {}
-
-impl<T> Config for T where Self: DeserializeOwned + Send + 'static {}
 
 pub struct Keeper {}
 

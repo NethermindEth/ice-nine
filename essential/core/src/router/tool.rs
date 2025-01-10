@@ -1,4 +1,4 @@
-use super::ReasoningRouter;
+use super::{ReasoningRouter, RouterLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Equip, OnEvent};
@@ -23,11 +23,6 @@ impl<T: Tool> From<Address<T>> for ToolLink {
 pub trait ToolAddress: Sync + Send {}
 
 impl<T: Tool> ToolAddress for Address<T> {}
-
-#[derive(Deref, DerefMut, From, Clone)]
-pub struct RouterLink {
-    address: Address<ReasoningRouter>,
-}
 
 impl RouterLink {
     pub fn add_tool<T>(&mut self, addr: Address<T>) -> Result<()>

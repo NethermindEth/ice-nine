@@ -1,7 +1,7 @@
+use crate::config::{Client, OpenAIConfig};
 use crate::convert;
 use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequestArgs;
-use async_openai::{config::OpenAIConfig, Client as OpenAIClient};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, InContext, Next};
 use crb::core::types::Slot;
@@ -9,10 +9,6 @@ use crb::superagent::OnRequest;
 use ice_nine_core::{
     Model, Particle, ParticleSetup, SubstanceLinks, ToolingChatRequest, ToolingChatResponse,
 };
-
-const NAMESPACE: &'static str = "OPENAI";
-
-type Client = OpenAIClient<OpenAIConfig>;
 
 pub struct OpenAIParticle {
     links: SubstanceLinks,
@@ -46,8 +42,8 @@ impl InContext<Configure> for OpenAIParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
 
-        let config: OpenAIConfig = self.links.keeper.get_config(NAMESPACE).await?;
-        let client = Client::with_config(config);
+        let config: OpenAIConfig = self.links.keeper.get_config().await?;
+        let client = Client::with_config(config.0);
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
 
