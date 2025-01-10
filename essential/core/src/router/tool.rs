@@ -1,8 +1,7 @@
 use super::ReasoningRouter;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, Equip, OnEvent};
-use crb::superagent::Fetcher;
+use crb::agent::{Address, Agent, Equip, OnEvent};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
 
@@ -49,7 +48,7 @@ pub struct AddTool {
 impl OnEvent<AddTool> for ReasoningRouter {
     type Error = Error;
 
-    async fn handle(&mut self, msg: AddTool, _ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, _msg: AddTool, _ctx: &mut Self::Context) -> Result<()> {
         Ok(())
     }
 }

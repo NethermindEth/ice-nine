@@ -1,81 +1,62 @@
-use crb::agent::{Address, AddressExt};
-use crb::superagent::{Fetcher, OnRequest, Request};
-use derive_more::{Deref, DerefMut};
+use super::types::{ChatRequest, ToolingChatRequest};
+use super::{ReasoningRouter, RouterLink};
+use anyhow::{Error, Result};
+use async_trait::async_trait;
+use crb::agent::{Address, AddressExt, Equip, OnEvent};
+use crb::superagent::{Fetcher, OnRequest};
+use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
 
-pub enum Role {
-    Developer,
-    User,
-    Assistant,
+pub trait Model: OnRequest<ToolingChatRequest> {}
+
+#[derive(Deref, DerefMut, Clone)]
+pub struct ModelLink {
+    address: Arc<dyn ModelAddress>,
 }
 
-pub struct Message {
-    pub role: Role,
-    pub content: String,
-}
-
-#[derive(Default)]
-pub struct ChatRequest {
-    pub messages: Vec<Message>,
-}
-
-impl ChatRequest {
-    pub fn with_tools(self) -> ToolingChatRequest {
-        ToolingChatRequest {
-            messages: self.messages,
-        }
-    }
-}
-
-impl ChatRequest {
-    pub fn user(text: &str) -> Self {
-        let message = Message {
-            role: Role::User,
-            content: text.to_string(),
-        };
+impl<M: Model> From<Address<M>> for ModelLink {
+    fn from(addr: Address<M>) -> Self {
         Self {
-            messages: vec![message],
+            address: Arc::new(addr),
         }
     }
 }
 
-impl Request for ChatRequest {
-    type Response = ChatResponse;
+pub trait ModelAddress: Sync + Send {
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest>;
 }
 
-#[derive(Default)]
-pub struct ChatResponse {
-    pub messages: Vec<Message>,
-}
-
-impl ChatResponse {
-    pub fn squash(&self) -> String {
-        let mut text = String::new();
-        for msg in &self.messages {
-            text.push_str(&msg.content);
-        }
-        text
+impl<M: Model> ModelAddress for Address<M> {
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest> {
+        self.interact(request)
     }
 }
 
-#[derive(Default)]
-pub struct ToolingChatRequest {
-    pub messages: Vec<Message>,
+impl RouterLink {
+    pub fn add_model<M>(&mut self, addr: Address<M>) -> Result<()>
+    where
+        M: Model,
+    {
+        let msg = AddModel { link: addr.equip() };
+        self.address.event(msg)?;
+        Ok(())
+    }
+
+    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest> {
+        self.interact(request)
+    }
 }
 
-impl Request for ToolingChatRequest {
-    type Response = ToolingChatResponse;
+pub struct AddModel {
+    link: ModelLink,
 }
 
-#[derive(Default)]
-pub struct ToolingChatResponse {
-    pub messages: Vec<Message>,
-}
+#[async_trait]
+impl OnEvent<AddModel> for ReasoningRouter {
+    type Error = Error;
 
-impl ToolingChatResponse {
-    pub fn without_tools(self) -> ChatResponse {
-        ChatResponse {
-            messages: self.messages,
-        }
+    async fn handle(&mut self, msg: AddModel, _ctx: &mut Self::Context) -> Result<()> {
+        self.models.push(msg.link);
+        Ok(())
     }
 }

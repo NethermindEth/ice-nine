@@ -1,20 +1,25 @@
-pub mod link;
 pub mod model;
 pub mod tool;
+pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
+    Address, Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
 };
 use crb::superagent::interaction::Output;
-use derive_more::{From, Into};
-use link::ModelLink;
-use model::{ChatRequest, ToolingChatRequest, ToolingChatResponse};
+use derive_more::{Deref, DerefMut, From, Into};
+use model::ModelLink;
 use typed_slab::TypedSlab;
+use types::{ChatRequest, ToolingChatRequest, ToolingChatResponse};
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
+
+#[derive(Deref, DerefMut, From, Clone)]
+pub struct RouterLink {
+    address: Address<ReasoningRouter>,
+}
 
 pub struct ReasoningRouter {
     models: Vec<ModelLink>,
