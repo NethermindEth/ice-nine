@@ -6,7 +6,7 @@ use teloxide_core::{
     Bot,
 };
 
-#[derive(Deref, DerefMut)]
+#[derive(Deref, DerefMut, Clone)]
 pub struct Client {
     bot: Bot,
 }

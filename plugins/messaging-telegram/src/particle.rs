@@ -58,7 +58,7 @@ impl InContext<Configure> for TelegramParticle {
         client.get_me().await?;
         self.client.fill(client)?;
 
-        let client = self.client.get_mut()?.clone();
+        let client = self.client.cloned()?;
         let address = ctx.address().clone();
         let drainer = TelegramDrainer::new(address, client);
         ctx.spawn_agent(drainer, ());

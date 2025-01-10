@@ -978,7 +978,7 @@ dependencies = [
 [[package]]
 name = "crb"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "crb-agent",
  "crb-core",
@@ -991,7 +991,7 @@ dependencies = [
 [[package]]
 name = "crb-agent"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1007,7 +1007,7 @@ dependencies = [
 [[package]]
 name = "crb-core"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
  "derive_more 1.0.0",
@@ -1016,7 +1016,7 @@ dependencies = [
  "gloo-timers",
  "js-sys",
  "ordered-float",
- "thiserror 2.0.10",
+ "thiserror 2.0.11",
  "tokio",
  "uuid",
  "wasm-bindgen-futures",
@@ -1026,7 +1026,7 @@ dependencies = [
 [[package]]
 name = "crb-pipeline"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1042,20 +1042,20 @@ dependencies = [
 [[package]]
 name = "crb-runtime"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
  "async-trait",
  "crb-core",
  "derive_more 1.0.0",
  "futures",
- "thiserror 2.0.10",
+ "thiserror 2.0.11",
 ]
 
 [[package]]
 name = "crb-send"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
 ]
@@ -1063,7 +1063,7 @@ dependencies = [
 [[package]]
 name = "crb-superagent"
 version = "0.0.25"
-source = "git+https://github.com/runtime-blocks/crb#dc714a4cf2b5db8c83a32ccdae3bf3605c439cf8"
+source = "git+https://github.com/runtime-blocks/crb#c50a6733919393665f6f90ae87f6a9598939f7dc"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1074,7 +1074,7 @@ dependencies = [
  "derive_more 1.0.0",
  "futures",
  "log",
- "thiserror 2.0.10",
+ "thiserror 2.0.11",
  "typed-slab",
 ]
 
@@ -3453,7 +3453,7 @@ dependencies = [
  "rustc-hash 2.1.0",
  "rustls",
  "socket2",
- "thiserror 2.0.10",
+ "thiserror 2.0.11",
  "tokio",
  "tracing",
 ]
@@ -3472,7 +3472,7 @@ dependencies = [
  "rustls",
  "rustls-pki-types",
  "slab",
- "thiserror 2.0.10",
+ "thiserror 2.0.11",
  "tinyvec",
  "tracing",
  "web-time",
@@ -4344,11 +4344,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "2.0.10"
+version = "2.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3ac7f54ca534db81081ef1c1e7f6ea8a3ef428d2fc069097c079443d24124d3"
+checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
 dependencies = [
- "thiserror-impl 2.0.10",
+ "thiserror-impl 2.0.11",
 ]
 
 [[package]]
@@ -4364,9 +4364,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "2.0.10"
+version = "2.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e9465d30713b56a37ede7185763c3492a91be2f5fa68d958c44e41ab9248beb"
+checksum = "26afc1baea8a989337eeb52b6e72a039780ce45c3edfcc9c5b9d112feeb173c2"
 dependencies = [
  "proc-macro2",
  "quote",
