@@ -1,14 +1,14 @@
-use crate::app::TuiApp;
+use crate::app::App;
 use anyhow::Result;
 use crb::agent::{Address, Agent, AgentSession, DoSync, Next};
-use crossterm::event;
+// use crossterm::event;
 
 pub struct EventsDrainer {
-    app: Address<TuiApp>,
+    app: Address<App>,
 }
 
 impl EventsDrainer {
-    pub fn new(app: Address<TuiApp>) -> Self {
+    pub fn new(app: Address<App>) -> Self {
         Self { app }
     }
 }
@@ -24,8 +24,10 @@ impl Agent for EventsDrainer {
 
 impl DoSync for EventsDrainer {
     fn repeat(&mut self, _: &mut ()) -> Result<Option<Next<Self>>> {
+        /*
         let event = event::read()?;
         self.app.event(event)?;
+        */
         Ok(None)
     }
 }

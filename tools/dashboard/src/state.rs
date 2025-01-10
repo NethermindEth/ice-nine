@@ -1,4 +1,4 @@
-use ratatui::Frame;
+// use ratatui::Frame;
 
 pub struct AppState {}
 
@@ -7,7 +7,9 @@ impl AppState {
         Self {}
     }
 
+    /*
     pub fn render(&self, frame: &mut Frame<'_>) {
         frame.render_widget("UI9", frame.area());
     }
+    */
 }
