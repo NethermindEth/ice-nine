@@ -71,7 +71,7 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
 }
 
 #[async_trait]
-impl OnResponse<ToolingChatRequest, ReqId> for ReasoningRouter {
+impl OnResponse<ToolingChatResponse, ReqId> for ReasoningRouter {
     async fn on_response(
         &mut self,
         resp: Output<ToolingChatResponse>,

@@ -1,4 +1,4 @@
-use super::types::{ChatRequest, ToolingChatRequest};
+use super::types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatResponse};
 use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -23,11 +23,11 @@ impl<M: Model> From<Address<M>> for ModelLink {
 }
 
 pub trait ModelAddress: Sync + Send {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest>;
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatResponse>;
 }
 
 impl<M: Model> ModelAddress for Address<M> {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatRequest> {
+    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatResponse> {
         self.interact(request)
     }
 }
@@ -42,7 +42,7 @@ impl RouterLink {
         Ok(())
     }
 
-    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatRequest> {
+    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatResponse> {
         self.interact(request)
     }
 }

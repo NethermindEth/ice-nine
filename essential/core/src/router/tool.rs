@@ -2,11 +2,16 @@ use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Equip, OnEvent};
+use crb::superagent::Fetcher;
+use crb::superagent::{AddressExt, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::sync::Arc;
 
-pub trait Tool: Agent {}
+pub trait Tool: OnRequest<Self::Request> {
+    type Request: Request + DeserializeOwned;
+}
 
 #[derive(Deref, DerefMut, Clone)]
 pub struct ToolLink {
@@ -21,9 +26,18 @@ impl<T: Tool> From<Address<T>> for ToolLink {
     }
 }
 
-pub trait ToolAddress: Sync + Send {}
+pub trait ToolAddress: Sync + Send {
+    fn call_tool(&self, value: Value) -> Fetcher<Value>;
+}
 
-impl<T: Tool> ToolAddress for Address<T> {}
+impl<T: Tool> ToolAddress for Address<T> {
+    fn call_tool(&self, value: Value) -> Fetcher<Value> {
+        let input: T::Request = serde_json::from_value(value).unwrap();
+        // TODO: Allow to reform the fetcher
+        self.interact(input);
+        todo!()
+    }
+}
 
 impl RouterLink {
     pub fn add_tool<T>(&mut self, addr: Address<T>, meta: ToolMeta) -> Result<()>

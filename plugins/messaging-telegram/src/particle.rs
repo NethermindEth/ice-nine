@@ -97,7 +97,7 @@ impl OnEvent<Message> for TelegramParticle {
 }
 
 #[async_trait]
-impl OnResponse<ChatRequest, ChatId> for TelegramParticle {
+impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
     async fn on_response(
         &mut self,
         response: Output<ChatResponse>,
