@@ -14,6 +14,8 @@ impl Supervisor for DyDxParticle {
     type GroupBy = ();
 }
 
+impl Tool for DyDxParticle {}
+
 impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
@@ -41,9 +43,42 @@ impl Duty<Configure> for DyDxParticle {
         /*
         let meta = ToolMeta {
         };
-        let meta = todo!();
-        self.substance.router.add_tool(address, meta)?;
         */
+        let meta = todo!();
+        self.substance.router.add_tool::<_, Price>(address, meta)?;
+        self.substance.router.add_tool::<_, Trade>(address, meta)?;
         Ok(Next::events())
+    }
+}
+
+#[derive(Deserialize)]
+pub struct Price {
+    ticker: String,
+}
+
+impl Request for Price {
+    type Response = ToolResponse;
+}
+
+#[async_trait]
+impl OnRequest<Price> for DyDxParticle {
+    async fn on_request(&mut self, msg: Price, _: &mut Self::Context) -> Result<ToolResponse> {
+        todo!()
+    }
+}
+
+#[derive(Deserialize)]
+pub struct Trade {
+    ticker: String,
+}
+
+impl Request for Trade {
+    type Response = ToolResponse;
+}
+
+#[async_trait]
+impl OnRequest<Trade> for DyDxParticle {
+    async fn on_request(&mut self, msg: Trade, _: &mut Self::Context) -> Result<ToolResponse> {
+        todo!()
     }
 }

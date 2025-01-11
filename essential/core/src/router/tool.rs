@@ -1,16 +1,15 @@
 use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Equip, MessageFor, OnEvent};
+use crb::agent::{Address, Agent, Equip, MessageFor, OnEvent};
 use crb::superagent::{Fetcher, Interaction, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::marker::PhantomData;
 use std::sync::Arc;
 
-pub trait Tool: OnRequest<Self::Request> {
-    type Request: Request<Response = ToolResponse> + DeserializeOwned;
-}
+pub trait Tool: Agent {}
 
 pub struct ToolResponse {
     pub content: String,
@@ -21,37 +20,46 @@ pub struct ToolLink {
     address: Arc<dyn ToolAddress>,
 }
 
-impl<T: Tool> From<Address<T>> for ToolLink {
-    fn from(addr: Address<T>) -> Self {
-        Self {
-            address: Arc::new(addr),
-        }
-    }
-}
-
 pub trait ToolAddress: Sync + Send {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse>;
 }
 
-impl<T: Tool> ToolAddress for Address<T> {
+struct CallRoute<R> {
+    _type: PhantomData<R>,
+}
+
+unsafe impl<R> Sync for CallRoute<R> {}
+
+impl<A, R> ToolAddress for (Address<A>, CallRoute<R>)
+where
+    A: Tool + OnRequest<R>,
+    R: Request<Response = ToolResponse> + DeserializeOwned,
+{
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse> {
         let request = ToolRequest { value };
         let (interaction, fetcher) = Interaction::new_pair(request);
-        let msg = CallTool { interaction };
-        let res = self.send(msg);
+        let msg = CallTool {
+            _type: PhantomData::<R>,
+            interaction,
+        };
+        let res = self.0.send(msg);
         fetcher.grasp(res)
     }
 }
 
 impl RouterLink {
-    pub fn add_tool<T>(&mut self, addr: Address<T>, meta: ToolMeta) -> Result<()>
+    pub fn add_tool<A, R>(&mut self, addr: Address<A>, meta: ToolMeta) -> Result<()>
     where
-        T: Tool,
+        A: Tool + OnRequest<R>,
+        R: Request<Response = ToolResponse> + DeserializeOwned,
     {
-        let msg = AddTool {
-            link: addr.equip(),
-            meta,
+        let call = CallRoute {
+            _type: PhantomData::<R>,
         };
+        let link = ToolLink {
+            address: Arc::new((addr, call)),
+        };
+        let msg = AddTool { link, meta };
         self.address.event(msg)?;
         Ok(())
     }
@@ -87,16 +95,18 @@ impl Request for ToolRequest {
     type Response = ToolResponse;
 }
 
-struct CallTool {
+struct CallTool<R> {
+    _type: PhantomData<R>,
     interaction: Interaction<ToolRequest>,
 }
 
 #[async_trait]
-impl<T> MessageFor<T> for CallTool
+impl<A, R> MessageFor<A> for CallTool<R>
 where
-    T: Tool,
+    A: Tool + OnRequest<R>,
+    R: Request<Response = ToolResponse> + DeserializeOwned,
 {
-    async fn handle(self: Box<Self>, agent: &mut T, ctx: &mut T::Context) -> Result<()> {
+    async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
         let Interaction { request, responder } = self.interaction;
         match serde_json::from_value(request.value) {
             Ok(request) => {
