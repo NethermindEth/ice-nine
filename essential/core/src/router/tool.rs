@@ -38,8 +38,8 @@ impl<T: Tool> ToolAddress for Address<T> {
         let request = ToolRequest { value };
         let (interaction, fetcher) = Interaction::new_pair(request);
         let msg = CallTool { interaction };
-        self.send(msg);
-        fetcher
+        let res = self.send(msg);
+        fetcher.grasp(res)
     }
 }
 
