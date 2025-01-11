@@ -1,16 +1,19 @@
 use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Equip, OnEvent};
-use crb::superagent::Fetcher;
-use crb::superagent::{AddressExt, OnRequest, Request};
+use crb::agent::{Address, Equip, MessageFor, OnEvent};
+use crb::superagent::{AddressExt, Fetcher, Interaction, OnRequest, Request, Responder};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 use std::sync::Arc;
 
 pub trait Tool: OnRequest<Self::Request> {
-    type Request: Request + DeserializeOwned;
+    type Request: Request<Response = ToolResponse> + DeserializeOwned;
+}
+
+pub struct ToolResponse {
+    pub content: String,
 }
 
 #[derive(Deref, DerefMut, Clone)]
@@ -27,15 +30,16 @@ impl<T: Tool> From<Address<T>> for ToolLink {
 }
 
 pub trait ToolAddress: Sync + Send {
-    fn call_tool(&self, value: Value) -> Fetcher<Value>;
+    fn call_tool(&self, value: Value) -> Fetcher<ToolResponse>;
 }
 
 impl<T: Tool> ToolAddress for Address<T> {
-    fn call_tool(&self, value: Value) -> Fetcher<Value> {
-        let input: T::Request = serde_json::from_value(value).unwrap();
-        // TODO: Allow to reform the fetcher
-        self.interact(input);
-        todo!()
+    fn call_tool(&self, value: Value) -> Fetcher<ToolResponse> {
+        let request = ToolRequest { value };
+        let (interaction, fetcher) = Interaction::new_pair(request);
+        let msg = CallTool { interaction };
+        self.send(msg);
+        fetcher
     }
 }
 
@@ -72,5 +76,34 @@ impl OnEvent<AddTool> for ReasoningRouter {
         let tool_id = format!("{}_{}", msg.meta.name, self.tools.len());
         self.tools.insert(tool_id, msg.link);
         Ok(())
+    }
+}
+
+struct ToolRequest {
+    value: Value,
+}
+
+impl Request for ToolRequest {
+    type Response = ToolResponse;
+}
+
+struct CallTool {
+    interaction: Interaction<ToolRequest>,
+}
+
+#[async_trait]
+impl<T> MessageFor<T> for CallTool
+where
+    T: Tool,
+{
+    async fn handle(self: Box<Self>, agent: &mut T, ctx: &mut T::Context) -> Result<()> {
+        let Interaction { request, responder } = self.interaction;
+        match serde_json::from_value(request.value) {
+            Ok(request) => {
+                let interaction = Interaction { request, responder };
+                OnRequest::handle(agent, interaction, ctx).await
+            }
+            Err(err) => responder.send_result(Err(err.into())),
+        }
     }
 }

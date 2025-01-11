@@ -1,6 +1,5 @@
 pub mod model;
 pub mod tool;
-pub mod tool_interaction;
 pub mod types;
 
 use anyhow::{anyhow, Result};
@@ -14,7 +13,7 @@ use model::ModelLink;
 use std::collections::HashMap;
 use tool::{ToolId, ToolLink};
 use typed_slab::TypedSlab;
-use types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatResponse};
+use types::{ChatRequest, ChatResponse, ToolingChatResponse};
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
