@@ -4,7 +4,7 @@ use crate::router::ReasoningRouter;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, Equip, InContext, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
+    Address, Agent, Duty, Equip, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
 };
 use crb::core::Slot;
 use derive_more::{Deref, DerefMut, From};
@@ -49,7 +49,7 @@ impl Agent for Substance {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::in_context(Configure)
+        Next::duty(Configure)
     }
 }
 
@@ -66,7 +66,7 @@ impl Supervisor for Substance {
 struct Configure;
 
 #[async_trait]
-impl InContext<Configure> for Substance {
+impl Duty<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let agent = Keeper::new();
         let keeper = ctx.spawn_agent(agent, Group::Services).equip();

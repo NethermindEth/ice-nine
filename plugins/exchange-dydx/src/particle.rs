@@ -1,7 +1,7 @@
 use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, InContext, Next};
+use crb::agent::{Agent, AgentSession, Duty, Next};
 use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks};
 
 pub struct DyDxParticle {
@@ -21,14 +21,14 @@ impl Agent for DyDxParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::in_context(Configure)
+        Next::duty(Configure)
     }
 }
 
 struct Configure;
 
 #[async_trait]
-impl InContext<Configure> for DyDxParticle {
+impl Duty<Configure> for DyDxParticle {
     async fn handle(&mut self, _: Configure, _ctx: &mut Self::Context) -> Result<Next<Self>> {
         let config: DyDxConfig = self.substance.config().await?;
         Ok(Next::events())

@@ -3,7 +3,7 @@ use crate::convert;
 use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequestArgs;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, InContext, Next};
+use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
 use ice_nine_core::{
@@ -31,14 +31,14 @@ impl Agent for OpenAIParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::in_context(Configure)
+        Next::duty(Configure)
     }
 }
 
 struct Configure;
 
 #[async_trait]
-impl InContext<Configure> for OpenAIParticle {
+impl Duty<Configure> for OpenAIParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
 

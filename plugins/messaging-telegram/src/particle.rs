@@ -4,7 +4,7 @@ use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
-    Agent, Context, InContext, Next, OnEvent, OnResponse, Output, Supervisor, SupervisorSession,
+    Agent, Context, Duty, Next, OnEvent, OnResponse, Output, Supervisor, SupervisorSession,
 };
 use crb::core::{time::Duration, types::Slot};
 use crb::superagent::{Interval, OnTick};
@@ -43,14 +43,14 @@ impl Agent for TelegramParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::in_context(Configure)
+        Next::duty(Configure)
     }
 }
 
 struct Configure;
 
 #[async_trait]
-impl InContext<Configure> for TelegramParticle {
+impl Duty<Configure> for TelegramParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         println!("Configuring...");
         let config: TelegramConfig = self.substance.config().await?;
