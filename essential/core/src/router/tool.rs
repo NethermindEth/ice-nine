@@ -2,7 +2,7 @@ use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Equip, MessageFor, OnEvent};
-use crb::superagent::{AddressExt, Fetcher, Interaction, OnRequest, Request, Responder};
+use crb::superagent::{Fetcher, Interaction, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use serde_json::Value;

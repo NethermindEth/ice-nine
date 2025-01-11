@@ -1,8 +1,8 @@
 use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, Next};
-use crb::superagent::{OnRequest, Request};
+use crb::agent::{Agent, Context, Duty, Next};
+use crb::superagent::{OnRequest, Request, Supervisor, SupervisorSession};
 use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks, Tool, ToolMeta, ToolResponse};
 use serde::Deserialize;
 
@@ -10,8 +10,8 @@ pub struct DyDxParticle {
     substance: SubstanceLinks,
 }
 
-impl Tool for DyDxParticle {
-    type Request = Price;
+impl Supervisor for DyDxParticle {
+    type GroupBy = ();
 }
 
 impl Particle for DyDxParticle {
@@ -23,7 +23,7 @@ impl Particle for DyDxParticle {
 }
 
 impl Agent for DyDxParticle {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
@@ -41,25 +41,9 @@ impl Duty<Configure> for DyDxParticle {
         /*
         let meta = ToolMeta {
         };
-        */
         let meta = todo!();
         self.substance.router.add_tool(address, meta)?;
+        */
         Ok(Next::events())
-    }
-}
-
-#[derive(Deserialize)]
-pub struct Price {
-    ticker: String,
-}
-
-impl Request for Price {
-    type Response = ToolResponse;
-}
-
-#[async_trait]
-impl OnRequest<Price> for DyDxParticle {
-    async fn on_request(&mut self, msg: Price, _: &mut Self::Context) -> Result<ToolResponse> {
-        todo!()
     }
 }
