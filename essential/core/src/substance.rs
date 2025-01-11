@@ -11,6 +11,13 @@ use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;
 
+pub struct SubstanceJoint<A: Particle> {
+    _type: PhantomData<A>,
+    links: SubstanceLinks,
+}
+
+impl<A: Particle> SubstanceJoint<A> {}
+
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct SubstanceLink {
     address: Address<Substance>,

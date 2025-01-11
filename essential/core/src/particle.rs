@@ -2,6 +2,7 @@ use crate::keeper::{Config, KeeperLink};
 use crate::router::RouterLink;
 use anyhow::Result;
 use crb::agent::Agent;
+use derive_more::{Deref, DerefMut};
 
 #[derive(Clone)]
 pub struct SubstanceLinks {
@@ -15,6 +16,7 @@ impl SubstanceLinks {
     }
 }
 
+#[derive(Deref, DerefMut)]
 pub struct ParticleSetup {
     pub links: SubstanceLinks,
 }

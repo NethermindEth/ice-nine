@@ -7,7 +7,7 @@ use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks, Tool, ToolMeta, Too
 use serde::Deserialize;
 
 pub struct DyDxParticle {
-    substance: SubstanceLinks,
+    substance: ParticleSetup,
 }
 
 impl Supervisor for DyDxParticle {
@@ -18,9 +18,7 @@ impl Tool for DyDxParticle {}
 
 impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
-        Self {
-            substance: setup.links,
-        }
+        Self { substance: setup }
     }
 }
 
