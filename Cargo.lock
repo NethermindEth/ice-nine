@@ -4657,6 +4657,7 @@ dependencies = [
  "crb",
  "env_logger",
  "ice-nine-core",
+ "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-messaging-telegram",
  "ice-nine-plugin-model-openai",
  "tokio",
