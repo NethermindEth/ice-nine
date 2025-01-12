@@ -16,7 +16,7 @@ use teloxide_core::{
 };
 
 pub struct TelegramParticle {
-    substance: SubstanceLinks,
+    substance: ParticleSetup,
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
@@ -30,7 +30,7 @@ impl Supervisor for TelegramParticle {
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            substance: setup.links,
+            substance: setup,
             client: Slot::empty(),
             typing: HashSet::new(),
             interval: None,

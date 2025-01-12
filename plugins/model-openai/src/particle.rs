@@ -11,7 +11,7 @@ use ice_nine_core::{
 };
 
 pub struct OpenAIParticle {
-    substance: SubstanceLinks,
+    substance: ParticleSetup,
     client: Slot<Client>,
 }
 
@@ -20,7 +20,7 @@ impl Model for OpenAIParticle {}
 impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
-            substance: setup.links,
+            substance: setup,
             client: Slot::empty(),
         }
     }
