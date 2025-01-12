@@ -1,12 +1,11 @@
 use crate::keeper::{Config, KeeperLink};
 use crate::router::{
     model::Model,
-    tool::{Tool, ToolMeta},
+    tool::{CallParameters, Tool},
     RouterLink,
 };
 use anyhow::Result;
 use crb::agent::{Address, Agent};
-use crb::superagent::Request;
 use derive_more::{Deref, DerefMut};
 
 #[derive(Clone)]
@@ -51,14 +50,14 @@ impl<A: Agent> SubstanceBond<A> {
         self.links.router.add_model(address)
     }
 
-    /*
-    pub fn add_tool<R>(&mut self, meta: ToolMeta) -> Result<()>
+    pub fn add_tool<P>(&mut self) -> Result<()>
     where
-        A: Tool<R>,
-        R: Request<Response = ToolResponse>,
+        A: Tool<P>,
+        P: CallParameters,
     {
-        self.links.router.add_tool(self.address, meta);
+        let address = self.address.clone();
+        let meta = A::tool_meta();
+        self.links.router.add_tool(address, meta)?;
         Ok(())
     }
-    */
 }

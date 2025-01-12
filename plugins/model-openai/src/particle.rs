@@ -6,9 +6,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{
-    Model, Particle, ParticleSetup, SubstanceLinks, ToolingChatRequest, ToolingChatResponse,
-};
+use ice_nine_core::{Model, Particle, ParticleSetup, ToolingChatRequest, ToolingChatResponse};
 
 pub struct OpenAIParticle {
     substance: ParticleSetup,

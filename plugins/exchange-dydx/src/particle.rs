@@ -2,12 +2,14 @@ use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next};
-use crb::superagent::{OnRequest, Request, Supervisor, SupervisorSession};
-use ice_nine_core::{Particle, ParticleSetup, SubstanceLinks, Tool, ToolMeta, ToolResponse};
+use crb::core::Slot;
+use crb::superagent::{Supervisor, SupervisorSession};
+use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool};
 use serde::Deserialize;
 
 pub struct DyDxParticle {
     substance: ParticleSetup,
+    bond: Slot<SubstanceBond<Self>>,
 }
 
 impl Supervisor for DyDxParticle {
@@ -16,7 +18,10 @@ impl Supervisor for DyDxParticle {
 
 impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
-        Self { substance: setup }
+        Self {
+            substance: setup,
+            bond: Slot::empty(),
+        }
     }
 }
 
@@ -36,49 +41,24 @@ impl Duty<Configure> for DyDxParticle {
     async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let config: DyDxConfig = self.substance.config().await?;
         let address = ctx.address().clone();
-        /*
-        let meta = ToolMeta {
-        };
-        */
-        let meta = todo!();
-        self.substance.router.add_tool::<_, Price>(address, meta)?;
-        self.substance.router.add_tool::<_, Trade>(address, meta)?;
+        let mut bond = self.substance.bond(address);
+        bond.add_tool::<Price>()?;
+        bond.add_tool::<Trade>()?;
+        self.bond.fill(bond)?;
         Ok(Next::events())
     }
 }
-
-impl Tool<Price> for DyDxParticle {}
 
 #[derive(Deserialize)]
 pub struct Price {
     ticker: String,
 }
 
-impl Request for Price {
-    type Response = ToolResponse;
-}
-
-#[async_trait]
-impl OnRequest<Price> for DyDxParticle {
-    async fn on_request(&mut self, msg: Price, _: &mut Self::Context) -> Result<ToolResponse> {
-        todo!()
-    }
-}
-
-impl Tool<Trade> for DyDxParticle {}
+impl Tool<Price> for DyDxParticle {}
 
 #[derive(Deserialize)]
 pub struct Trade {
     ticker: String,
 }
 
-impl Request for Trade {
-    type Response = ToolResponse;
-}
-
-#[async_trait]
-impl OnRequest<Trade> for DyDxParticle {
-    async fn on_request(&mut self, msg: Trade, _: &mut Self::Context) -> Result<ToolResponse> {
-        todo!()
-    }
-}
+impl Tool<Trade> for DyDxParticle {}

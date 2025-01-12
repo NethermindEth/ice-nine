@@ -8,7 +8,7 @@ use crb::agent::{
 };
 use crb::core::{time::Duration, types::Slot};
 use crb::superagent::{Interval, OnTick};
-use ice_nine_core::{ChatRequest, ChatResponse, Particle, ParticleSetup, SubstanceLinks};
+use ice_nine_core::{ChatRequest, ChatResponse, Particle, ParticleSetup};
 use std::collections::HashSet;
 use teloxide_core::{
     prelude::Requester,

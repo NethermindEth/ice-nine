@@ -4,7 +4,7 @@ pub mod router;
 pub mod substance;
 
 pub use keeper::{Config, Keeper, KeeperLink};
-pub use particle::{Particle, ParticleSetup, SubstanceLinks};
+pub use particle::{Particle, ParticleSetup, SubstanceBond, SubstanceLinks};
 pub use router::model::{Model, ModelLink};
 pub use router::tool::{Tool, ToolLink, ToolMeta, ToolResponse};
 pub use router::types::{
