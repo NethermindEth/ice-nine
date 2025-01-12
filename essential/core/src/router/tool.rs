@@ -9,7 +9,12 @@ use serde_json::Value;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-pub trait Tool: Agent {}
+pub trait Tool<IN>
+where
+    Self: OnRequest<IN>,
+    IN: Request<Response = ToolResponse>,
+{
+}
 
 pub struct ToolResponse {
     pub content: String,
@@ -24,15 +29,15 @@ pub trait ToolAddress: Sync + Send {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse>;
 }
 
-struct CallRoute<R> {
+struct ToolRoute<R> {
     _type: PhantomData<R>,
 }
 
-unsafe impl<R> Sync for CallRoute<R> {}
+unsafe impl<R> Sync for ToolRoute<R> {}
 
-impl<A, R> ToolAddress for (Address<A>, CallRoute<R>)
+impl<A, R> ToolAddress for (Address<A>, ToolRoute<R>)
 where
-    A: Tool + OnRequest<R>,
+    A: Tool<R> + OnRequest<R>,
     R: Request<Response = ToolResponse> + DeserializeOwned,
 {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse> {
@@ -50,10 +55,10 @@ where
 impl RouterLink {
     pub fn add_tool<A, R>(&mut self, addr: Address<A>, meta: ToolMeta) -> Result<()>
     where
-        A: Tool + OnRequest<R>,
+        A: Tool<R> + OnRequest<R>,
         R: Request<Response = ToolResponse> + DeserializeOwned,
     {
-        let call = CallRoute {
+        let call = ToolRoute {
             _type: PhantomData::<R>,
         };
         let link = ToolLink {
@@ -103,7 +108,7 @@ struct CallTool<R> {
 #[async_trait]
 impl<A, R> MessageFor<A> for CallTool<R>
 where
-    A: Tool + OnRequest<R>,
+    A: Tool<R> + OnRequest<R>,
     R: Request<Response = ToolResponse> + DeserializeOwned,
 {
     async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {

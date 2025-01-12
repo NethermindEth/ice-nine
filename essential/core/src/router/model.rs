@@ -33,11 +33,13 @@ impl<M: Model> ModelAddress for Address<M> {
 }
 
 impl RouterLink {
+    // TODO: Return model detacher (calls remove_model)
     pub fn add_model<M>(&mut self, addr: Address<M>) -> Result<()>
     where
         M: Model,
     {
         let msg = AddModel { link: addr.equip() };
+        // TODO: Use interaction instead
         self.address.event(msg)?;
         Ok(())
     }

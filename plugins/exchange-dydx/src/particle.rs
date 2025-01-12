@@ -14,8 +14,6 @@ impl Supervisor for DyDxParticle {
     type GroupBy = ();
 }
 
-impl Tool for DyDxParticle {}
-
 impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self { substance: setup }
@@ -49,6 +47,8 @@ impl Duty<Configure> for DyDxParticle {
     }
 }
 
+impl Tool<Price> for DyDxParticle {}
+
 #[derive(Deserialize)]
 pub struct Price {
     ticker: String,
@@ -64,6 +64,8 @@ impl OnRequest<Price> for DyDxParticle {
         todo!()
     }
 }
+
+impl Tool<Trade> for DyDxParticle {}
 
 #[derive(Deserialize)]
 pub struct Trade {
