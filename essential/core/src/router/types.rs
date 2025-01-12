@@ -1,3 +1,4 @@
+use crate::router::tool::ToolInfo;
 use crb::superagent::Request;
 
 pub enum Role {
@@ -17,9 +18,10 @@ pub struct ChatRequest {
 }
 
 impl ChatRequest {
-    pub fn with_tools(self) -> ToolingChatRequest {
+    pub fn with_tools(self, tools: Vec<ToolInfo>) -> ToolingChatRequest {
         ToolingChatRequest {
             messages: self.messages,
+            tools,
         }
     }
 }
@@ -58,6 +60,7 @@ impl ChatResponse {
 #[derive(Default)]
 pub struct ToolingChatRequest {
     pub messages: Vec<Message>,
+    pub tools: Vec<ToolInfo>,
 }
 
 impl Request for ToolingChatRequest {

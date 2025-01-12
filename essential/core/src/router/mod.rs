@@ -11,7 +11,7 @@ use crb::superagent::interaction::Output;
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
-use tool::{ToolId, ToolLink, ToolRecord};
+use tool::{ToolId, ToolInfo, ToolLink, ToolRecord};
 use typed_slab::TypedSlab;
 use types::{ChatRequest, ChatResponse, ToolingChatResponse};
 
@@ -48,6 +48,15 @@ impl Agent for ReasoningRouter {
     }
 }
 
+impl ReasoningRouter {
+    fn tools(&self) -> Vec<ToolInfo> {
+        self.tools
+            .values()
+            .map(|record| record.info.clone())
+            .collect()
+    }
+}
+
 #[async_trait]
 impl OnRequest<ChatRequest> for ReasoningRouter {
     async fn handle(
@@ -63,7 +72,8 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
 
         let address = ctx.address().clone();
         let req_id = self.requests.insert(lookup.responder);
-        let request = lookup.request.with_tools();
+        let tools = self.tools();
+        let request = lookup.request.with_tools(tools);
         model.chat(request).forward_to(address, req_id);
         Ok(())
     }

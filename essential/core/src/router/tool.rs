@@ -109,7 +109,7 @@ impl RouterLink {
         };
         let msg = AddTool { link, meta };
         let response = self.address.interact(msg).await?;
-        Ok(response.meta.id.clone())
+        Ok(response.info.id.clone())
     }
 }
 
@@ -127,7 +127,7 @@ pub struct AddTool {
 }
 
 pub struct ToolAdded {
-    pub meta: Arc<ToolMetaWithId>,
+    pub info: ToolInfo,
 }
 
 impl Request for AddTool {
@@ -139,9 +139,14 @@ pub struct ToolMetaWithId {
     pub meta: ToolMeta,
 }
 
+#[derive(Deref, DerefMut, Clone)]
+pub struct ToolInfo {
+    pub meta: Arc<ToolMetaWithId>,
+}
+
 pub struct ToolRecord {
-    link: ToolLink,
-    meta: Arc<ToolMetaWithId>,
+    pub link: ToolLink,
+    pub info: ToolInfo,
 }
 
 #[async_trait]
@@ -149,12 +154,14 @@ impl OnRequest<AddTool> for ReasoningRouter {
     async fn on_request(&mut self, msg: AddTool, _ctx: &mut Self::Context) -> Result<ToolAdded> {
         let id = ToolId::from(format!("{}_{}", msg.meta.name, self.tools.len()));
         let meta = ToolMetaWithId { id, meta: msg.meta };
-        let meta = Arc::new(meta);
+        let info = ToolInfo {
+            meta: Arc::new(meta),
+        };
         let record = ToolRecord {
             link: msg.link,
-            meta: meta.clone(),
+            info: info.clone(),
         };
-        Ok(ToolAdded { meta })
+        Ok(ToolAdded { info })
     }
 }
 
