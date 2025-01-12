@@ -6,6 +6,7 @@ use crb::superagent::{Fetcher, Interaction, Request, Responder};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+use std::any::type_name;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
@@ -19,8 +20,17 @@ where
     Self: Agent,
     P: CallParameters,
 {
-    fn tool_meta() -> ToolMeta {
-        todo!("Replace ToolMeta with methods")
+    fn name(&self) -> String {
+        // TODO: Use `const_str!`
+        type_name::<Self>()
+            .to_lowercase()
+            .replace("::", "_")
+            .replace('<', "_")
+            .replace('>', "")
+    }
+
+    fn description(&self) -> Option<String> {
+        None
     }
 
     async fn handle_request(
@@ -106,9 +116,9 @@ impl RouterLink {
 pub type ToolId = String;
 
 pub struct ToolMeta {
-    name: String,
-    description: Option<String>,
-    parameters: Option<Value>,
+    pub name: String,
+    pub description: Option<String>,
+    pub parameters: Option<Value>,
 }
 
 pub struct AddTool {

@@ -42,8 +42,8 @@ impl Duty<Configure> for DyDxParticle {
         let config: DyDxConfig = self.substance.config().await?;
         let address = ctx.address().clone();
         let mut bond = self.substance.bond(address);
-        bond.add_tool::<Price>()?;
-        bond.add_tool::<Trade>()?;
+        bond.add_tool::<Price>(self)?;
+        // bond.add_tool::<Trade>(self)?;
         self.bond.fill(bond)?;
         Ok(Next::events())
     }
@@ -54,7 +54,20 @@ pub struct Price {
     ticker: String,
 }
 
-impl Tool<Price> for DyDxParticle {}
+impl Tool<Price> for DyDxParticle {
+    fn name(&self) -> String {
+        "dydx_price".into()
+    }
+
+    fn description(&self) -> Option<String> {
+        Some(
+            "Connects to the dYdX exchange AI interface to retrieve real-time price data for
+        any token available on the platform. The function accepts the token symbol as input
+        and returns the current price along with relevant market details."
+                .into(),
+        )
+    }
+}
 
 #[derive(Deserialize)]
 pub struct Trade {

@@ -1,7 +1,7 @@
 use crate::keeper::{Config, KeeperLink};
 use crate::router::{
     model::Model,
-    tool::{CallParameters, Tool},
+    tool::{CallParameters, Tool, ToolMeta},
     RouterLink,
 };
 use anyhow::Result;
@@ -50,13 +50,17 @@ impl<A: Agent> SubstanceBond<A> {
         self.links.router.add_model(address)
     }
 
-    pub fn add_tool<P>(&mut self) -> Result<()>
+    pub fn add_tool<P>(&mut self, tool: &A) -> Result<()>
     where
         A: Tool<P>,
         P: CallParameters,
     {
         let address = self.address.clone();
-        let meta = A::tool_meta();
+        let meta = ToolMeta {
+            name: tool.name(),
+            description: tool.description(),
+            parameters: None,
+        };
         self.links.router.add_tool(address, meta)?;
         Ok(())
     }
