@@ -1,7 +1,7 @@
 use super::{ReasoningRouter, RouterLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, MessageFor, OnEvent};
+use crb::agent::{Address, AddressExt, Agent, MessageFor, OnRequest};
 use crb::superagent::{Fetcher, Interaction, Request, Responder};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
@@ -96,7 +96,7 @@ where
 }
 
 impl RouterLink {
-    pub fn add_tool<A, P>(&mut self, addr: Address<A>, meta: ToolMeta) -> Result<()>
+    pub async fn add_tool<A, P>(&mut self, addr: Address<A>, meta: ToolMeta) -> Result<ToolId>
     where
         A: Tool<P>,
         P: CallParameters,
@@ -108,8 +108,8 @@ impl RouterLink {
             address: Arc::new((addr, call)),
         };
         let msg = AddTool { link, meta };
-        self.address.event(msg)?;
-        Ok(())
+        let response = self.address.interact(msg).await?;
+        Ok(response.meta.id.clone())
     }
 }
 
@@ -122,16 +122,39 @@ pub struct ToolMeta {
 }
 
 pub struct AddTool {
-    meta: ToolMeta,
     link: ToolLink,
+    meta: ToolMeta,
+}
+
+pub struct ToolAdded {
+    pub meta: Arc<ToolMetaWithId>,
+}
+
+impl Request for AddTool {
+    type Response = ToolAdded;
+}
+
+pub struct ToolMetaWithId {
+    pub id: ToolId,
+    pub meta: ToolMeta,
+}
+
+pub struct ToolRecord {
+    link: ToolLink,
+    meta: Arc<ToolMetaWithId>,
 }
 
 #[async_trait]
-impl OnEvent<AddTool> for ReasoningRouter {
-    async fn handle(&mut self, msg: AddTool, _ctx: &mut Self::Context) -> Result<()> {
-        let tool_id = format!("{}_{}", msg.meta.name, self.tools.len());
-        self.tools.insert(tool_id, msg.link);
-        Ok(())
+impl OnRequest<AddTool> for ReasoningRouter {
+    async fn on_request(&mut self, msg: AddTool, _ctx: &mut Self::Context) -> Result<ToolAdded> {
+        let id = ToolId::from(format!("{}_{}", msg.meta.name, self.tools.len()));
+        let meta = ToolMetaWithId { id, meta: msg.meta };
+        let meta = Arc::new(meta);
+        let record = ToolRecord {
+            link: msg.link,
+            meta: meta.clone(),
+        };
+        Ok(ToolAdded { meta })
     }
 }
 

@@ -50,7 +50,7 @@ impl<A: Agent> SubstanceBond<A> {
         self.links.router.add_model(address)
     }
 
-    pub fn add_tool<P>(&mut self, tool: &A) -> Result<()>
+    pub async fn add_tool<P>(&mut self, tool: &A) -> Result<()>
     where
         A: Tool<P>,
         P: CallParameters,
@@ -61,7 +61,7 @@ impl<A: Agent> SubstanceBond<A> {
             description: tool.description(),
             parameters: None,
         };
-        self.links.router.add_tool(address, meta)?;
+        self.links.router.add_tool(address, meta).await?;
         Ok(())
     }
 }

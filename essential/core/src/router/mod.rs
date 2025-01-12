@@ -11,7 +11,7 @@ use crb::superagent::interaction::Output;
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
-use tool::{ToolId, ToolLink};
+use tool::{ToolId, ToolLink, ToolRecord};
 use typed_slab::TypedSlab;
 use types::{ChatRequest, ChatResponse, ToolingChatResponse};
 
@@ -25,7 +25,7 @@ pub struct RouterLink {
 
 pub struct ReasoningRouter {
     models: Vec<ModelLink>,
-    tools: HashMap<ToolId, ToolLink>,
+    tools: HashMap<ToolId, ToolRecord>,
     requests: TypedSlab<ReqId, Responder<ChatResponse>>,
 }
 

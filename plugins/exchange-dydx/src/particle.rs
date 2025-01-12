@@ -42,7 +42,7 @@ impl Duty<Configure> for DyDxParticle {
         let config: DyDxConfig = self.substance.config().await?;
         let address = ctx.address().clone();
         let mut bond = self.substance.bond(address);
-        bond.add_tool::<Price>(self)?;
+        bond.add_tool::<Price>(self).await?;
         // bond.add_tool::<Trade>(self)?;
         self.bond.fill(bond)?;
         Ok(Next::events())
