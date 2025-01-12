@@ -28,8 +28,7 @@ AI agents that work everywhere.
 An agent is a `substance` that assembles from components (`particles`). Connections automatically form between them, bringing the agent to life:
 
 ```rust
-let substance = Substance::new();
-let mut addr: SubstanceLink = substance.spawn().equip();
-addr.add_particle::<OpenAIParticle>()?;
-addr.add_particle::<TelegramParticle>()?;
+let mut substance = Substance::arise();
+substance.add_particle::<OpenAIParticle>()?;
+substance.add_particle::<TelegramParticle>()?;
 ```

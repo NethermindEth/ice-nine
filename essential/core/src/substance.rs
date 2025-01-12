@@ -28,6 +28,10 @@ pub struct Substance {
 }
 
 impl Substance {
+    pub fn arise() -> SubstanceLink {
+        Self::new().spawn().equip()
+    }
+
     fn get_setup(&mut self) -> Result<ParticleSetup> {
         let links = self.links.get_mut()?.clone();
         Ok(ParticleSetup { links })
