@@ -5,7 +5,6 @@ use crb::agent::{Address, AddressExt, Agent, MessageFor};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{OnRequest, Request};
 use std::marker::PhantomData;
-use std::sync::Arc;
 use toml::Value;
 
 #[async_trait]
@@ -20,29 +19,38 @@ impl KeeperLink {
         A: UpdateConfig<C>,
         C: Config,
     {
-        let msg = Subscribe::<C> {
-            sender: address.sender(),
+        let recipient = TypedConfigListener {
+            recipient: address.sender(),
         };
+        let updater = ConfigUpdater {
+            last_value: None,
+            recipient: Recipient::new(recipient),
+        };
+        let msg = Subscribe { updater };
         self.interact(msg).await?;
         Ok(())
     }
 }
 
-pub struct ConfigListener {
-    recipient: Recipient<Arc<Value>>,
+pub struct ConfigUpdater {
+    last_value: Option<Value>,
+    recipient: Recipient<Value>,
 }
 
-impl ConfigListener {
-    pub fn send_new_config(&self, value: Arc<Value>) -> Result<()> {
+impl ConfigUpdater {
+    pub fn send_new_config(&mut self, value: Value) -> Result<()> {
+        if self.last_value.as_ref() == Some(&value) {
+            self.last_value = Some(value.clone());
+        }
         self.recipient.send(value)
     }
 }
 
-pub struct ConfigListenerAddress<C: Config> {
+pub struct TypedConfigListener<C: Config> {
     recipient: Recipient<UpdateConfigEvent<C>>,
 }
 
-impl<C> Sender<Value> for ConfigListenerAddress<C>
+impl<C> Sender<Value> for TypedConfigListener<C>
 where
     C: Config,
 {
@@ -73,17 +81,17 @@ where
     }
 }
 
-pub struct Subscribe<C> {
-    sender: Recipient<UpdateConfigEvent<C>>,
+pub struct Subscribe {
+    updater: ConfigUpdater,
 }
 
-impl<C: Config> Request for Subscribe<C> {
+impl Request for Subscribe {
     type Response = ();
 }
 
 #[async_trait]
-impl<C: Config> OnRequest<Subscribe<C>> for Keeper {
-    async fn on_request(&mut self, msg: Subscribe<C>, _: &mut Self::Context) -> Result<()> {
+impl OnRequest<Subscribe> for Keeper {
+    async fn on_request(&mut self, msg: Subscribe, _: &mut Self::Context) -> Result<()> {
         Ok(())
     }
 }
