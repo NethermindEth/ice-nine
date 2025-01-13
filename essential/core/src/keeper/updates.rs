@@ -38,21 +38,12 @@ impl ConfigListener {
     }
 }
 
-pub struct ConfigListenerAddress<A: Agent, C: Config> {
-    address: Address<A>,
-    _type: PhantomData<C>,
+pub struct ConfigListenerAddress<C: Config> {
+    recipient: Recipient<UpdateConfigEvent<C>>,
 }
 
-unsafe impl<A, C> Sync for ConfigListenerAddress<A, C>
+impl<C> Sender<Value> for ConfigListenerAddress<C>
 where
-    A: Agent,
-    C: Config,
-    Address<A>: Sync,
-{}
-
-impl<A, C> Sender<Value> for ConfigListenerAddress<A, C>
-where
-    A: UpdateConfig<C>,
     C: Config,
 {
     fn send(&self, value: Value) -> Result<()> {
@@ -60,7 +51,7 @@ where
             _type: PhantomData::<C>,
             value,
         };
-        self.address.send(event)?;
+        self.recipient.send(event)?;
         Ok(())
     }
 }
