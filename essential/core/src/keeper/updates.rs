@@ -1,15 +1,20 @@
 use super::{Config, Keeper, KeeperLink};
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{OnRequest, Request};
+use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;
 
 #[async_trait]
 pub trait UpdateConfig<C: Config>: Agent {
     async fn update_config(&mut self, config: C, ctx: &mut Self::Context) -> Result<()>;
+
+    fn fallback(&mut self, err: Error, ctx: &mut Self::Context) {
+        log::error!("Can't load the config {}: {err}", type_name::<C>());
+    }
 }
 
 impl KeeperLink {
@@ -77,7 +82,10 @@ where
 {
     async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
         let config: C = self.value.try_into()?;
-        agent.update_config(config, ctx).await
+        if let Err(err) = agent.update_config(config, ctx).await {
+            agent.fallback(err, ctx);
+        }
+        Ok(())
     }
 }
 
@@ -92,6 +100,10 @@ impl Request for Subscribe {
 #[async_trait]
 impl OnRequest<Subscribe> for Keeper {
     async fn on_request(&mut self, msg: Subscribe, _: &mut Self::Context) -> Result<()> {
+        if let Some(value) = self.config.clone() {
+            msg.updater.recipient.send(value).ok();
+        }
+        self.listeners.push(msg.updater);
         Ok(())
     }
 }

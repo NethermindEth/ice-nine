@@ -21,32 +21,16 @@ pub struct KeeperLink {
     address: Address<Keeper>,
 }
 
-/*
-impl KeeperLink {
-    pub async fn get_config<C>(&self) -> Result<C>
-    where
-        C: Config,
-    {
-        let request = GetConfig::<C> {
-            namespace: C::NAMESPACE.to_string(),
-            _type: PhantomData,
-        };
-        let config = self.address.interact(request).await?;
-        Ok(config)
-    }
-}
-*/
-
 pub struct Keeper {
     config: Option<Value>,
-    listeners: HashMap<String, ConfigUpdater>,
+    listeners: Vec<ConfigUpdater>,
 }
 
 impl Keeper {
     pub fn new() -> Self {
         Self {
             config: None,
-            listeners: HashMap::new(),
+            listeners: Vec::new(),
         }
     }
 }
@@ -101,7 +85,10 @@ impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
 impl OnEvent<Value> for Keeper {
     async fn handle(&mut self, value: Value, ctx: &mut Self::Context) -> Result<()> {
         println!("Config updated: {:?}", value);
-        self.config = Some(value);
+        self.config = Some(value.clone());
+        for updater in &mut self.listeners {
+            updater.send_new_config(value.clone()).ok();
+        }
         Ok(())
     }
 }
