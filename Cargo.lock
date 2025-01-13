@@ -2737,9 +2737,11 @@ dependencies = [
  "derive_more 1.0.0",
  "dotenvy",
  "envy",
+ "ice-nine-std",
  "log",
  "serde",
  "serde_json",
+ "toml",
  "typed-slab",
  "typedmap",
 ]
@@ -2791,6 +2793,8 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "notify",
+ "tokio",
+ "toml",
 ]
 
 [[package]]

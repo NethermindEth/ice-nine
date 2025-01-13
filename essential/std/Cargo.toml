@@ -11,3 +11,5 @@ async-trait.workspace = true
 crb.workspace = true
 derive_more.workspace = true
 notify = "8.0.0"
+tokio.workspace = true
+toml.workspace = true

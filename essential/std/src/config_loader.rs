@@ -2,6 +2,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
+use crb::send::{Recipient, Sender};
 use crb::superagent::{OnTimeout, Timeout};
 use derive_more::From;
 use notify::{
@@ -9,6 +10,8 @@ use notify::{
 };
 use std::path::PathBuf;
 use std::time::Duration;
+use tokio::fs;
+use toml::Value;
 
 const DEFAULT_PATH: &str = "ice9.toml";
 
@@ -16,14 +19,16 @@ pub struct ConfigLoader {
     path: PathBuf,
     watcher: Slot<RecommendedWatcher>,
     debouncer: Slot<Timeout>,
+    recipient: Recipient<Value>,
 }
 
 impl ConfigLoader {
-    pub fn new() -> Self {
+    pub fn new(recipient: Recipient<Value>) -> Self {
         Self {
             path: DEFAULT_PATH.into(),
             watcher: Slot::empty(),
             debouncer: Slot::empty(),
+            recipient,
         }
     }
 }
@@ -75,7 +80,6 @@ impl OnEvent<EventResult> for ConfigLoader {
         let event = result?;
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
-                // TODO: Notify the supervisor.
                 if self.debouncer.not_assigned() {
                     let address = ctx.address().clone();
                     let duration = Duration::from_millis(250);
@@ -95,6 +99,9 @@ impl OnEvent<EventResult> for ConfigLoader {
 impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), ctx: &mut Self::Context) -> Result<()> {
         self.debouncer.take()?;
+        let content = fs::read_to_string(&self.path).await?;
+        let value = toml::from_str(&content)?;
+        self.recipient.send(value)?;
         Ok(())
     }
 }
