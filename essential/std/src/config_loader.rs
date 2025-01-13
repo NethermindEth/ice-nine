@@ -26,8 +26,8 @@ impl ConfigLoader {
     pub fn new(recipient: Recipient<Value>) -> Self {
         Self {
             path: DEFAULT_PATH.into(),
-            watcher: Slot::empty(),
-            debouncer: Slot::empty(),
+            watcher: Slot::empty("watcher of a config loader"),
+            debouncer: Slot::empty("events debouncer of a config loader"),
             recipient,
         }
     }

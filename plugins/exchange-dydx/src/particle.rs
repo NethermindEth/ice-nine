@@ -20,7 +20,7 @@ impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
-            bond: Slot::empty(),
+            bond: Slot::empty("dydx bond"),
         }
     }
 }

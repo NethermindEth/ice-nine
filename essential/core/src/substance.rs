@@ -43,7 +43,7 @@ impl Standalone for Substance {}
 impl Substance {
     pub fn new() -> Self {
         Self {
-            links: Slot::empty(),
+            links: Slot::empty("substance links"),
         }
     }
 }
