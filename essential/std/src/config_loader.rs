@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use notify::{recommended_watcher, EventHandler, Event, RecommendedWatcher, Watcher, RecursiveMode, EventKind};
-use crb::agent::{Agent, AgentSession, Duty, Next, Address, OnEvent, Context};
+use crb::agent::{Agent, AgentSession, Duty, Next, Address, OnEvent, Context, ManagedContext};
 use crb::core::Slot;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -29,6 +29,11 @@ impl Agent for ConfigLoader {
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Configure)
+    }
+
+    fn interrupt(&mut self, ctx: &mut Self::Context) {
+        self.watcher.take().ok();
+        ctx.shutdown();
     }
 }
 
