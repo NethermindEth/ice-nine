@@ -33,11 +33,15 @@ impl KeeperLink {
     }
 }
 
-pub struct Keeper {}
+pub struct Keeper {
+    config: Option<Value>,
+}
 
 impl Keeper {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            config: None,
+        }
     }
 }
 
@@ -90,7 +94,7 @@ impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
 impl OnEvent<Value> for Keeper {
     async fn handle(&mut self, value: Value, ctx: &mut Self::Context) -> Result<()> {
         println!("Config updated: {:?}", value);
-        // TODO: Send updates
+        self.config = Some(value);
         Ok(())
     }
 }

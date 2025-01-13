@@ -2,8 +2,11 @@ use super::{Config, Keeper, KeeperLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor};
-use crb::send::MessageSender;
+use crb::send::{Sender, Recipient};
 use crb::superagent::{OnRequest, Request};
+use std::marker::PhantomData;
+use std::sync::Arc;
+use toml::Value;
 
 #[async_trait]
 pub trait UpdateConfig<C: Config>: Agent {
@@ -25,8 +28,46 @@ impl KeeperLink {
     }
 }
 
+pub struct ConfigListener {
+    recipient: Recipient<Arc<Value>>,
+}
+
+impl ConfigListener {
+    pub fn send_new_config(&self, value: Arc<Value>) -> Result<()> {
+        self.recipient.send(value)
+    }
+}
+
+pub struct ConfigListenerAddress<A: Agent, C: Config> {
+    address: Address<A>,
+    _type: PhantomData<C>,
+}
+
+unsafe impl<A, C> Sync for ConfigListenerAddress<A, C>
+where
+    A: Agent,
+    C: Config,
+    Address<A>: Sync,
+{}
+
+impl<A, C> Sender<Value> for ConfigListenerAddress<A, C>
+where
+    A: UpdateConfig<C>,
+    C: Config,
+{
+    fn send(&self, value: Value) -> Result<()> {
+        let event = UpdateConfigEvent {
+            _type: PhantomData::<C>,
+            value,
+        };
+        self.address.send(event)?;
+        Ok(())
+    }
+}
+
 pub struct UpdateConfigEvent<C> {
-    config: C,
+    _type: PhantomData<C>,
+    value: Value,
 }
 
 #[async_trait]
@@ -36,12 +77,13 @@ where
     C: Config,
 {
     async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
-        agent.update_config(self.config, ctx).await
+        let config: C = self.value.try_into()?;
+        agent.update_config(config, ctx).await
     }
 }
 
 pub struct Subscribe<C> {
-    sender: MessageSender<UpdateConfigEvent<C>>,
+    sender: Recipient<UpdateConfigEvent<C>>,
 }
 
 impl<C: Config> Request for Subscribe<C> {
