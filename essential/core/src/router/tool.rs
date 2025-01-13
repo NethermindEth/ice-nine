@@ -2,6 +2,7 @@ use super::{ReasoningRouter, RouterLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor, OnRequest};
+use crb::send::{Recipient, Sender};
 use crb::superagent::{Fetcher, Interaction, Request, Responder};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
@@ -72,21 +73,12 @@ pub trait ToolAddress: Sync + Send {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse>;
 }
 
-struct ToolLinkRaw<A: Agent, P> {
-    address: Address<A>,
-    _type: PhantomData<P>,
+struct ToolLinkRaw<P> {
+    recipient: Recipient<CallTool<P>>,
 }
 
-unsafe impl<A, P> Sync for ToolLinkRaw<A, P>
+impl<P> ToolAddress for ToolLinkRaw<P>
 where
-    A: Agent,
-    Address<A>: Sync,
-{
-}
-
-impl<A, P> ToolAddress for ToolLinkRaw<A, P>
-where
-    A: Tool<P>,
     P: CallParameters,
 {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse> {
@@ -96,7 +88,7 @@ where
             _type: PhantomData::<P>,
             interaction,
         };
-        let res = self.address.send(msg);
+        let res = self.recipient.send(msg);
         fetcher.grasp(res)
     }
 }
@@ -108,8 +100,7 @@ impl RouterLink {
         P: CallParameters,
     {
         let raw_link = ToolLinkRaw {
-            address: addr,
-            _type: PhantomData::<P>,
+            recipient: addr.sender(),
         };
         let link = ToolLink {
             address: Arc::new(raw_link),

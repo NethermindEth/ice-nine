@@ -39,9 +39,7 @@ pub struct Keeper {
 
 impl Keeper {
     pub fn new() -> Self {
-        Self {
-            config: None,
-        }
+        Self { config: None }
     }
 }
 

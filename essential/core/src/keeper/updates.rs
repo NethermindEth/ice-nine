@@ -2,7 +2,7 @@ use super::{Config, Keeper, KeeperLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor};
-use crb::send::{Sender, Recipient};
+use crb::send::{Recipient, Sender};
 use crb::superagent::{OnRequest, Request};
 use std::marker::PhantomData;
 use std::sync::Arc;
