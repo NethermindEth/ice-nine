@@ -6,10 +6,15 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::types::Slot;
 use crb::superagent::OnRequest;
-use ice_nine_core::{Model, Particle, ParticleSetup, ToolingChatRequest, ToolingChatResponse};
+use ice_nine_core::{
+    Model, Particle, ParticleSetup, SubstanceBond, ToolingChatRequest, ToolingChatResponse,
+    UpdateConfig,
+};
 
 pub struct OpenAIParticle {
     substance: ParticleSetup,
+    bond: Slot<SubstanceBond<Self>>,
+
     client: Slot<Client>,
 }
 
@@ -19,6 +24,7 @@ impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
+            bond: Slot::empty(),
             client: Slot::empty(),
         }
     }
@@ -29,26 +35,36 @@ impl Agent for OpenAIParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Configure)
+        Next::duty(Initialize)
     }
 }
 
-struct Configure;
+struct Initialize;
 
 #[async_trait]
-impl Duty<Configure> for OpenAIParticle {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
-        println!("Configuring...");
+impl Duty<Initialize> for OpenAIParticle {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
+        let address = ctx.address().clone();
+        let mut bond = self.substance.bond(address);
+        bond.subscribe().await?;
+        bond.add_model()?;
+        self.bond.fill(bond)?;
 
-        let config: OpenAIConfig = self.substance.config().await?;
+        Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
+    async fn update_config(&mut self, config: OpenAIConfig, ctx: &mut Self::Context) -> Result<()> {
+        if self.client.is_filled() {
+            self.client.take()?;
+        }
+
         let client = Client::with_config(config.0);
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
-
-        let address = ctx.address().clone();
-        self.substance.router.add_model(address)?;
-
-        Ok(Next::events())
+        Ok(())
     }
 }
 

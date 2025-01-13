@@ -78,7 +78,7 @@ impl UpdateConfig<TelegramConfig> for TelegramParticle {
         config: TelegramConfig,
         ctx: &mut Self::Context,
     ) -> Result<()> {
-        if !self.client.not_assigned() {
+        if self.client.is_filled() {
             self.client.take()?;
             ctx.tracker.terminate_group(());
         }

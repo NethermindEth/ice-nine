@@ -80,7 +80,7 @@ impl OnEvent<EventResult> for ConfigLoader {
         let event = result?;
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
-                if self.debouncer.not_assigned() {
+                if self.debouncer.is_empty() {
                     let address = ctx.address().clone();
                     let duration = Duration::from_millis(250);
                     let timeout = Timeout::new(address, duration, ());
@@ -97,7 +97,7 @@ impl OnEvent<EventResult> for ConfigLoader {
 
 #[async_trait]
 impl OnTimeout for ConfigLoader {
-    async fn on_timeout(&mut self, _: (), ctx: &mut Self::Context) -> Result<()> {
+    async fn on_timeout(&mut self, _: (), _ctx: &mut Self::Context) -> Result<()> {
         self.debouncer.take()?;
         let content = fs::read_to_string(&self.path).await?;
         let value = toml::from_str(&content)?;

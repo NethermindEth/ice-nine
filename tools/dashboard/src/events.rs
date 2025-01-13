@@ -3,12 +3,12 @@ use anyhow::Result;
 use crb::agent::{Address, Agent, AgentSession, DoSync, Next};
 
 pub struct EventsDrainer {
-    app: Address<App>,
+    _app: Address<App>,
 }
 
 impl EventsDrainer {
     pub fn new(app: Address<App>) -> Self {
-        Self { app }
+        Self { _app: app }
     }
 }
 
