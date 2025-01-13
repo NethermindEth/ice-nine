@@ -8,7 +8,9 @@ use crb::agent::{
 };
 use crb::core::{time::Duration, types::Slot};
 use crb::superagent::{Interval, OnTick};
-use ice_nine_core::{ChatRequest, ChatResponse, Particle, ParticleSetup};
+use ice_nine_core::{
+    ChatRequest, ChatResponse, Particle, ParticleSetup, SubstanceBond, UpdateConfig,
+};
 use std::collections::HashSet;
 use teloxide_core::{
     prelude::Requester,
@@ -17,6 +19,8 @@ use teloxide_core::{
 
 pub struct TelegramParticle {
     substance: ParticleSetup,
+    bond: Slot<SubstanceBond<Self>>,
+
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
@@ -31,6 +35,7 @@ impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
+            bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
             interval: None,
@@ -43,17 +48,41 @@ impl Agent for TelegramParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Configure)
+        Next::duty(Initialize)
     }
 }
 
-struct Configure;
+struct Initialize;
 
 #[async_trait]
-impl Duty<Configure> for TelegramParticle {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
-        println!("Configuring...");
-        let config: TelegramConfig = self.substance.config().await?;
+impl Duty<Initialize> for TelegramParticle {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
+        let address = ctx.address().clone();
+        let mut bond = self.substance.bond(address);
+        bond.subscribe().await?;
+        self.bond.fill(bond)?;
+
+        let address = ctx.address().clone();
+        let duration = Duration::from_secs(1);
+        let interval = Interval::new(address, duration, ());
+        self.interval = Some(interval);
+
+        Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl UpdateConfig<TelegramConfig> for TelegramParticle {
+    async fn update_config(
+        &mut self,
+        config: TelegramConfig,
+        ctx: &mut Self::Context,
+    ) -> Result<()> {
+        if !self.client.not_assigned() {
+            self.client.take()?;
+            ctx.tracker.terminate_group(());
+        }
+
         let client = Client::new(&config.api_key);
         client.get_me().await?;
         self.client.fill(client)?;
@@ -63,12 +92,7 @@ impl Duty<Configure> for TelegramParticle {
         let drainer = TelegramDrainer::new(address, client);
         ctx.spawn_agent(drainer, ());
 
-        let address = ctx.address().clone();
-        let duration = Duration::from_secs(1);
-        let interval = Interval::new(address, duration, ());
-        self.interval = Some(interval);
-
-        Ok(Next::events())
+        Ok(())
     }
 }
 

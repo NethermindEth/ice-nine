@@ -4,8 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
-use ice_nine_core::keeper::updates::UpdateConfig;
-use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool};
+use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool, UpdateConfig};
 use serde::Deserialize;
 
 pub struct DyDxParticle {
