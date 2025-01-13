@@ -1,6 +1,6 @@
 [package]
 publish = false
-name = "trading-bot"
+name = "trading-assistant"
 version.workspace = true
 edition.workspace = true
 

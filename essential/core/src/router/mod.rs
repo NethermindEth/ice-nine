@@ -11,7 +11,7 @@ use crb::superagent::interaction::Output;
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
-use tool::{ToolId, ToolInfo, ToolLink, ToolRecord};
+use tool::{ToolId, ToolInfo, ToolRecord};
 use typed_slab::TypedSlab;
 use types::{ChatRequest, ChatResponse, ToolingChatResponse};
 
