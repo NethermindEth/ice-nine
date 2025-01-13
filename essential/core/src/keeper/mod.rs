@@ -1,3 +1,5 @@
+mod updates;
+
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, AgentSession, DoSync, Next, OnRequest, Request};
