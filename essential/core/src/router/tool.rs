@@ -50,11 +50,11 @@ where
         responder: Responder<ToolResponse>,
         ctx: &mut Self::Context,
     ) -> Result<()> {
-        let res = self.on_request(msg, ctx).await;
+        let res = self.call_tool(msg, ctx).await;
         responder.send_result(res)
     }
 
-    async fn on_request(&mut self, _msg: P, _ctx: &mut Self::Context) -> Result<ToolResponse> {
+    async fn call_tool(&mut self, _input: P, _ctx: &mut Self::Context) -> Result<ToolResponse> {
         Err(anyhow!("Not implemented"))
     }
 }
@@ -72,13 +72,19 @@ pub trait ToolAddress: Sync + Send {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse>;
 }
 
-struct ToolRoute<P> {
+struct ToolLinkRaw<A: Agent, P> {
+    address: Address<A>,
     _type: PhantomData<P>,
 }
 
-unsafe impl<P> Sync for ToolRoute<P> {}
+unsafe impl<A, P> Sync for ToolLinkRaw<A, P>
+where
+    A: Agent,
+    Address<A>: Sync,
+{
+}
 
-impl<A, P> ToolAddress for (Address<A>, ToolRoute<P>)
+impl<A, P> ToolAddress for ToolLinkRaw<A, P>
 where
     A: Tool<P>,
     P: CallParameters,
@@ -90,7 +96,7 @@ where
             _type: PhantomData::<P>,
             interaction,
         };
-        let res = self.0.send(msg);
+        let res = self.address.send(msg);
         fetcher.grasp(res)
     }
 }
@@ -101,11 +107,12 @@ impl RouterLink {
         A: Tool<P>,
         P: CallParameters,
     {
-        let call = ToolRoute {
+        let raw_link = ToolLinkRaw {
+            address: addr,
             _type: PhantomData::<P>,
         };
         let link = ToolLink {
-            address: Arc::new((addr, call)),
+            address: Arc::new(raw_link),
         };
         let msg = AddTool { link, meta };
         let response = self.address.interact(msg).await?;

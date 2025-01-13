@@ -1,17 +1,21 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use notify::{recommended_watcher, EventHandler, Event, RecommendedWatcher, Watcher, RecursiveMode, EventKind};
-use crb::agent::{Agent, AgentSession, Duty, Next, Address, OnEvent, Context, ManagedContext};
+use crb::agent::{Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
+use crb::superagent::{OnTimeout, Timeout};
+use derive_more::From;
+use notify::{
+    recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use std::path::PathBuf;
 use std::time::Duration;
-use derive_more::From;
 
 const DEFAULT_PATH: &str = "ice9.toml";
 
 pub struct ConfigLoader {
     path: PathBuf,
     watcher: Slot<RecommendedWatcher>,
+    debouncer: Slot<Timeout>,
 }
 
 impl ConfigLoader {
@@ -19,6 +23,7 @@ impl ConfigLoader {
         Self {
             path: DEFAULT_PATH.into(),
             watcher: Slot::empty(),
+            debouncer: Slot::empty(),
         }
     }
 }
@@ -33,6 +38,7 @@ impl Agent for ConfigLoader {
 
     fn interrupt(&mut self, ctx: &mut Self::Context) {
         self.watcher.take().ok();
+        self.debouncer.take().ok();
         ctx.shutdown();
     }
 }
@@ -65,16 +71,30 @@ type EventResult = Result<Event, notify::Error>;
 
 #[async_trait]
 impl OnEvent<EventResult> for ConfigLoader {
-    async fn handle(&mut self, result: EventResult, _ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, result: EventResult, ctx: &mut Self::Context) -> Result<()> {
         let event = result?;
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
                 // TODO: Notify the supervisor.
+                if self.debouncer.not_assigned() {
+                    let address = ctx.address().clone();
+                    let duration = Duration::from_millis(250);
+                    let timeout = Timeout::new(address, duration, ());
+                    self.debouncer.fill(timeout)?;
+                }
             }
             _other => {
                 // TODO: How to handle other methods? What if the config was removed?
             }
         }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnTimeout for ConfigLoader {
+    async fn on_timeout(&mut self, _: (), ctx: &mut Self::Context) -> Result<()> {
+        self.debouncer.take()?;
         Ok(())
     }
 }
