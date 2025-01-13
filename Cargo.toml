@@ -13,7 +13,7 @@ exclude = [
 [workspace.package]
 version = "0.0.1"
 edition = "2021"
-license = "?"
+license = "MIT"
 
 [workspace.dependencies]
 anyhow = "1.0.95"

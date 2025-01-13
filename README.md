@@ -32,3 +32,15 @@ let mut substance = Substance::arise();
 substance.add_particle::<OpenAIParticle>()?;
 substance.add_particle::<TelegramParticle>()?;
 ```
+
+## License
+
+This project is licensed under the [MIT license].
+
+[MIT license]: https://github.com/NethermindEth/ice-nine/blob/trunk/LICENSE
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in this project by you, shall be licensed as MIT, without any additional
+terms or conditions.
