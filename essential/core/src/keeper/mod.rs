@@ -1,4 +1,4 @@
-mod updates;
+pub mod updates;
 
 use anyhow::Result;
 use async_trait::async_trait;
@@ -7,8 +7,10 @@ use crb::agent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::ConfigLoader;
 use serde::de::DeserializeOwned;
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use toml::Value;
+use updates::ConfigUpdater;
 
 pub trait Config: DeserializeOwned + Send + 'static {
     const NAMESPACE: &str;
@@ -19,6 +21,7 @@ pub struct KeeperLink {
     address: Address<Keeper>,
 }
 
+/*
 impl KeeperLink {
     pub async fn get_config<C>(&self) -> Result<C>
     where
@@ -32,14 +35,19 @@ impl KeeperLink {
         Ok(config)
     }
 }
+*/
 
 pub struct Keeper {
     config: Option<Value>,
+    listeners: HashMap<String, ConfigUpdater>,
 }
 
 impl Keeper {
     pub fn new() -> Self {
-        Self { config: None }
+        Self {
+            config: None,
+            listeners: HashMap::new(),
+        }
     }
 }
 
@@ -52,16 +60,15 @@ impl Agent for Keeper {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(LoadDotEnv)
+        Next::duty(SpawnWatcher)
     }
 }
 
-struct LoadDotEnv;
+struct SpawnWatcher;
 
 #[async_trait]
-impl Duty<LoadDotEnv> for Keeper {
-    async fn handle(&mut self, _: LoadDotEnv, ctx: &mut Self::Context) -> Result<Next<Self>> {
-        dotenvy::dotenv()?;
+impl Duty<SpawnWatcher> for Keeper {
+    async fn handle(&mut self, _: SpawnWatcher, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let recipient = ctx.address().recipient();
         let loader = ConfigLoader::new(recipient);
         ctx.spawn_agent(loader, ());
@@ -69,6 +76,7 @@ impl Duty<LoadDotEnv> for Keeper {
     }
 }
 
+/*
 pub struct GetConfig<C> {
     namespace: String,
     _type: PhantomData<C>,
@@ -87,6 +95,7 @@ impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
         Ok(config)
     }
 }
+*/
 
 #[async_trait]
 impl OnEvent<Value> for Keeper {

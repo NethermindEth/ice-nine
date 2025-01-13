@@ -4,6 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
+use ice_nine_core::keeper::updates::UpdateConfig;
 use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool};
 use serde::Deserialize;
 
@@ -30,22 +31,28 @@ impl Agent for DyDxParticle {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Configure)
+        Next::duty(Initialize)
     }
 }
 
-struct Configure;
+struct Initialize;
 
 #[async_trait]
-impl Duty<Configure> for DyDxParticle {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
-        let config: DyDxConfig = self.substance.config().await?;
+impl Duty<Initialize> for DyDxParticle {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let address = ctx.address().clone();
         let mut bond = self.substance.bond(address);
+        bond.subscribe().await?;
         bond.add_tool::<Price>(self).await?;
-        // bond.add_tool::<Trade>(self)?;
         self.bond.fill(bond)?;
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl UpdateConfig<DyDxConfig> for DyDxParticle {
+    async fn update_config(&mut self, _: DyDxConfig, ctx: &mut Self::Context) -> Result<()> {
+        Ok(())
     }
 }
 

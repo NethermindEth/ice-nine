@@ -1,4 +1,4 @@
-use crate::keeper::{Config, KeeperLink};
+use crate::keeper::{updates::UpdateConfig, Config, KeeperLink};
 use crate::router::{
     model::Model,
     tool::{CallParameters, Tool, ToolMeta},
@@ -20,9 +20,11 @@ pub struct ParticleSetup {
 }
 
 impl ParticleSetup {
+    /*
     pub async fn config<C: Config>(&mut self) -> Result<C> {
         self.keeper.get_config().await
     }
+    */
 
     pub fn bond<A: Agent>(&mut self, address: Address<A>) -> SubstanceBond<A> {
         SubstanceBond {
@@ -42,6 +44,16 @@ pub struct SubstanceBond<A: Agent> {
 }
 
 impl<A: Agent> SubstanceBond<A> {
+    pub async fn subscribe<C>(&mut self) -> Result<()>
+    where
+        A: UpdateConfig<C>,
+        C: Config,
+    {
+        let address = self.address.clone();
+        self.links.keeper.subscribe(address).await?;
+        Ok(())
+    }
+
     pub fn add_model(&mut self) -> Result<()>
     where
         A: Model,
