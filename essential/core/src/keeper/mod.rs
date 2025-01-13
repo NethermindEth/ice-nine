@@ -2,7 +2,7 @@ mod updates;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, AgentSession, DoSync, Next, OnRequest, Request};
+use crb::agent::{Address, AddressExt, Agent, AgentSession, Duty, Next, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
@@ -43,14 +43,15 @@ impl Agent for Keeper {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::do_sync(LoadDotEnv)
+        Next::duty(LoadDotEnv)
     }
 }
 
 struct LoadDotEnv;
 
-impl DoSync<LoadDotEnv> for Keeper {
-    fn once(&mut self, _: &mut LoadDotEnv) -> Result<Next<Self>> {
+#[async_trait]
+impl Duty<LoadDotEnv> for Keeper {
+    async fn handle(&mut self, _: LoadDotEnv, ctx: &mut Self::Context) -> Result<Next<Self>> {
         dotenvy::dotenv()?;
         Ok(Next::events())
     }
