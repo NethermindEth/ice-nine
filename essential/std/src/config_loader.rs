@@ -57,7 +57,6 @@ impl Duty<Initialize> for ConfigLoader {
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
         self.watcher.fill(watcher)?;
-        self.schedule_update(ctx)?;
         Ok(Next::events())
     }
 }
@@ -85,6 +84,12 @@ impl ConfigLoader {
         }
         Ok(())
     }
+
+    async fn read_config(&mut self) -> Result<Value> {
+        let content = fs::read_to_string(&self.path).await?;
+        let value = toml::from_str(&content)?;
+        Ok(value)
+    }
 }
 
 #[async_trait]
@@ -107,8 +112,7 @@ impl OnEvent<EventResult> for ConfigLoader {
 impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), _ctx: &mut Self::Context) -> Result<()> {
         self.debouncer.take()?;
-        let content = fs::read_to_string(&self.path).await?;
-        let value = toml::from_str(&content)?;
+        let value = self.read_config().await?;
         self.recipient.send(value)?;
         Ok(())
     }

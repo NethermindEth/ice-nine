@@ -1,4 +1,4 @@
-use super::{Config, Keeper, KeeperLink};
+use super::{get_config, Config, Keeper, KeeperLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor, OnEvent};
@@ -138,12 +138,4 @@ impl ConfigUpdater {
             log::error!("Config doesn't contain a section 'particle.{ns}.config'");
         }
     }
-}
-
-fn get_config(value: &Value, namespace: &str) -> Option<Value> {
-    value
-        .get("particle")?
-        .get(namespace)?
-        .get("config")
-        .cloned()
 }
