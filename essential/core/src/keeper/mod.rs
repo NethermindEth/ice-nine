@@ -2,7 +2,7 @@ pub mod updates;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, Duty, Next};
 use crb::agent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::ConfigLoader;
@@ -78,15 +78,3 @@ impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
     }
 }
 */
-
-#[async_trait]
-impl OnEvent<Value> for Keeper {
-    async fn handle(&mut self, value: Value, _ctx: &mut Self::Context) -> Result<()> {
-        println!("Config updated: {:?}", value);
-        self.config = Some(value.clone());
-        for updater in &mut self.listeners {
-            updater.send_new_config(value.clone()).ok();
-        }
-        Ok(())
-    }
-}

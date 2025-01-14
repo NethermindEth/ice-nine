@@ -1,7 +1,7 @@
 use super::{Config, Keeper, KeeperLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, MessageFor};
+use crb::agent::{Address, AddressExt, Agent, MessageFor, OnEvent};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{OnRequest, Request};
 use std::any::type_name;
@@ -108,4 +108,26 @@ impl OnRequest<Subscribe> for Keeper {
         self.listeners.push(msg.updater);
         Ok(())
     }
+}
+
+#[async_trait]
+impl OnEvent<Value> for Keeper {
+    async fn handle(&mut self, value: Value, _ctx: &mut Self::Context) -> Result<()> {
+        println!("Config updated: {:?}", value);
+        self.config = Some(value.clone());
+        for updater in &mut self.listeners {
+            if let Some(value) = get_config(&value, &updater.namespace) {
+                updater.send_new_config(value).ok();
+            }
+        }
+        Ok(())
+    }
+}
+
+fn get_config(value: &Value, namespace: &str) -> Option<Value> {
+    value
+        .get("particle")?
+        .get(namespace)?
+        .get("config")
+        .cloned()
 }
