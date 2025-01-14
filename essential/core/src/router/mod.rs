@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
 };
-use crb::superagent::interaction::Output;
+use crb::superagent::Output;
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
@@ -71,9 +71,9 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
             .ok_or_else(|| anyhow!("Models are not installed"))?;
 
         let address = ctx.address().clone();
-        let req_id = self.requests.insert(lookup.responder);
+        let req_id = self.requests.insert(lookup.interplay.responder);
         let tools = self.tools();
-        let request = lookup.request.with_tools(tools);
+        let request = lookup.interplay.request.with_tools(tools);
         model.chat(request).forward_to(address, req_id);
         Ok(())
     }

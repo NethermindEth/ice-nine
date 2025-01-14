@@ -3,7 +3,7 @@ use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Equip, OnEvent};
-use crb::superagent::{Fetcher, OnRequest};
+use crb::superagent::{OnRequest, ResponseFetcher};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
 
@@ -23,11 +23,11 @@ impl<M: Model> From<Address<M>> for ModelLink {
 }
 
 pub trait ModelAddress: Sync + Send {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatResponse>;
+    fn chat(&self, request: ToolingChatRequest) -> ResponseFetcher<ToolingChatResponse>;
 }
 
 impl<M: Model> ModelAddress for Address<M> {
-    fn chat(&self, request: ToolingChatRequest) -> Fetcher<ToolingChatResponse> {
+    fn chat(&self, request: ToolingChatRequest) -> ResponseFetcher<ToolingChatResponse> {
         self.interact(request)
     }
 }
@@ -44,7 +44,7 @@ impl RouterLink {
         Ok(())
     }
 
-    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatResponse> {
+    pub fn chat(&self, request: ChatRequest) -> ResponseFetcher<ChatResponse> {
         self.interact(request)
     }
 }

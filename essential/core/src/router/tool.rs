@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, AddressExt, Agent, MessageFor, OnRequest};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{Fetcher, Interaction, Request, Responder};
+use crb::superagent::{Fetcher, Interaction, Interplay, Request, Responder};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -36,12 +36,16 @@ where
 
     async fn handle_request(
         &mut self,
+        // TODO: Use a custom wrapper for `Interplay`
         msg: Interaction<ToolRequest>,
         ctx: &mut Self::Context,
     ) -> Result<()> {
-        match serde_json::from_value(msg.request.value) {
-            Ok(request) => self.handle_response(request, msg.responder, ctx).await,
-            Err(err) => msg.responder.send_result(Err(err.into())),
+        match serde_json::from_value(msg.interplay.request.value) {
+            Ok(request) => {
+                self.handle_response(request, msg.interplay.responder, ctx)
+                    .await
+            }
+            Err(err) => msg.interplay.responder.send_result(Err(err.into())),
         }
     }
 
@@ -83,7 +87,8 @@ where
 {
     fn call_tool(&self, value: Value) -> Fetcher<ToolResponse> {
         let request = ToolRequest { value };
-        let (interaction, fetcher) = Interaction::new_pair(request);
+        let (interplay, fetcher) = Interplay::new_pair(request);
+        let interaction = Interaction { interplay };
         let msg = CallTool {
             _type: PhantomData::<P>,
             interaction,
