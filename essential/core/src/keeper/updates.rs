@@ -83,8 +83,15 @@ where
     C: Config,
 {
     async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
-        let config: C = self.value.try_into()?;
-        if let Err(err) = agent.update_config(config, ctx).await {
+        let result = match self.value.try_into() {
+            Ok(config) => agent.update_config(config, ctx).await,
+            Err(err) => {
+                let ns = C::NAMESPACE;
+                log::error!("Can't parse the section 'particle.{ns}.config': {err}");
+                Err(err.into())
+            }
+        };
+        if let Err(err) = result {
             agent.fallback(err, ctx);
         }
         Ok(())
@@ -128,7 +135,7 @@ impl ConfigUpdater {
         if let Some(value) = get_config(&value, ns) {
             self.update_and_send_config(value).ok();
         } else {
-            log::error!("Config doesn't contain section 'particle.{ns}.config'");
+            log::error!("Config doesn't contain a section 'particle.{ns}.config'");
         }
     }
 }
