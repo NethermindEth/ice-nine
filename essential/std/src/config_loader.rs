@@ -1,12 +1,13 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
+    Address, AddressFor, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent,
+    ReachableContext,
 };
 use crb::core::{Slot, UniqueId};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{OnTimeout, Subscription, Timeout};
-use derive_more::From;
+use crb::superagent::{ManageSubscription, OnTimeout, Subscription, Timeout};
+use derive_more::{Deref, DerefMut, From};
 use notify::{
     recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
 };
@@ -23,17 +24,15 @@ pub struct ConfigLoader {
     watcher: Slot<RecommendedWatcher>,
     debouncer: Slot<Timeout>,
     subscribers: HashSet<UniqueId<ConfigUpdates>>,
-    recipient: Recipient<Value>,
 }
 
 impl ConfigLoader {
-    pub fn new(recipient: Recipient<Value>) -> Self {
+    pub fn new() -> Self {
         Self {
             path: DEFAULT_PATH.into(),
             watcher: Slot::empty("watcher of a config loader"),
             debouncer: Slot::empty("events debouncer of a config loader"),
             subscribers: HashSet::new(),
-            recipient,
         }
     }
 }
@@ -62,6 +61,7 @@ impl Duty<Initialize> for ConfigLoader {
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
         self.watcher.fill(watcher)?;
+        // TODO: Read the config here
         Ok(Next::events())
     }
 }
@@ -118,15 +118,54 @@ impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
         self.debouncer.take()?;
         let value = self.read_config().await?;
-        self.recipient.send(value)?;
+        for subscriber in &self.subscribers {
+            subscriber.send(NewConfig(value.clone())).ok();
+        }
         Ok(())
     }
 }
 
-struct ConfigUpdates {
-    recipient: Recipient<Value>,
+pub struct NewConfig(pub Value);
+
+#[derive(Deref, DerefMut)]
+pub struct ConfigUpdates {
+    recipient: Recipient<NewConfig>,
+}
+
+impl ConfigUpdates {
+    pub fn for_listener<A>(addr: impl AddressFor<A>) -> Self
+    where
+        A: OnEvent<NewConfig>,
+    {
+        Self {
+            recipient: addr.address().recipient(),
+        }
+    }
 }
 
 impl Subscription for ConfigUpdates {
     type State = Value;
+}
+
+#[async_trait]
+impl ManageSubscription<ConfigUpdates> for ConfigLoader {
+    async fn subscribe(
+        &mut self,
+        sub_id: UniqueId<ConfigUpdates>,
+        ctx: &mut Context<Self>,
+    ) -> Result<Value> {
+        // Read on initialze and keep
+        self.subscribers.insert(sub_id);
+        let value = self.read_config().await?;
+        Ok(value)
+    }
+
+    async fn unsubscribe(
+        &mut self,
+        sub_id: UniqueId<ConfigUpdates>,
+        ctx: &mut Context<Self>,
+    ) -> Result<()> {
+        self.subscribers.remove(&sub_id);
+        Ok(())
+    }
 }

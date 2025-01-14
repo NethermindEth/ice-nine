@@ -2,12 +2,14 @@ pub mod updates;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next};
+use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::core::Slot;
 use crb::superagent::{
-    InteractExt, OnRequest, Request, Subscribe, Subscription, Supervisor, SupervisorSession,
+    Entry, InteractExt, OnRequest, Request, Subscribe, SubscribeExt, Subscription, Supervisor,
+    SupervisorSession,
 };
 use derive_more::{Deref, DerefMut, From};
-use ice_nine_std::config_loader::ConfigLoader;
+use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
 use serde::de::DeserializeOwned;
 use std::marker::PhantomData;
 use toml::Value;
@@ -41,6 +43,7 @@ impl KeeperLink {
 pub struct Keeper {
     config: Option<Value>,
     listeners: Vec<ConfigUpdater>,
+    updater: Slot<Entry<ConfigUpdates>>,
 }
 
 impl Keeper {
@@ -48,6 +51,7 @@ impl Keeper {
         Self {
             config: None,
             listeners: Vec::new(),
+            updater: Slot::empty("config updater"),
         }
     }
 }
@@ -70,20 +74,15 @@ struct SpawnWatcher;
 #[async_trait]
 impl Duty<SpawnWatcher> for Keeper {
     async fn handle(&mut self, _: SpawnWatcher, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let recipient = ctx.address().recipient();
-        let loader = ConfigLoader::new(recipient);
-        let addr = ctx.spawn_agent(loader, ());
-        // TODO: Use `addr` interaction to load the initial config
-        // TODO: Implement a subscribe method for loader that will
-        // return a current configuration, than updates
+        let loader = ConfigLoader::new();
+        let (addr, _) = ctx.spawn_agent(loader, ());
+        let sub = ConfigUpdates::for_listener(ctx);
+        let state_entry = addr.subscribe(sub).await?;
+        // No subscribers here, not necessary to distribute the config
+        self.config = Some(state_entry.state);
+        self.updater.fill(state_entry.entry)?;
         Ok(Next::events())
     }
-}
-
-pub struct ConfigUpdates {}
-
-impl Subscription for ConfigUpdates {
-    type State = Value;
 }
 
 pub struct GetConfig<C> {
@@ -107,6 +106,13 @@ impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
             .ok_or_else(|| anyhow!("Can't parse the config"))?
             .try_into()?;
         Ok(config)
+    }
+}
+
+#[async_trait]
+impl OnEvent<NewConfig> for Keeper {
+    async fn handle(&mut self, config: NewConfig, ctx: &mut Context<Self>) -> Result<()> {
+        Ok(())
     }
 }
 
