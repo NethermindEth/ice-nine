@@ -3,7 +3,9 @@ pub mod updates;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next};
-use crb::superagent::{AddressExt, OnRequest, Request, Supervisor, SupervisorSession};
+use crb::superagent::{
+    AddressExt, OnRequest, Request, Subscribe, Subscription, Supervisor, SupervisorSession,
+};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::ConfigLoader;
 use serde::de::DeserializeOwned;
@@ -76,6 +78,12 @@ impl Duty<SpawnWatcher> for Keeper {
         // return a current configuration, than updates
         Ok(Next::events())
     }
+}
+
+pub struct ConfigUpdates {}
+
+impl Subscription for ConfigUpdates {
+    type State = Value;
 }
 
 pub struct GetConfig<C> {
