@@ -45,7 +45,7 @@ pub struct ConfigUpdater {
 }
 
 impl ConfigUpdater {
-    pub fn send_new_config(&mut self, value: Value) -> Result<()> {
+    pub fn update_and_send_config(&mut self, value: Value) -> Result<()> {
         if self.last_value.as_ref() == Some(&value) {
             self.last_value = Some(value.clone());
         }
@@ -101,9 +101,9 @@ impl Request for Subscribe {
 
 #[async_trait]
 impl OnRequest<Subscribe> for Keeper {
-    async fn on_request(&mut self, msg: Subscribe, _: &mut Self::Context) -> Result<()> {
+    async fn on_request(&mut self, mut msg: Subscribe, _: &mut Self::Context) -> Result<()> {
         if let Some(value) = self.config.clone() {
-            msg.updater.recipient.send(value).ok();
+            msg.updater.send_config(&value);
         }
         self.listeners.push(msg.updater);
         Ok(())
@@ -116,14 +116,20 @@ impl OnEvent<Value> for Keeper {
         println!("Config updated: {:?}", value);
         self.config = Some(value.clone());
         for updater in &mut self.listeners {
-            let ns = &updater.namespace;
-            if let Some(value) = get_config(&value, ns) {
-                updater.send_new_config(value).ok();
-            } else {
-                log::error!("Config doesn't contain section 'particle.{ns}.config'");
-            }
+            updater.send_config(&value);
         }
         Ok(())
+    }
+}
+
+impl ConfigUpdater {
+    fn send_config(&mut self, value: &Value) {
+        let ns = &self.namespace;
+        if let Some(value) = get_config(&value, ns) {
+            self.update_and_send_config(value).ok();
+        } else {
+            log::error!("Config doesn't contain section 'particle.{ns}.config'");
+        }
     }
 }
 
