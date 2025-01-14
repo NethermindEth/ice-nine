@@ -4,7 +4,7 @@ use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequestArgs;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next};
-use crb::core::types::Slot;
+use crb::core::Slot;
 use crb::superagent::OnRequest;
 use ice_nine_core::{
     Model, Particle, ParticleSetup, SubstanceBond, ToolingChatRequest, ToolingChatResponse,
