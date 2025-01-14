@@ -1,7 +1,7 @@
 use crate::events::EventsDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Duty, Next, ReachableContext, Standalone};
+use crb::agent::{Agent, Context, Duty, Next, Standalone};
 use crb::superagent::{Supervisor, SupervisorSession};
 
 pub struct App {}
@@ -31,7 +31,7 @@ struct Configure;
 
 #[async_trait]
 impl Duty<Configure> for App {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Configure, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let address = ctx.address().clone();
         let drainer = EventsDrainer::new(address);
         ctx.spawn_agent(drainer, ());

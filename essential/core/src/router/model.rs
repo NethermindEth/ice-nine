@@ -2,7 +2,7 @@ use super::types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatRes
 use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Equip, OnEvent};
+use crb::agent::{Address, Context, Equip, OnEvent};
 use crb::superagent::{Fetcher, InteractExt, OnRequest};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
@@ -55,7 +55,7 @@ pub struct AddModel {
 
 #[async_trait]
 impl OnEvent<AddModel> for ReasoningRouter {
-    async fn handle(&mut self, msg: AddModel, _ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, msg: AddModel, _ctx: &mut Context<Self>) -> Result<()> {
         self.models.push(msg.link);
         Ok(())
     }

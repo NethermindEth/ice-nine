@@ -1,7 +1,7 @@
 use super::{get_config, Config, Keeper, KeeperLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, MessageFor, OnEvent};
+use crb::agent::{Address, Agent, Context, MessageFor, OnEvent};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{InteractExt, OnRequest, Request};
 use std::any::type_name;
@@ -10,9 +10,9 @@ use toml::Value;
 
 #[async_trait]
 pub trait UpdateConfig<C: Config>: Agent {
-    async fn update_config(&mut self, config: C, ctx: &mut Self::Context) -> Result<()>;
+    async fn update_config(&mut self, config: C, ctx: &mut Context<Self>) -> Result<()>;
 
-    fn fallback(&mut self, err: Error, _ctx: &mut Self::Context) {
+    fn fallback(&mut self, err: Error, _ctx: &mut Context<Self>) {
         log::error!("Can't load the config {}: {err}", type_name::<C>());
     }
 }
@@ -82,7 +82,7 @@ where
     A: UpdateConfig<C>,
     C: Config,
 {
-    async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
+    async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut Context<A>) -> Result<()> {
         let result = match self.value.try_into() {
             Ok(config) => agent.update_config(config, ctx).await,
             Err(err) => {
@@ -108,7 +108,7 @@ impl Request for Subscribe {
 
 #[async_trait]
 impl OnRequest<Subscribe> for Keeper {
-    async fn on_request(&mut self, mut msg: Subscribe, _: &mut Self::Context) -> Result<()> {
+    async fn on_request(&mut self, mut msg: Subscribe, _: &mut Context<Self>) -> Result<()> {
         if let Some(value) = self.config.clone() {
             msg.updater.send_config(&value);
         }
@@ -119,7 +119,7 @@ impl OnRequest<Subscribe> for Keeper {
 
 #[async_trait]
 impl OnEvent<Value> for Keeper {
-    async fn handle(&mut self, value: Value, _ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, value: Value, _ctx: &mut Context<Self>) -> Result<()> {
         println!("Config updated: {:?}", value);
         self.config = Some(value.clone());
         for updater in &mut self.listeners {

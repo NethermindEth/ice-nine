@@ -4,7 +4,7 @@ use crate::keeper::Keeper;
 use crate::router::ReasoningRouter;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Duty, Equip, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
@@ -75,7 +75,7 @@ struct Configure;
 
 #[async_trait]
 impl Duty<Configure> for Substance {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Configure, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let agent = Keeper::new();
         let keeper = ctx.spawn_agent(agent, Group::Services).equip();
 
@@ -98,7 +98,7 @@ impl<P> OnEvent<AddParticle<P>> for Substance
 where
     P: Particle,
 {
-    async fn handle(&mut self, _: AddParticle<P>, ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, _: AddParticle<P>, ctx: &mut Context<Self>) -> Result<()> {
         log::info!("Add particle: {}", type_name::<P>());
         let setup = self.get_setup()?;
         let agent = P::construct(setup);
@@ -118,7 +118,7 @@ impl OnRequest<BeParticle> for Substance {
     async fn on_request(
         &mut self,
         _: BeParticle,
-        _ctx: &mut Self::Context,
+        _ctx: &mut Context<Self>,
     ) -> Result<ParticleSetup> {
         self.get_setup()
     }

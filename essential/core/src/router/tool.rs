@@ -1,7 +1,7 @@
 use super::{ReasoningRouter, RouterLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, MessageFor};
+use crb::agent::{Address, Agent, Context, MessageFor};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{
     Fetcher, InteractExt, Interaction, Interplay, OnRequest, Request, Responder,
@@ -40,7 +40,7 @@ where
         &mut self,
         // TODO: Use a custom wrapper for `Interplay`
         msg: Interaction<ToolRequest>,
-        ctx: &mut Self::Context,
+        ctx: &mut Context<Self>,
     ) -> Result<()> {
         match serde_json::from_value(msg.interplay.request.value) {
             Ok(request) => {
@@ -55,13 +55,13 @@ where
         &mut self,
         msg: P,
         responder: Responder<ToolResponse>,
-        ctx: &mut Self::Context,
+        ctx: &mut Context<Self>,
     ) -> Result<()> {
         let res = self.call_tool(msg, ctx).await;
         responder.send_result(res)
     }
 
-    async fn call_tool(&mut self, _input: P, _ctx: &mut Self::Context) -> Result<ToolResponse> {
+    async fn call_tool(&mut self, _input: P, _ctx: &mut Context<Self>) -> Result<ToolResponse> {
         Err(anyhow!("Not implemented"))
     }
 }
@@ -158,7 +158,7 @@ pub struct ToolRecord {
 
 #[async_trait]
 impl OnRequest<AddTool> for ReasoningRouter {
-    async fn on_request(&mut self, msg: AddTool, _ctx: &mut Self::Context) -> Result<ToolAdded> {
+    async fn on_request(&mut self, msg: AddTool, _ctx: &mut Context<Self>) -> Result<ToolAdded> {
         let id = ToolId::from(format!("{}_{}", msg.meta.name, self.tools.len()));
         let meta = ToolMetaWithId {
             id: id.clone(),
@@ -195,7 +195,7 @@ where
     A: Tool<P>,
     P: CallParameters,
 {
-    async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut A::Context) -> Result<()> {
+    async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut Context<A>) -> Result<()> {
         agent.handle_request(self.interaction, ctx).await
     }
 }

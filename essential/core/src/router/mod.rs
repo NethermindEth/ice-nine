@@ -4,7 +4,7 @@ pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Next, ReachableContext};
+use crb::agent::{Address, Agent, AgentSession, Context, Next};
 use crb::superagent::{Interaction, OnRequest, OnResponse, Output, Responder};
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
@@ -60,7 +60,7 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
     async fn handle(
         &mut self,
         lookup: Interaction<ChatRequest>,
-        ctx: &mut Self::Context,
+        ctx: &mut Context<Self>,
     ) -> Result<()> {
         // TODO: Picking model strategy
         let model = self
@@ -86,7 +86,7 @@ impl OnResponse<ToolingChatResponse, ReqId> for ReasoningRouter {
         &mut self,
         resp: Output<ToolingChatResponse>,
         req_id: ReqId,
-        _ctx: &mut Self::Context,
+        _ctx: &mut Context<Self>,
     ) -> Result<()> {
         let responder = self
             .requests

@@ -3,7 +3,7 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Duty, Next, OnEvent, ReachableContext};
+use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
@@ -54,7 +54,7 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for TelegramParticle {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let address = ctx.address().clone();
         let mut bond = self.substance.bond(address);
         bond.subscribe().await?;
@@ -74,7 +74,7 @@ impl UpdateConfig<TelegramConfig> for TelegramParticle {
     async fn update_config(
         &mut self,
         config: TelegramConfig,
-        ctx: &mut Self::Context,
+        ctx: &mut Context<Self>,
     ) -> Result<()> {
         if self.client.is_filled() {
             self.client.take()?;
@@ -96,7 +96,7 @@ impl UpdateConfig<TelegramConfig> for TelegramParticle {
 
 #[async_trait]
 impl OnEvent<Message> for TelegramParticle {
-    async fn handle(&mut self, message: Message, ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, message: Message, ctx: &mut Context<Self>) -> Result<()> {
         let client = self.client.get_mut()?;
         if let Some(text) = message.text() {
             if text.starts_with('/') {
@@ -125,7 +125,7 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
         &mut self,
         response: Output<ChatResponse>,
         chat_id: ChatId,
-        _ctx: &mut Self::Context,
+        _ctx: &mut Context<Self>,
     ) -> Result<()> {
         self.typing.remove(&chat_id);
         let client = self.client.get_mut()?;
@@ -139,7 +139,7 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
 
 #[async_trait]
 impl OnTick for TelegramParticle {
-    async fn on_tick(&mut self, _: &(), _ctx: &mut Self::Context) -> Result<()> {
+    async fn on_tick(&mut self, _: &(), _ctx: &mut Context<Self>) -> Result<()> {
         if self.client.is_filled() {
             let client = self.client.get_mut()?;
             for chat_id in &self.typing {

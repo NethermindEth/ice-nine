@@ -3,7 +3,7 @@ use crate::convert;
 use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequestArgs;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Duty, Next, ReachableContext};
+use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::OnRequest;
 use ice_nine_core::{
@@ -43,7 +43,7 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for OpenAIParticle {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let address = ctx.address().clone();
         let mut bond = self.substance.bond(address);
         bond.subscribe().await?;
@@ -59,7 +59,7 @@ impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
     async fn update_config(
         &mut self,
         config: OpenAIConfig,
-        _ctx: &mut Self::Context,
+        _ctx: &mut Context<Self>,
     ) -> Result<()> {
         if self.client.is_filled() {
             self.client.take()?;
@@ -77,7 +77,7 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
     async fn on_request(
         &mut self,
         msg: ToolingChatRequest,
-        _: &mut Self::Context,
+        _: &mut Context<Self>,
     ) -> Result<ToolingChatResponse> {
         let client = self.client.get_mut()?;
         // TODO: Sequental, but could be executed in the reactor

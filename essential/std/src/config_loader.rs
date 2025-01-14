@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Duty, ManagedContext, Next, OnEvent, ReachableContext,
+    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
 };
 use crb::core::{Slot, UniqueId};
 use crb::send::{Recipient, Sender};
@@ -46,7 +46,7 @@ impl Agent for ConfigLoader {
         Next::duty(Initialize)
     }
 
-    fn interrupt(&mut self, ctx: &mut Self::Context) {
+    fn interrupt(&mut self, ctx: &mut Context<Self>) {
         self.watcher.take().ok();
         self.debouncer.take().ok();
         ctx.shutdown();
@@ -57,7 +57,7 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for ConfigLoader {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let forwarder = EventsForwarder::from(ctx.address().clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
@@ -99,7 +99,7 @@ impl ConfigLoader {
 
 #[async_trait]
 impl OnEvent<EventResult> for ConfigLoader {
-    async fn handle(&mut self, result: EventResult, ctx: &mut Self::Context) -> Result<()> {
+    async fn handle(&mut self, result: EventResult, ctx: &mut Context<Self>) -> Result<()> {
         let event = result?;
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
@@ -115,7 +115,7 @@ impl OnEvent<EventResult> for ConfigLoader {
 
 #[async_trait]
 impl OnTimeout for ConfigLoader {
-    async fn on_timeout(&mut self, _: (), _ctx: &mut Self::Context) -> Result<()> {
+    async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
         self.debouncer.take()?;
         let value = self.read_config().await?;
         self.recipient.send(value)?;

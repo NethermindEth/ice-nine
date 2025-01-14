@@ -2,7 +2,7 @@ pub mod updates;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Duty, Next, ReachableContext};
+use crb::agent::{Address, Agent, Context, Duty, Next};
 use crb::superagent::{
     InteractExt, OnRequest, Request, Subscribe, Subscription, Supervisor, SupervisorSession,
 };
@@ -69,7 +69,7 @@ struct SpawnWatcher;
 
 #[async_trait]
 impl Duty<SpawnWatcher> for Keeper {
-    async fn handle(&mut self, _: SpawnWatcher, ctx: &mut Self::Context) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: SpawnWatcher, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let recipient = ctx.address().recipient();
         let loader = ConfigLoader::new(recipient);
         let addr = ctx.spawn_agent(loader, ());
@@ -97,7 +97,7 @@ impl<C: Config> Request for GetConfig<C> {
 
 #[async_trait]
 impl<C: Config> OnRequest<GetConfig<C>> for Keeper {
-    async fn on_request(&mut self, msg: GetConfig<C>, _: &mut Self::Context) -> Result<C> {
+    async fn on_request(&mut self, msg: GetConfig<C>, _: &mut Context<Self>) -> Result<C> {
         let mut ns = &msg.namespace;
         let value = self
             .config
