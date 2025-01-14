@@ -3,7 +3,7 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, Duty, Next, OnEvent, ReachableContext};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
@@ -112,6 +112,7 @@ impl OnEvent<Message> for TelegramParticle {
             self.substance
                 .router
                 .chat(request)
+                .forwardable()
                 .forward_to(address, chat_id);
         }
         Ok(())

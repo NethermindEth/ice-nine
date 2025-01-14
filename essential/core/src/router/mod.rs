@@ -4,7 +4,7 @@ pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, Next};
+use crb::agent::{Address, Agent, AgentSession, Next, ReachableContext};
 use crb::superagent::{Interaction, OnRequest, OnResponse, Output, Responder};
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
@@ -72,7 +72,10 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
         let req_id = self.requests.insert(lookup.interplay.responder);
         let tools = self.tools();
         let request = lookup.interplay.request.with_tools(tools);
-        model.chat(request).forward_to(address, req_id);
+        model
+            .chat(request)
+            .forwardable()
+            .forward_to(address, req_id);
         Ok(())
     }
 }

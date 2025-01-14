@@ -1,7 +1,7 @@
 use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next};
+use crb::agent::{Agent, Duty, Next, ReachableContext};
 use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool, UpdateConfig};

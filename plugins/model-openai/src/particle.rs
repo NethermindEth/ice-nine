@@ -3,7 +3,7 @@ use crate::convert;
 use anyhow::Result;
 use async_openai::types::CreateChatCompletionRequestArgs;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, Next};
+use crb::agent::{Agent, AgentSession, Duty, Next, ReachableContext};
 use crb::core::Slot;
 use crb::superagent::OnRequest;
 use ice_nine_core::{

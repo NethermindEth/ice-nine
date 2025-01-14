@@ -3,7 +3,9 @@ use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, MessageFor};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{AddressExt, Fetcher, Interaction, Interplay, OnRequest, Request, Responder};
+use crb::superagent::{
+    Fetcher, InteractExt, Interaction, Interplay, OnRequest, Request, Responder,
+};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
 use serde_json::Value;

@@ -1,13 +1,16 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
-use crb::core::Slot;
+use crb::agent::{
+    Address, Agent, AgentSession, Duty, ManagedContext, Next, OnEvent, ReachableContext,
+};
+use crb::core::{Slot, UniqueId};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{OnTimeout, Timeout};
+use crb::superagent::{OnTimeout, Subscription, Timeout};
 use derive_more::From;
 use notify::{
     recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
 };
+use std::collections::HashSet;
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::fs;
@@ -19,6 +22,7 @@ pub struct ConfigLoader {
     path: PathBuf,
     watcher: Slot<RecommendedWatcher>,
     debouncer: Slot<Timeout>,
+    subscribers: HashSet<UniqueId<ConfigUpdates>>,
     recipient: Recipient<Value>,
 }
 
@@ -28,6 +32,7 @@ impl ConfigLoader {
             path: DEFAULT_PATH.into(),
             watcher: Slot::empty("watcher of a config loader"),
             debouncer: Slot::empty("events debouncer of a config loader"),
+            subscribers: HashSet::new(),
             recipient,
         }
     }
@@ -116,4 +121,12 @@ impl OnTimeout for ConfigLoader {
         self.recipient.send(value)?;
         Ok(())
     }
+}
+
+struct ConfigUpdates {
+    recipient: Recipient<Value>,
+}
+
+impl Subscription for ConfigUpdates {
+    type State = Value;
 }
