@@ -14,11 +14,9 @@ pub struct ParticleSetup {
 }
 
 impl ParticleSetup {
-    /*
     pub async fn config<C: Config>(&mut self) -> Result<C> {
         self.keeper.get_config().await
     }
-    */
 
     pub fn bond<A: Agent>(&mut self, address: Address<A>) -> SubstanceBond<A> {
         SubstanceBond {

@@ -3,7 +3,7 @@ pub mod updates;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next};
-use crb::superagent::{OnRequest, Request, Supervisor, SupervisorSession};
+use crb::superagent::{AddressExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::ConfigLoader;
 use serde::de::DeserializeOwned;
@@ -12,12 +12,28 @@ use toml::Value;
 use updates::ConfigUpdater;
 
 pub trait Config: DeserializeOwned + Send + 'static {
+    // TODO: Add scope
+    // TODO: Add methods to get a full path for logging
     const NAMESPACE: &str;
 }
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct KeeperLink {
     address: Address<Keeper>,
+}
+
+impl KeeperLink {
+    pub async fn get_config<C>(&self) -> Result<C>
+    where
+        C: Config,
+    {
+        let request = GetConfig::<C> {
+            namespace: C::NAMESPACE.to_string(),
+            _type: PhantomData,
+        };
+        let config = self.address.interact(request).await?;
+        Ok(config)
+    }
 }
 
 pub struct Keeper {
