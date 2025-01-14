@@ -116,8 +116,11 @@ impl OnEvent<Value> for Keeper {
         println!("Config updated: {:?}", value);
         self.config = Some(value.clone());
         for updater in &mut self.listeners {
-            if let Some(value) = get_config(&value, &updater.namespace) {
+            let ns = &updater.namespace;
+            if let Some(value) = get_config(&value, ns) {
                 updater.send_new_config(value).ok();
+            } else {
+                log::error!("Config doesn't contain section 'particle.{ns}.config'");
             }
         }
         Ok(())
