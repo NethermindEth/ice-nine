@@ -38,7 +38,7 @@ impl Agent for ConfigLoader {
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Configure)
+        Next::duty(Initialize)
     }
 
     fn interrupt(&mut self, ctx: &mut Self::Context) {
@@ -48,15 +48,16 @@ impl Agent for ConfigLoader {
     }
 }
 
-struct Configure;
+struct Initialize;
 
 #[async_trait]
-impl Duty<Configure> for ConfigLoader {
-    async fn handle(&mut self, _: Configure, ctx: &mut Self::Context) -> Result<Next<Self>> {
+impl Duty<Initialize> for ConfigLoader {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Self::Context) -> Result<Next<Self>> {
         let forwarder = EventsForwarder::from(ctx.address().clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
         self.watcher.fill(watcher)?;
+        self.schedule_update(ctx)?;
         Ok(Next::events())
     }
 }
@@ -74,18 +75,25 @@ impl EventHandler for EventsForwarder {
 
 type EventResult = Result<Event, notify::Error>;
 
+impl ConfigLoader {
+    fn schedule_update(&mut self, ctx: &mut <Self as Agent>::Context) -> Result<()> {
+        if self.debouncer.is_empty() {
+            let address = ctx.address().clone();
+            let duration = Duration::from_millis(250);
+            let timeout = Timeout::new(address, duration, ());
+            self.debouncer.fill(timeout)?;
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl OnEvent<EventResult> for ConfigLoader {
     async fn handle(&mut self, result: EventResult, ctx: &mut Self::Context) -> Result<()> {
         let event = result?;
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
-                if self.debouncer.is_empty() {
-                    let address = ctx.address().clone();
-                    let duration = Duration::from_millis(250);
-                    let timeout = Timeout::new(address, duration, ());
-                    self.debouncer.fill(timeout)?;
-                }
+                self.schedule_update(ctx)?;
             }
             _other => {
                 // TODO: How to handle other methods? What if the config was removed?

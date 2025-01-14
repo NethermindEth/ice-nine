@@ -7,5 +7,5 @@ pub struct TelegramConfig {
 }
 
 impl Config for TelegramConfig {
-    const NAMESPACE: &str = "TELEGRAM";
+    const NAMESPACE: &str = "telegram";
 }

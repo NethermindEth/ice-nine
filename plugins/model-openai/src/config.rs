@@ -9,5 +9,5 @@ pub type Client = OpenAIClient<RawConfig>;
 pub struct OpenAIConfig(pub RawConfig);
 
 impl Config for OpenAIConfig {
-    const NAMESPACE: &str = "OPENAI";
+    const NAMESPACE: &str = "openai";
 }

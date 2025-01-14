@@ -5,5 +5,5 @@ use serde::Deserialize;
 pub struct DyDxConfig {}
 
 impl Config for DyDxConfig {
-    const NAMESPACE: &str = "DYDX";
+    const NAMESPACE: &str = "dydx";
 }
