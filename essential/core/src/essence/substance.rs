@@ -2,12 +2,13 @@ use super::particle::{Particle, ParticleSetup};
 use super::SubstanceLinks;
 use crate::keeper::Keeper;
 use crate::router::ReasoningRouter;
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, Duty, Equip, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
 };
 use crb::core::Slot;
+use crb::superagent::{AddressExt, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;
@@ -21,6 +22,10 @@ impl SubstanceLink {
     pub fn add_particle<P: Particle>(&self) -> Result<()> {
         let msg = AddParticle::<P> { _type: PhantomData };
         self.address.event(msg)
+    }
+
+    pub async fn be_particle(&self) -> Result<ParticleSetup> {
+        self.address.interact(BeParticle).await.map_err(Error::from)
     }
 }
 
@@ -101,5 +106,22 @@ where
         let agent = P::construct(setup);
         let _addr = ctx.spawn_agent(agent, Group::Particles);
         Ok(())
+    }
+}
+
+struct BeParticle;
+
+impl Request for BeParticle {
+    type Response = ParticleSetup;
+}
+
+#[async_trait]
+impl OnRequest<BeParticle> for Substance {
+    async fn on_request(
+        &mut self,
+        _: BeParticle,
+        _ctx: &mut Self::Context,
+    ) -> Result<ParticleSetup> {
+        self.get_setup()
     }
 }
