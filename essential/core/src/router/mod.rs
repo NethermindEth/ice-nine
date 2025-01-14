@@ -4,10 +4,8 @@ pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{
-    Address, Agent, AgentSession, Context, Interaction, Next, OnRequest, OnResponse, Responder,
-};
-use crb::superagent::Output;
+use crb::agent::{Address, Agent, AgentSession, Context, Next};
+use crb::superagent::{Interaction, OnRequest, OnResponse, Output, Responder};
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;

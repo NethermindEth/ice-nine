@@ -3,11 +3,9 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{
-    Agent, Context, Duty, Next, OnEvent, OnResponse, Output, Supervisor, SupervisorSession,
-};
+use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, types::Slot};
-use crb::superagent::{Interval, OnTick};
+use crb::superagent::{Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
     ChatRequest, ChatResponse, Particle, ParticleSetup, SubstanceBond, UpdateConfig,
 };

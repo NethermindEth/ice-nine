@@ -1,9 +1,9 @@
 use super::{get_config, Config, Keeper, KeeperLink};
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, MessageFor, OnEvent};
+use crb::agent::{Address, Agent, MessageFor, OnEvent};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{OnRequest, Request};
+use crb::superagent::{AddressExt, OnRequest, Request};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;

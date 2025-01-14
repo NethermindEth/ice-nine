@@ -4,11 +4,9 @@ use crate::keeper::Keeper;
 use crate::router::ReasoningRouter;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{
-    Address, Agent, Duty, Equip, Next, OnEvent, Standalone, Supervisor, SupervisorSession,
-};
+use crb::agent::{Address, Agent, Duty, Equip, Next, OnEvent, Standalone};
 use crb::core::Slot;
-use crb::superagent::{AddressExt, OnRequest, Request};
+use crb::superagent::{AddressExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;

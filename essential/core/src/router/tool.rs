@@ -1,9 +1,9 @@
 use super::{ReasoningRouter, RouterLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Agent, MessageFor, OnRequest};
+use crb::agent::{Address, Agent, MessageFor};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{Fetcher, Interaction, Interplay, Request, Responder};
+use crb::superagent::{AddressExt, Fetcher, Interaction, Interplay, OnRequest, Request, Responder};
 use derive_more::{Deref, DerefMut};
 use serde::de::DeserializeOwned;
 use serde_json::Value;

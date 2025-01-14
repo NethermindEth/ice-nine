@@ -2,8 +2,8 @@ use super::types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatRes
 use super::{ReasoningRouter, RouterLink};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, AddressExt, Equip, OnEvent};
-use crb::superagent::{OnRequest, ResponseFetcher};
+use crb::agent::{Address, Equip, OnEvent};
+use crb::superagent::{AddressExt, OnRequest, ResponseFetcher};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
 

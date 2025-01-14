@@ -1,7 +1,8 @@
 use crate::events::EventsDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, Standalone, Supervisor, SupervisorSession};
+use crb::agent::{Agent, Context, Duty, Next, Standalone};
+use crb::superagent::{Supervisor, SupervisorSession};
 
 pub struct App {}
 
