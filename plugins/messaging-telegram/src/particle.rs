@@ -141,9 +141,11 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
 #[async_trait]
 impl OnTick for TelegramParticle {
     async fn on_tick(&mut self, _: &(), _ctx: &mut Self::Context) -> Result<()> {
-        let client = self.client.get_mut()?;
-        for chat_id in &self.typing {
-            client.typing(*chat_id).await.ok();
+        if self.client.is_filled() {
+            let client = self.client.get_mut()?;
+            for chat_id in &self.typing {
+                client.typing(*chat_id).await.ok();
+            }
         }
         Ok(())
     }

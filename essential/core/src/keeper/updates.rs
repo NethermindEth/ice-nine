@@ -12,14 +12,14 @@ use toml::Value;
 pub trait UpdateConfig<C: Config>: Agent {
     async fn update_config(&mut self, config: C, ctx: &mut Self::Context) -> Result<()>;
 
-    fn fallback(&mut self, err: Error, ctx: &mut Self::Context) {
+    fn fallback(&mut self, err: Error, _ctx: &mut Self::Context) {
         log::error!("Can't load the config {}: {err}", type_name::<C>());
     }
 }
 
 impl KeeperLink {
     /// Subscribe to live configuration updates.
-    pub async fn subscribe<A, C>(&self, address: Address<A>) -> Result<()>
+    pub async fn subscribe<A, C>(&self, address: Address<A>, namespace: String) -> Result<()>
     where
         A: UpdateConfig<C>,
         C: Config,
@@ -28,6 +28,7 @@ impl KeeperLink {
             recipient: address.sender(),
         };
         let updater = ConfigUpdater {
+            namespace,
             last_value: None,
             recipient: Recipient::new(recipient),
         };
@@ -38,6 +39,7 @@ impl KeeperLink {
 }
 
 pub struct ConfigUpdater {
+    namespace: String,
     last_value: Option<Value>,
     recipient: Recipient<Value>,
 }

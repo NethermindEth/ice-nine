@@ -1,5 +1,6 @@
+use super::particle::{Particle, ParticleSetup};
+use super::SubstanceLinks;
 use crate::keeper::Keeper;
-use crate::particle::{Particle, ParticleSetup, SubstanceLinks};
 use crate::router::ReasoningRouter;
 use anyhow::Result;
 use async_trait::async_trait;

@@ -1,18 +1,12 @@
-use crate::keeper::{updates::UpdateConfig, Config, KeeperLink};
+use super::SubstanceLinks;
+use crate::keeper::{updates::UpdateConfig, Config};
 use crate::router::{
     model::Model,
     tool::{CallParameters, Tool, ToolMeta},
-    RouterLink,
 };
 use anyhow::Result;
 use crb::agent::{Address, Agent};
 use derive_more::{Deref, DerefMut};
-
-#[derive(Clone)]
-pub struct SubstanceLinks {
-    pub keeper: KeeperLink,
-    pub router: RouterLink,
-}
 
 #[derive(Deref, DerefMut)]
 pub struct ParticleSetup {
@@ -50,7 +44,8 @@ impl<A: Agent> SubstanceBond<A> {
         C: Config,
     {
         let address = self.address.clone();
-        self.links.keeper.subscribe(address).await?;
+        let namespace = C::NAMESPACE.to_string();
+        self.links.keeper.subscribe(address, namespace).await?;
         Ok(())
     }
 

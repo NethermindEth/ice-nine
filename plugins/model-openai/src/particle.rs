@@ -56,7 +56,11 @@ impl Duty<Initialize> for OpenAIParticle {
 
 #[async_trait]
 impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
-    async fn update_config(&mut self, config: OpenAIConfig, ctx: &mut Self::Context) -> Result<()> {
+    async fn update_config(
+        &mut self,
+        config: OpenAIConfig,
+        _ctx: &mut Self::Context,
+    ) -> Result<()> {
         if self.client.is_filled() {
             self.client.take()?;
         }

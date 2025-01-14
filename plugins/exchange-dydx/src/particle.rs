@@ -50,7 +50,7 @@ impl Duty<Initialize> for DyDxParticle {
 
 #[async_trait]
 impl UpdateConfig<DyDxConfig> for DyDxParticle {
-    async fn update_config(&mut self, _: DyDxConfig, ctx: &mut Self::Context) -> Result<()> {
+    async fn update_config(&mut self, _: DyDxConfig, _ctx: &mut Self::Context) -> Result<()> {
         Ok(())
     }
 }
