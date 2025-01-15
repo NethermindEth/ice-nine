@@ -1,7 +1,7 @@
 use anyhow::Result;
 use ice_nine_core::Substance;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
-use ice_nine_plugin_messaging_telegram::TelegramParticle;
+use ice_nine_plugin_chat_telegram::TelegramParticle;
 use ice_nine_plugin_model_openai::OpenAIParticle;
 
 #[tokio::main]

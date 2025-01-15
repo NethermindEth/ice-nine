@@ -2747,6 +2747,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "ice-nine-plugin-chat-stdio"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "ice-nine-core",
+ "serde",
+]
+
+[[package]]
+name = "ice-nine-plugin-chat-telegram"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "ice-nine-core",
+ "serde",
+ "teloxide-core",
+]
+
+[[package]]
 name = "ice-nine-plugin-exchange-dydx"
 version = "0.0.1"
 dependencies = [
@@ -2757,19 +2782,6 @@ dependencies = [
  "dydx",
  "ice-nine-core",
  "serde",
-]
-
-[[package]]
-name = "ice-nine-plugin-messaging-telegram"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "ice-nine-core",
- "serde",
- "teloxide-core",
 ]
 
 [[package]]
@@ -5709,8 +5721,9 @@ dependencies = [
  "crb",
  "env_logger",
  "ice-nine-core",
+ "ice-nine-plugin-chat-stdio",
+ "ice-nine-plugin-chat-telegram",
  "ice-nine-plugin-exchange-dydx",
- "ice-nine-plugin-messaging-telegram",
  "ice-nine-plugin-model-openai",
  "tokio",
 ]
