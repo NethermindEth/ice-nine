@@ -55,9 +55,8 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for TelegramParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let address = ctx.address().clone();
-        let mut bond = self.substance.bond(address);
-        bond.subscribe().await?;
+        let mut bond = self.substance.bond(&*ctx);
+        bond.live_config_updates().await?;
         self.bond.fill(bond)?;
 
         let address = ctx.address().clone();

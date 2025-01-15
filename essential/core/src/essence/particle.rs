@@ -5,7 +5,7 @@ use crate::router::{
     tool::{CallParameters, Tool, ToolMeta},
 };
 use anyhow::Result;
-use crb::agent::{Address, Agent};
+use crb::agent::{Address, Agent, ToAddress};
 use derive_more::{Deref, DerefMut};
 
 #[derive(Deref, DerefMut)]
@@ -18,9 +18,9 @@ impl ParticleSetup {
         self.keeper.get_config().await
     }
 
-    pub fn bond<A: Agent>(&mut self, address: Address<A>) -> SubstanceBond<A> {
+    pub fn bond<A: Agent>(&mut self, recipient: impl ToAddress<A>) -> SubstanceBond<A> {
         SubstanceBond {
-            address,
+            address: recipient.to_address(),
             links: self.links.clone(),
         }
     }
@@ -36,13 +36,14 @@ pub struct SubstanceBond<A: Agent> {
 }
 
 impl<A: Agent> SubstanceBond<A> {
-    pub async fn subscribe<C>(&mut self) -> Result<()>
+    pub async fn live_config_updates<C>(&mut self) -> Result<()>
     where
         A: UpdateConfig<C>,
         C: Config,
     {
         let address = self.address.clone();
         let namespace = C::NAMESPACE.to_string();
+        // TODO: Return a config
         self.links.keeper.subscribe(address, namespace).await?;
         Ok(())
     }
