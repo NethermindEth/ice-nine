@@ -12,10 +12,11 @@ use crb::superagent::{
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
 use serde::de::DeserializeOwned;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::marker::PhantomData;
 use subscription::ConfigSegmentUpdates;
-use toml::Value;
+use subscription::Subscriber;
+use toml::{Table, Value};
 
 pub trait Config: DeserializeOwned + Send + 'static {
     // TODO: Add scope
@@ -31,7 +32,7 @@ pub struct KeeperLink {
 pub struct Keeper {
     config: Option<Value>,
     updater: Slot<Entry<ConfigUpdates>>,
-    subscribers: HashSet<UniqueId<ConfigSegmentUpdates>>,
+    subscribers: HashMap<UniqueId<ConfigSegmentUpdates>, Subscriber>,
 }
 
 impl Keeper {
@@ -39,7 +40,7 @@ impl Keeper {
         Self {
             config: None,
             updater: Slot::empty(),
-            subscribers: HashSet::new(),
+            subscribers: HashMap::new(),
         }
     }
 }
@@ -73,12 +74,21 @@ impl Duty<Initialize> for Keeper {
     }
 }
 
+impl Keeper {
+    fn get_config(&self) -> Value {
+        self.config
+            .clone()
+            .unwrap_or_else(|| Value::Table(Table::new()))
+    }
+}
+
 #[async_trait]
 impl OnEvent<NewConfig> for Keeper {
     async fn handle(&mut self, config: NewConfig, ctx: &mut Context<Self>) -> Result<()> {
         self.config = Some(config.0);
-        for subscriber in &self.subscribers {
-            // subscriber.distribute(value.clone());
+        let value = self.get_config();
+        for (_, subscriber) in &mut self.subscribers {
+            subscriber.distribute(value.clone());
         }
         Ok(())
     }
