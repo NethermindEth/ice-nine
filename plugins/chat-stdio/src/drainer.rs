@@ -8,14 +8,12 @@ use tokio::io::{stdin, AsyncBufReadExt, BufReader, Lines, Stdin};
 pub type Line = Option<String>;
 
 pub struct StdinDrainer {
-    recipient: Recipient<Line>,
     lines: Lines<BufReader<Stdin>>,
 }
 
 impl StdinDrainer {
-    pub fn new(recipient: Recipient<Line>) -> Self {
+    pub fn new() -> Self {
         Self {
-            recipient,
             lines: BufReader::new(stdin()).lines(),
         }
     }

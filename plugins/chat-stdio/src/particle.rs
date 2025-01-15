@@ -1,9 +1,9 @@
-use crate::drainer::{Line, StdinDrainer};
-use anyhow::Result;
+use crate::drainer::{Line, ReadLine, StdinDrainer};
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, Duty, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession};
 use ice_nine_core::{Particle, ParticleSetup};
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 
@@ -39,8 +39,9 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let recipient = ctx.recipient();
-        let drainer = StdinDrainer::new(recipient);
+        // TODO: Subscribe to configs
+
+        let drainer = StdinDrainer::new();
         let (addr, _) = ctx.spawn_agent(drainer, ());
         self.drainer.fill(addr)?;
         Ok(Next::events())
@@ -48,8 +49,35 @@ impl Duty<Initialize> for StdioParticle {
 }
 
 #[async_trait]
-impl OnEvent<Line> for StdioParticle {
-    async fn handle(&mut self, _: Line, ctx: &mut Context<Self>) -> Result<()> {
+impl OnResponse<Line> for StdioParticle {
+    async fn on_response(
+        &mut self,
+        line: Result<Line, FetchError>,
+        _: (),
+        ctx: &mut Context<Self>,
+    ) -> Result<()> {
+        let line = line?.ok_or_else(|| anyhow!("Stdin is closed"))?;
+        // TODO: Call the chat
+        self.start_thinking(ctx).await?;
+        Ok(())
+    }
+}
+
+impl StdioParticle {
+    async fn user_prompt(&mut self, ctx: &mut Context<Self>) -> Result<()> {
+        self.stdout.write_all(b"User: ").await?;
+        self.stdout.flush().await?;
+        self.drainer
+            .get()?
+            .interact(ReadLine)
+            .forwardable()
+            .forward_to(ctx, ());
+        Ok(())
+    }
+
+    async fn start_thinking(&mut self, ctx: &mut Context<Self>) -> Result<()> {
+        self.stdout.write_all(b"Thinking").await?;
+        self.stdout.flush().await?;
         Ok(())
     }
 }
@@ -74,18 +102,7 @@ impl DoAsync<ReadLine> for StdioParticle {
 }
 
 impl StdioParticle {
-    async fn user_prompt(&mut self) -> Result<Option<String>> {
-        self.stdout.write_all(b"User: ").await?;
-        self.stdout.flush().await?;
-        let line = self.lines.next_line().await?;
-        Ok(line)
-    }
 
-    async fn start_thinking(&mut self) -> Result<()> {
-        self.stdout.write_all(b"Thinking").await?;
-        self.stdout.flush().await?;
-        Ok(())
-    }
 
     async fn stop_thinking(&mut self) -> Result<()> {
         self.stdout.write_all(b"\n").await?;

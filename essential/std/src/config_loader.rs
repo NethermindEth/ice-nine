@@ -1,8 +1,8 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
-    Address, AddressFor, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent,
-    ReachableContext,
+    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
+    ToAddress,
 };
 use crb::core::{Slot, UniqueId};
 use crb::send::{Recipient, Sender};
@@ -133,12 +133,12 @@ pub struct ConfigUpdates {
 }
 
 impl ConfigUpdates {
-    pub fn for_listener<A>(addr: impl AddressFor<A>) -> Self
+    pub fn for_listener<A>(addr: impl ToAddress<A>) -> Self
     where
         A: OnEvent<NewConfig>,
     {
         Self {
-            recipient: addr.address().recipient(),
+            recipient: addr.to_address().recipient(),
         }
     }
 }
