@@ -1,11 +1,12 @@
 use super::SubstanceLinks;
-use crate::keeper::{updates::UpdateConfig, Config};
+use crate::keeper::{subscription::UpdateConfig, Config};
 use crate::router::{
     model::Model,
     tool::{CallParameters, Tool, ToolMeta},
 };
 use anyhow::Result;
 use crb::agent::{Address, Agent, ToAddress};
+use crb::superagent::SubscribeExt;
 use derive_more::{Deref, DerefMut};
 
 #[derive(Deref, DerefMut)]
@@ -44,7 +45,10 @@ impl<A: Agent> SubstanceBond<A> {
         let address = self.address.clone();
         let namespace = C::NAMESPACE.to_string();
         // TODO: Return a config
-        self.links.keeper.subscribe(address, namespace).await?;
+        self.links
+            .keeper
+            .live_config_updates(address, namespace)
+            .await?;
         Ok(())
     }
 

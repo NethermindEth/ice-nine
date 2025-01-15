@@ -45,6 +45,7 @@ pub struct NewConfigSegment(pub Value);
 
 pub struct ConfigSegmentUpdates {
     namespace: String,
+    // TODO: Keep `Arc` with a default value here
     recipient: Recipient<NewConfigSegment>,
 }
 
@@ -54,15 +55,17 @@ impl Subscription for ConfigSegmentUpdates {
 
 pub struct Subscriber {
     last_value: Option<Value>,
-    id: UniqueId<ConfigSegmentUpdates>,
 }
 
-impl Subscriber {
-    pub fn distribute(&mut self, value: Value) -> Result<()> {
-        if self.last_value.as_ref() == Some(&value) {
-            self.last_value = Some(value.clone());
+impl Keeper {
+    pub fn distribute(&mut self) {
+        for (id, subscriber) in &mut self.subscribers {
+            let value = self.config.get_config(&id.namespace);
+            if subscriber.last_value.as_ref() == Some(&value) {
+                subscriber.last_value = Some(value.clone());
+            }
+            id.recipient.send(NewConfigSegment(value.clone()));
         }
-        self.id.recipient.send(NewConfigSegment(value))
     }
 }
 
@@ -73,12 +76,9 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
         sub_id: UniqueId<ConfigSegmentUpdates>,
         ctx: &mut Context<Self>,
     ) -> Result<Value> {
-        let subscriber = Subscriber {
-            last_value: None,
-            id: sub_id.clone(),
-        };
+        let subscriber = Subscriber { last_value: None };
+        let value = self.config.get_config(&sub_id.namespace);
         self.subscribers.insert(sub_id, subscriber);
-        let value = self.get_config();
         Ok(value)
     }
 
