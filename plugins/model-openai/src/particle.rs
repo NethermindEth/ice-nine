@@ -24,8 +24,8 @@ impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
-            bond: Slot::empty("open ai bond"),
-            client: Slot::empty("open ai client"),
+            bond: Slot::empty(),
+            client: Slot::empty(),
         }
     }
 }

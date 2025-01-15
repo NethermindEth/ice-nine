@@ -51,7 +51,7 @@ impl Keeper {
         Self {
             config: None,
             listeners: Vec::new(),
-            updater: Slot::empty("config updater"),
+            updater: Slot::empty(),
         }
     }
 }

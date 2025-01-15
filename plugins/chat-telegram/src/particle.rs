@@ -33,8 +33,8 @@ impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
-            bond: Slot::empty("telegram bond"),
-            client: Slot::empty("telegram client"),
+            bond: Slot::empty(),
+            client: Slot::empty(),
             typing: HashSet::new(),
             interval: None,
         }

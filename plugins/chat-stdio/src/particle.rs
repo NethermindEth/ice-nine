@@ -1,27 +1,32 @@
+use crate::drainer::{Line, StdinDrainer};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next};
+use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, Duty, Next, OnEvent};
+use crb::core::Slot;
+use crb::superagent::{Supervisor, SupervisorSession};
 use ice_nine_core::{Particle, ParticleSetup};
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 
 pub struct StdioParticle {
-    lines: Lines<BufReader<Stdin>>,
     stdout: Stdout,
+    drainer: Slot<Address<StdinDrainer>>,
 }
 
 impl Particle for StdioParticle {
     fn construct(setup: ParticleSetup) -> Self {
-        let stdin = io::stdin();
-        let reader = BufReader::new(stdin);
         Self {
-            lines: reader.lines(),
             stdout: io::stdout(),
+            drainer: Slot::empty(),
         }
     }
 }
 
+impl Supervisor for StdioParticle {
+    type GroupBy = ();
+}
+
 impl Agent for StdioParticle {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
     type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
@@ -34,11 +39,22 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        // TODO: Connect to the substance
-        Ok(Next::do_async(ReadLine))
+        let recipient = ctx.recipient();
+        let drainer = StdinDrainer::new(recipient);
+        let (addr, _) = ctx.spawn_agent(drainer, ());
+        self.drainer.fill(addr)?;
+        Ok(Next::events())
     }
 }
 
+#[async_trait]
+impl OnEvent<Line> for StdioParticle {
+    async fn handle(&mut self, _: Line, ctx: &mut Context<Self>) -> Result<()> {
+        Ok(())
+    }
+}
+
+/*
 struct ReadLine;
 
 #[async_trait]
@@ -85,3 +101,4 @@ impl StdioParticle {
         Ok(())
     }
 }
+*/

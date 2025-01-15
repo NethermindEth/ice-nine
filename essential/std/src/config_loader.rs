@@ -30,8 +30,8 @@ impl ConfigLoader {
     pub fn new() -> Self {
         Self {
             path: DEFAULT_PATH.into(),
-            watcher: Slot::empty("watcher of a config loader"),
-            debouncer: Slot::empty("events debouncer of a config loader"),
+            watcher: Slot::empty(),
+            debouncer: Slot::empty(),
             subscribers: HashSet::new(),
         }
     }
