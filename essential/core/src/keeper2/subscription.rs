@@ -8,7 +8,7 @@ use crb::superagent::{ManageSubscription, SubscribeExt, Subscription};
 use derive_more::{Deref, DerefMut, From};
 use std::any::type_name;
 use std::marker::PhantomData;
-use toml::Value;
+use toml::{Table, Value};
 
 #[async_trait]
 pub trait UpdateConfig<C: Config>: Agent {
@@ -33,7 +33,7 @@ impl KeeperLink {
         let recipient = TypedConfigListener {
             recipient: address.to_address().sender(),
         };
-        let updates = ConfigUpdates {
+        let updates = ConfigSegmentUpdates {
             namespace,
             last_value: None,
             recipient: Recipient::new(recipient),
@@ -43,42 +43,48 @@ impl KeeperLink {
     }
 }
 
-pub struct NewConfig(pub Value);
+pub struct NewConfigSegment(pub Value);
 
-pub struct ConfigUpdates {
+pub struct ConfigSegmentUpdates {
     namespace: String,
     last_value: Option<Value>,
-    recipient: Recipient<NewConfig>,
+    recipient: Recipient<NewConfigSegment>,
 }
 
-impl ConfigUpdates {
+impl ConfigSegmentUpdates {
     pub fn distribute(&mut self, value: Value) -> Result<()> {
         if self.last_value.as_ref() == Some(&value) {
             self.last_value = Some(value.clone());
         }
-        self.recipient.send(NewConfig(value))
+        self.recipient.send(NewConfigSegment(value))
     }
 }
 
-impl Subscription for ConfigUpdates {
+impl Subscription for ConfigSegmentUpdates {
     type State = Value;
 }
 
 #[async_trait]
-impl ManageSubscription<ConfigUpdates> for Keeper {
+impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
     async fn subscribe(
         &mut self,
-        sub_id: UniqueId<ConfigUpdates>,
+        sub_id: UniqueId<ConfigSegmentUpdates>,
         ctx: &mut Context<Self>,
     ) -> Result<Value> {
-        todo!()
+        self.subscribers.insert(sub_id);
+        // TODO: Get a default config
+        Ok(self
+            .config
+            .clone()
+            .unwrap_or_else(|| Value::Table(Table::new())))
     }
 
     async fn unsubscribe(
         &mut self,
-        sub_id: UniqueId<ConfigUpdates>,
+        sub_id: UniqueId<ConfigSegmentUpdates>,
         ctx: &mut Context<Self>,
     ) -> Result<()> {
+        self.subscribers.remove(&sub_id);
         Ok(())
     }
 }
@@ -87,11 +93,11 @@ pub struct TypedConfigListener<C: Config> {
     recipient: Recipient<UpdateConfigEvent<C>>,
 }
 
-impl<C> Sender<NewConfig> for TypedConfigListener<C>
+impl<C> Sender<NewConfigSegment> for TypedConfigListener<C>
 where
     C: Config,
 {
-    fn send(&self, value: NewConfig) -> Result<()> {
+    fn send(&self, value: NewConfigSegment) -> Result<()> {
         let event = UpdateConfigEvent {
             _type: PhantomData::<C>,
             value: value.0,

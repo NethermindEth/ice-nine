@@ -4,7 +4,7 @@ pub mod subscription;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
-use crb::core::Slot;
+use crb::core::{Slot, UniqueId};
 use crb::superagent::{
     Entry, InteractExt, OnRequest, Request, Subscribe, SubscribeExt, Subscription, Supervisor,
     SupervisorSession,
@@ -12,7 +12,9 @@ use crb::superagent::{
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
 use serde::de::DeserializeOwned;
+use std::collections::HashSet;
 use std::marker::PhantomData;
+use subscription::ConfigSegmentUpdates;
 use toml::Value;
 
 pub trait Config: DeserializeOwned + Send + 'static {
@@ -29,6 +31,7 @@ pub struct KeeperLink {
 pub struct Keeper {
     config: Option<Value>,
     updater: Slot<Entry<ConfigUpdates>>,
+    subscribers: HashSet<UniqueId<ConfigSegmentUpdates>>,
 }
 
 impl Keeper {
@@ -36,6 +39,7 @@ impl Keeper {
         Self {
             config: None,
             updater: Slot::empty(),
+            subscribers: HashSet::new(),
         }
     }
 }
@@ -73,7 +77,9 @@ impl Duty<Initialize> for Keeper {
 impl OnEvent<NewConfig> for Keeper {
     async fn handle(&mut self, config: NewConfig, ctx: &mut Context<Self>) -> Result<()> {
         self.config = Some(config.0);
-        // TODO: Distribute updates
+        for subscriber in &self.subscribers {
+            // subscriber.distribute(value.clone());
+        }
         Ok(())
     }
 }
