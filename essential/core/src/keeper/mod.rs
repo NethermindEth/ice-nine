@@ -1,19 +1,15 @@
 pub mod interaction;
 pub mod subscription;
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::{Slot, UniqueId};
-use crb::superagent::{
-    Entry, InteractExt, OnRequest, Request, Subscribe, SubscribeExt, Subscription, Supervisor,
-    SupervisorSession,
-};
+use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
-use std::marker::PhantomData;
 use subscription::ConfigSegmentUpdates;
 use subscription::Subscriber;
 use toml::{Table, Value};
@@ -105,7 +101,7 @@ impl MergedConfig {
 
 #[async_trait]
 impl OnEvent<NewConfig> for Keeper {
-    async fn handle(&mut self, config: NewConfig, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, config: NewConfig, _ctx: &mut Context<Self>) -> Result<()> {
         self.config = MergedConfig::from(config.0);
         self.distribute();
         Ok(())

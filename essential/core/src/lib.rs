@@ -1,6 +1,5 @@
 pub mod essence;
 pub mod keeper;
-pub mod keeper2;
 pub mod router;
 pub mod sequence;
 

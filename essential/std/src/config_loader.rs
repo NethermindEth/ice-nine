@@ -152,7 +152,7 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     async fn subscribe(
         &mut self,
         sub_id: UniqueId<ConfigUpdates>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<Value> {
         // Read on initialze and keep
         self.subscribers.insert(sub_id);
@@ -163,7 +163,7 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     async fn unsubscribe(
         &mut self,
         sub_id: UniqueId<ConfigUpdates>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<()> {
         self.subscribers.remove(&sub_id);
         Ok(())

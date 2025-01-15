@@ -7,7 +7,7 @@ use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, SubscribeExt, Subscription};
 use std::any::type_name;
 use std::marker::PhantomData;
-use toml::{Table, Value};
+use toml::Value;
 
 #[async_trait]
 pub trait UpdateConfig<C: Config>: Agent {
@@ -64,7 +64,7 @@ impl Keeper {
             if subscriber.last_value.as_ref() == Some(&value) {
                 subscriber.last_value = Some(value.clone());
             }
-            id.recipient.send(NewConfigSegment(value.clone()));
+            id.recipient.send(NewConfigSegment(value.clone())).ok();
         }
     }
 }
@@ -74,7 +74,7 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
     async fn subscribe(
         &mut self,
         sub_id: UniqueId<ConfigSegmentUpdates>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<Value> {
         let subscriber = Subscriber { last_value: None };
         let value = self.config.get_config(&sub_id.namespace);
@@ -85,7 +85,7 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
     async fn unsubscribe(
         &mut self,
         sub_id: UniqueId<ConfigSegmentUpdates>,
-        ctx: &mut Context<Self>,
+        _ctx: &mut Context<Self>,
     ) -> Result<()> {
         self.subscribers.remove(&sub_id);
         Ok(())

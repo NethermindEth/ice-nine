@@ -1,11 +1,11 @@
 use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession};
 use ice_nine_core::{Particle, ParticleSetup};
-use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
+use tokio::io::{self, AsyncWriteExt, Stdout};
 
 pub struct StdioParticle {
     stdout: Stdout,
@@ -13,7 +13,7 @@ pub struct StdioParticle {
 }
 
 impl Particle for StdioParticle {
-    fn construct(setup: ParticleSetup) -> Self {
+    fn construct(_setup: ParticleSetup) -> Self {
         Self {
             stdout: io::stdout(),
             drainer: Slot::empty(),
@@ -75,7 +75,7 @@ impl StdioParticle {
         Ok(())
     }
 
-    async fn start_thinking(&mut self, ctx: &mut Context<Self>) -> Result<()> {
+    async fn start_thinking(&mut self, _ctx: &mut Context<Self>) -> Result<()> {
         self.stdout.write_all(b"Thinking").await?;
         self.stdout.flush().await?;
         Ok(())

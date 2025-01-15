@@ -1,7 +1,6 @@
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Next};
-use crb::send::Recipient;
+use crb::agent::{Agent, AgentSession, Context};
 use crb::superagent::{OnRequest, Request};
 use tokio::io::{stdin, AsyncBufReadExt, BufReader, Lines, Stdin};
 

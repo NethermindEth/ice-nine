@@ -6,7 +6,6 @@ use crate::router::{
 };
 use anyhow::Result;
 use crb::agent::{Address, Agent, ToAddress};
-use crb::superagent::SubscribeExt;
 use derive_more::{Deref, DerefMut};
 
 #[derive(Deref, DerefMut)]
