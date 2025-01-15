@@ -11,3 +11,4 @@ crb.workspace = true
 derive_more.workspace = true
 ice-nine-core.workspace = true
 serde.workspace = true
+tokio.workspace = true
