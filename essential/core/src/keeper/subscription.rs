@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, MessageFor, ToAddress};
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, SubscribeExt, Subscription};
+use crb::superagent::{Entry, ManageSubscription, StateEntry, SubscribeExt, Subscription};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;
@@ -24,7 +24,7 @@ impl KeeperLink {
         &self,
         address: impl ToAddress<A>,
         namespace: String,
-    ) -> Result<()>
+    ) -> Result<(C, Entry<ConfigSegmentUpdates>)>
     where
         A: UpdateConfig<C>,
         C: Config,
@@ -36,8 +36,9 @@ impl KeeperLink {
             namespace,
             recipient: Recipient::new(recipient),
         };
-        self.subscribe(updates).await?;
-        Ok(())
+        let state_entry = self.subscribe(updates).await?;
+        let config = state_entry.state.try_into()?;
+        Ok((config, state_entry.entry))
     }
 }
 

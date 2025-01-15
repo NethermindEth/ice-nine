@@ -3,12 +3,15 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next};
 use crb::core::Slot;
-use crb::superagent::{Supervisor, SupervisorSession};
-use ice_nine_core::{Particle, ParticleSetup, SubstanceBond, Tool, UpdateConfig};
+use crb::superagent::{Entry, Supervisor, SupervisorSession};
+use ice_nine_core::{
+    ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, Tool, UpdateConfig,
+};
 use serde::Deserialize;
 
 pub struct DyDxParticle {
     substance: ParticleSetup,
+    config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 }
 
@@ -20,6 +23,7 @@ impl Particle for DyDxParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
+            config_updates: None,
             bond: Slot::empty(),
         }
     }
@@ -40,7 +44,11 @@ struct Initialize;
 impl Duty<Initialize> for DyDxParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut bond = self.substance.bond(&*ctx);
-        bond.live_config_updates().await?;
+
+        let (config, entry) = bond.live_config_updates().await?;
+        self.config_updates = Some(entry);
+        self.update_config(config, ctx).await?;
+
         bond.add_tool::<Price>(self).await?;
         self.bond.fill(bond)?;
         Ok(Next::events())

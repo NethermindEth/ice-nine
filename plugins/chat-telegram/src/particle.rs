@@ -5,9 +5,10 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
-use crb::superagent::{Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
+use crb::superagent::{Entry, Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
-    ChatRequest, ChatResponse, Particle, ParticleSetup, SubstanceBond, UpdateConfig,
+    ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond,
+    UpdateConfig,
 };
 use std::collections::HashSet;
 use teloxide_core::{
@@ -17,6 +18,7 @@ use teloxide_core::{
 
 pub struct TelegramParticle {
     substance: ParticleSetup,
+    config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 
     client: Slot<Client>,
@@ -33,6 +35,7 @@ impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
+            config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
@@ -56,7 +59,9 @@ struct Initialize;
 impl Duty<Initialize> for TelegramParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut bond = self.substance.bond(&*ctx);
-        bond.live_config_updates().await?;
+        let (config, entry) = bond.live_config_updates().await?;
+        self.config_updates = Some(entry);
+        self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
 
         let address = ctx.address().clone();

@@ -1,4 +1,5 @@
 use super::SubstanceLinks;
+use crate::keeper::subscription::ConfigSegmentUpdates;
 use crate::keeper::{subscription::UpdateConfig, Config};
 use crate::router::{
     model::Model,
@@ -6,6 +7,7 @@ use crate::router::{
 };
 use anyhow::Result;
 use crb::agent::{Address, Agent, ToAddress};
+use crb::superagent::Entry;
 use derive_more::{Deref, DerefMut};
 
 #[derive(Deref, DerefMut)]
@@ -36,19 +38,19 @@ pub struct SubstanceBond<A: Agent> {
 }
 
 impl<A: Agent> SubstanceBond<A> {
-    pub async fn live_config_updates<C>(&mut self) -> Result<()>
+    pub async fn live_config_updates<C>(&mut self) -> Result<(C, Entry<ConfigSegmentUpdates>)>
     where
         A: UpdateConfig<C>,
         C: Config,
     {
         let address = self.address.clone();
         let namespace = C::NAMESPACE.to_string();
-        // TODO: Return a config
-        self.links
+        let pair = self
+            .links
             .keeper
             .live_config_updates(address, namespace)
             .await?;
-        Ok(())
+        Ok(pair)
     }
 
     pub fn add_model(&mut self) -> Result<()>

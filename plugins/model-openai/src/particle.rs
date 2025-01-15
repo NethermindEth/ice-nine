@@ -5,14 +5,15 @@ use async_openai::types::CreateChatCompletionRequestArgs;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::Slot;
-use crb::superagent::OnRequest;
+use crb::superagent::{Entry, OnRequest};
 use ice_nine_core::{
-    Model, Particle, ParticleSetup, SubstanceBond, ToolingChatRequest, ToolingChatResponse,
-    UpdateConfig,
+    ConfigSegmentUpdates, Model, Particle, ParticleSetup, SubstanceBond, ToolingChatRequest,
+    ToolingChatResponse, UpdateConfig,
 };
 
 pub struct OpenAIParticle {
     substance: ParticleSetup,
+    config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 
     client: Slot<Client>,
@@ -24,6 +25,7 @@ impl Particle for OpenAIParticle {
     fn construct(setup: ParticleSetup) -> Self {
         Self {
             substance: setup,
+            config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),
         }
@@ -45,7 +47,11 @@ struct Initialize;
 impl Duty<Initialize> for OpenAIParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut bond = self.substance.bond(&*ctx);
-        bond.live_config_updates().await?;
+
+        let (config, entry) = bond.live_config_updates().await?;
+        self.config_updates = Some(entry);
+        self.update_config(config, ctx).await?;
+
         bond.add_model()?;
         self.bond.fill(bond)?;
 
