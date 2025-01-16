@@ -17,7 +17,7 @@ use std::time::Duration;
 use tokio::fs;
 use toml::Value;
 
-const DEFAULT_PATH: &str = "ice9.toml";
+const CONFIG_NAME: &str = "ice9.toml";
 
 pub struct ConfigLoader {
     path: PathBuf,
@@ -29,7 +29,7 @@ pub struct ConfigLoader {
 impl ConfigLoader {
     pub fn new() -> Self {
         Self {
-            path: DEFAULT_PATH.into(),
+            path: CONFIG_NAME.into(),
             watcher: Slot::empty(),
             debouncer: Slot::empty(),
             subscribers: HashSet::new(),
@@ -57,6 +57,8 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let config_dir = dirs::config_dir();
+
         let forwarder = EventsForwarder::from(ctx.address().clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;

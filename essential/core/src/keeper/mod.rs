@@ -76,6 +76,7 @@ impl Duty<Initialize> for Keeper {
         let (addr, _) = ctx.spawn_agent(loader, ());
         let sub = ConfigUpdates::for_listener(ctx);
         let state_entry = addr.subscribe(sub).await?;
+
         // No subscribers here, not necessary to distribute the config
         self.config = MergedConfig::from(state_entry.state);
         self.updater.fill(state_entry.entry)?;
