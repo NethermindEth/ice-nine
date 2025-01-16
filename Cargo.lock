@@ -2827,6 +2827,7 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "dirs",
+ "log",
  "notify",
  "tokio",
  "toml",

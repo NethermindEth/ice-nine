@@ -28,6 +28,7 @@ pub struct ConfigLayer {
 
 impl ConfigLayer {
     async fn read_config(&mut self) -> Result<()> {
+        log::info!("Reading the config layer: {}", self.path.display());
         let content = fs::read_to_string(self.path.as_ref()).await?;
         let config = toml::from_str(&content)?;
         self.config = config;
@@ -67,24 +68,26 @@ impl Agent for ConfigLoader {
     }
 
     fn interrupt(&mut self, ctx: &mut Context<Self>) {
-        self.debouncer.take().ok();
+        self.debouncer.reset();
         ctx.shutdown();
     }
 }
 
 impl ConfigLoader {
     async fn add_layer(&mut self, path: PathBuf, ctx: &mut Context<Self>) -> Result<()> {
+        log::info!("Add a config layer: {}", path.display());
         let path = Arc::new(path);
+
+        // Create a config file if doesn't exist
+        if !path.exists() {
+            log::info!("Creating an empty config layer: {}", path.display());
+            fs::write(path.as_ref(), "").await?;
+        }
 
         // Setup a watcher for file
         let forwarder = EventsForwarder::new(ctx, path.clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
-
-        // Create a config file if doesn't exist
-        if !path.exists() {
-            fs::write(path.as_ref(), "").await?;
-        }
 
         // Read a config
         let mut layer = ConfigLayer {
@@ -99,7 +102,7 @@ impl ConfigLoader {
     }
 
     async fn distribute_config(&mut self) -> Result<()> {
-        self.debouncer.take()?;
+        self.debouncer.reset();
         let mut new_merged_config = table();
         for layer in &mut self.layers {
             layer.read_config().await?;
