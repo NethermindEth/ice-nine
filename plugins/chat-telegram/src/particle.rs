@@ -24,7 +24,7 @@ pub struct TelegramParticle {
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
-    interval: Option<Interval>,
+    thinking_interval: Option<Interval>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -39,7 +39,7 @@ impl Particle for TelegramParticle {
             bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
-            interval: None,
+            thinking_interval: None,
         }
     }
 }
@@ -66,8 +66,8 @@ impl Duty<Initialize> for TelegramParticle {
 
         let address = ctx.address().clone();
         let duration = Duration::from_secs(1);
-        let interval = Interval::new(address, duration, ());
-        self.interval = Some(interval);
+        let thinking_interval = Interval::new(address, duration, ());
+        self.thinking_interval = Some(thinking_interval);
 
         Ok(Next::events())
     }

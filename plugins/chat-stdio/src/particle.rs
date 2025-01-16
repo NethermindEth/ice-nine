@@ -1,21 +1,28 @@
+use crate::config::StdioConfig;
 use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next};
 use crb::core::Slot;
-use crb::superagent::{FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession};
-use ice_nine_core::{Particle, ParticleSetup};
+use crb::superagent::{Entry, FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession};
+use ice_nine_core::{ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
 pub struct StdioParticle {
+    substance: ParticleSetup,
     stdout: Stdout,
+    config_updates: Option<Entry<ConfigSegmentUpdates>>,
+    bond: Slot<SubstanceBond<Self>>,
     drainer: Slot<Address<StdinDrainer>>,
 }
 
 impl Particle for StdioParticle {
-    fn construct(_setup: ParticleSetup) -> Self {
+    fn construct(setup: ParticleSetup) -> Self {
         Self {
+            substance: setup,
             stdout: io::stdout(),
+            config_updates: None,
+            bond: Slot::empty(),
             drainer: Slot::empty(),
         }
     }
@@ -39,7 +46,12 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        // TODO: Subscribe to configs
+        // TODO: Dry configs
+        let mut bond = self.substance.bond(&*ctx);
+        let (config, entry) = bond.live_config_updates().await?;
+        self.config_updates = Some(entry);
+        self.update_config(config, ctx).await?;
+        self.bond.fill(bond)?;
 
         let drainer = StdinDrainer::new();
         let (addr, _) = ctx.spawn_agent(drainer, ());
@@ -78,6 +90,14 @@ impl StdioParticle {
     async fn start_thinking(&mut self, _ctx: &mut Context<Self>) -> Result<()> {
         self.stdout.write_all(b"Thinking").await?;
         self.stdout.flush().await?;
+        // TODO: Start an interval
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl UpdateConfig<StdioConfig> for StdioParticle {
+    async fn update_config(&mut self, config: StdioConfig, ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
     }
 }
