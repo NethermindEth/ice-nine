@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
@@ -20,9 +20,26 @@ use toml::Value;
 
 const CONFIG_NAME: &str = "ice9.toml";
 
+pub struct ConfigLayer {
+    path: Arc<PathBuf>,
+    watcher: RecommendedWatcher,
+}
+
+impl ConfigLayer {
+    async fn read_config(&mut self) -> Result<Value> {
+        let content = fs::read_to_string(self.path.as_ref()).await?;
+        let value = toml::from_str(&content)?;
+        Ok(value)
+    }
+}
+
+pub struct ChangedFiles {
+    debouncer: Timeout,
+    files: Vec<Arc<PathBuf>>,
+}
+
 pub struct ConfigLoader {
-    path: PathBuf,
-    watcher: Slot<RecommendedWatcher>,
+    layers: Vec<ConfigLayer>,
     debouncer: Slot<Timeout>,
     subscribers: HashSet<UniqueId<ConfigUpdates>>,
 }
@@ -30,8 +47,7 @@ pub struct ConfigLoader {
 impl ConfigLoader {
     pub fn new() -> Self {
         Self {
-            path: CONFIG_NAME.into(),
-            watcher: Slot::empty(),
+            layers: Vec::new(),
             debouncer: Slot::empty(),
             subscribers: HashSet::new(),
         }
@@ -47,9 +63,20 @@ impl Agent for ConfigLoader {
     }
 
     fn interrupt(&mut self, ctx: &mut Context<Self>) {
-        self.watcher.take().ok();
         self.debouncer.take().ok();
         ctx.shutdown();
+    }
+}
+
+impl ConfigLoader {
+    fn add_layer(&mut self, path: PathBuf, ctx: &mut Context<Self>) -> Result<()> {
+        let path = Arc::new(path);
+        let forwarder = EventsForwarder::new(ctx, path.clone());
+        let mut watcher = recommended_watcher(forwarder)?;
+        watcher.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
+        let layer = ConfigLayer { path, watcher };
+        self.layers.push(layer);
+        Ok(())
     }
 }
 
@@ -59,35 +86,27 @@ struct Initialize;
 impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let config_dir = dirs::config_dir();
-
-        let forwarder = EventsForwarder::new(ctx.address().clone(), ());
-        let mut watcher = recommended_watcher(forwarder)?;
-        watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
-        self.watcher.fill(watcher)?;
         // TODO: Read the config here
         Ok(Next::events())
     }
 }
 
 #[derive(From)]
-struct EventsForwarder<T> {
-    tag: Arc<T>,
+struct EventsForwarder {
+    tag: Arc<PathBuf>,
     address: Address<ConfigLoader>,
 }
 
-impl<T> EventsForwarder<T> {
-    pub fn new(address: impl ToAddress<ConfigLoader>, tag: T) -> Self {
+impl EventsForwarder {
+    pub fn new(address: impl ToAddress<ConfigLoader>, tag: Arc<PathBuf>) -> Self {
         Self {
-            tag: Arc::new(tag),
+            tag,
             address: address.to_address(),
         }
     }
 }
 
-impl<T> EventHandler for EventsForwarder<T>
-where
-    T: SyncTag,
-{
+impl EventHandler for EventsForwarder {
     fn handle_event(&mut self, result: WatchResult) {
         let event = WatchEvent {
             tag: self.tag.clone(),
@@ -99,8 +118,8 @@ where
 
 type WatchResult = Result<Event, notify::Error>;
 
-struct WatchEvent<T> {
-    tag: Arc<T>,
+struct WatchEvent {
+    tag: Arc<PathBuf>,
     result: WatchResult,
 }
 
@@ -115,19 +134,14 @@ impl ConfigLoader {
         Ok(())
     }
 
-    async fn read_config(&mut self) -> Result<Value> {
-        let content = fs::read_to_string(&self.path).await?;
-        let value = toml::from_str(&content)?;
-        Ok(value)
+    fn current_config(&self) -> Result<Value> {
+        Err(anyhow!("not implemented"))
     }
 }
 
 #[async_trait]
-impl<T> OnEvent<WatchEvent<T>> for ConfigLoader
-where
-    T: SyncTag,
-{
-    async fn handle(&mut self, msg: WatchEvent<T>, ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<WatchEvent> for ConfigLoader {
+    async fn handle(&mut self, msg: WatchEvent, ctx: &mut Context<Self>) -> Result<()> {
         let event = msg.result?;
         println!("{:#?}", event.paths);
         match event.kind {
@@ -146,10 +160,15 @@ where
 impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
         self.debouncer.take()?;
-        let value = self.read_config().await?;
+        for layer in &mut self.layers {
+            let value = layer.read_config().await?;
+        }
+        // TODO: Distribute the merged value
+        /*
         for subscriber in &self.subscribers {
             subscriber.send(NewConfig(value.clone())).ok();
         }
+        */
         Ok(())
     }
 }
@@ -185,7 +204,7 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     ) -> Result<Value> {
         // Read on initialze and keep
         self.subscribers.insert(sub_id);
-        let value = self.read_config().await?;
+        let value = self.current_config()?;
         Ok(value)
     }
 
