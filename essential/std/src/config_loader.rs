@@ -4,7 +4,7 @@ use crb::agent::{
     Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
     ToAddress,
 };
-use crb::core::{Slot, UniqueId};
+use crb::core::{Slot, SyncTag, UniqueId};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, OnTimeout, Subscription, Timeout};
 use derive_more::{Deref, DerefMut, From};
@@ -13,6 +13,7 @@ use notify::{
 };
 use std::collections::HashSet;
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::fs;
 use toml::Value;
@@ -59,7 +60,7 @@ impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let config_dir = dirs::config_dir();
 
-        let forwarder = EventsForwarder::from(ctx.address().clone());
+        let forwarder = EventsForwarder::new(ctx.address().clone(), ());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(&self.path, RecursiveMode::NonRecursive)?;
         self.watcher.fill(watcher)?;
@@ -69,17 +70,39 @@ impl Duty<Initialize> for ConfigLoader {
 }
 
 #[derive(From)]
-struct EventsForwarder {
+struct EventsForwarder<T> {
+    tag: Arc<T>,
     address: Address<ConfigLoader>,
 }
 
-impl EventHandler for EventsForwarder {
-    fn handle_event(&mut self, event: EventResult) {
+impl<T> EventsForwarder<T> {
+    pub fn new(address: impl ToAddress<ConfigLoader>, tag: T) -> Self {
+        Self {
+            tag: Arc::new(tag),
+            address: address.to_address(),
+        }
+    }
+}
+
+impl<T> EventHandler for EventsForwarder<T>
+where
+    T: SyncTag,
+{
+    fn handle_event(&mut self, result: WatchResult) {
+        let event = WatchEvent {
+            tag: self.tag.clone(),
+            result,
+        };
         self.address.event(event).ok();
     }
 }
 
-type EventResult = Result<Event, notify::Error>;
+type WatchResult = Result<Event, notify::Error>;
+
+struct WatchEvent<T> {
+    tag: Arc<T>,
+    result: WatchResult,
+}
 
 impl ConfigLoader {
     fn schedule_update(&mut self, ctx: &mut <Self as Agent>::Context) -> Result<()> {
@@ -100,9 +123,13 @@ impl ConfigLoader {
 }
 
 #[async_trait]
-impl OnEvent<EventResult> for ConfigLoader {
-    async fn handle(&mut self, result: EventResult, ctx: &mut Context<Self>) -> Result<()> {
-        let event = result?;
+impl<T> OnEvent<WatchEvent<T>> for ConfigLoader
+where
+    T: SyncTag,
+{
+    async fn handle(&mut self, msg: WatchEvent<T>, ctx: &mut Context<Self>) -> Result<()> {
+        let event = msg.result?;
+        println!("{:#?}", event.paths);
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
                 self.schedule_update(ctx)?;
