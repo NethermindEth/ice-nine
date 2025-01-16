@@ -1,10 +1,9 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
-    ToAddress,
+    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToAddress,
 };
-use crb::core::{Slot, UniqueId};
+use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, OnTimeout, Subscription, Timeout};
 use derive_more::{Deref, DerefMut, From};
@@ -37,13 +36,22 @@ impl ConfigLayer {
 }
 
 pub struct ChangedFiles {
-    debouncer: Timeout,
-    files: Vec<Arc<PathBuf>>,
+    _debouncer: Timeout,
+    files: HashSet<Arc<PathBuf>>,
+}
+
+impl ChangedFiles {
+    fn new(debouncer: Timeout) -> Self {
+        Self {
+            _debouncer: debouncer,
+            files: HashSet::new(),
+        }
+    }
 }
 
 pub struct ConfigLoader {
     layers: Vec<ConfigLayer>,
-    debouncer: Slot<Timeout>,
+    changed_files: Option<ChangedFiles>,
     subscribers: HashSet<UniqueId<ConfigUpdates>>,
     merged_config: Value,
 }
@@ -52,7 +60,7 @@ impl ConfigLoader {
     pub fn new() -> Self {
         Self {
             layers: Vec::new(),
-            debouncer: Slot::empty(),
+            changed_files: None,
             subscribers: HashSet::new(),
             merged_config: table(),
         }
@@ -68,7 +76,7 @@ impl Agent for ConfigLoader {
     }
 
     fn interrupt(&mut self, ctx: &mut Context<Self>) {
-        self.debouncer.reset();
+        self.changed_files.take();
         ctx.shutdown();
     }
 }
@@ -101,11 +109,17 @@ impl ConfigLoader {
         Ok(())
     }
 
-    async fn distribute_config(&mut self) -> Result<()> {
-        self.debouncer.reset();
+    async fn update_configs(&mut self, all: bool) -> Result<()> {
+        let changed_files = self
+            .changed_files
+            .take()
+            .map(|record| record.files)
+            .unwrap_or_default();
         let mut new_merged_config = table();
         for layer in &mut self.layers {
-            layer.read_config().await?;
+            if all || changed_files.contains(&layer.path) {
+                layer.read_config().await?;
+            }
             merge_configs(&mut new_merged_config, &layer.config);
         }
         if self.merged_config != new_merged_config {
@@ -118,12 +132,19 @@ impl ConfigLoader {
         Ok(())
     }
 
-    fn schedule_update(&mut self, ctx: &mut <Self as Agent>::Context) -> Result<()> {
-        if self.debouncer.is_empty() {
-            let address = ctx.address().clone();
-            let duration = Duration::from_millis(250);
-            let timeout = Timeout::new(address, duration, ());
-            self.debouncer.fill(timeout)?;
+    fn schedule_update(&mut self, path: Arc<PathBuf>, ctx: &mut Context<Self>) -> Result<()> {
+        match self.changed_files.as_mut() {
+            Some(changed_files) => {
+                changed_files.files.insert(path);
+            }
+            None => {
+                let address = ctx.address().clone();
+                let duration = Duration::from_millis(250);
+                let timeout = Timeout::new(address, duration, ());
+                let mut changed_files = ChangedFiles::new(timeout);
+                changed_files.files.insert(path);
+                self.changed_files = Some(changed_files);
+            }
         }
         Ok(())
     }
@@ -151,7 +172,7 @@ impl Duty<Initialize> for ConfigLoader {
         let local_config = CONFIG_NAME.into();
         self.add_layer(local_config, ctx).await?;
 
-        self.distribute_config().await?;
+        self.update_configs(true).await?;
 
         Ok(Next::events())
     }
@@ -196,7 +217,7 @@ impl OnEvent<WatchEvent> for ConfigLoader {
         println!("{:#?}", event.paths);
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
-                self.schedule_update(ctx)?;
+                self.schedule_update(msg.tag, ctx)?;
             }
             _other => {
                 // TODO: How to handle other methods? What if the config was removed?
@@ -209,7 +230,7 @@ impl OnEvent<WatchEvent> for ConfigLoader {
 #[async_trait]
 impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
-        self.distribute_config().await
+        self.update_configs(false).await
     }
 }
 
