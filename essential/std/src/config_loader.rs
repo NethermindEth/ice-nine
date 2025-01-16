@@ -4,7 +4,7 @@ use crb::agent::{
     Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ReachableContext,
     ToAddress,
 };
-use crb::core::{Slot, SyncTag, UniqueId};
+use crb::core::{Slot, UniqueId};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, OnTimeout, Subscription, Timeout};
 use derive_more::{Deref, DerefMut, From};
@@ -16,20 +16,22 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::fs;
-use toml::Value;
+use toml::{Table, Value};
 
 const CONFIG_NAME: &str = "ice9.toml";
 
 pub struct ConfigLayer {
     path: Arc<PathBuf>,
-    watcher: RecommendedWatcher,
+    config: Value,
+    _watcher: RecommendedWatcher,
 }
 
 impl ConfigLayer {
-    async fn read_config(&mut self) -> Result<Value> {
+    async fn read_config(&mut self) -> Result<()> {
         let content = fs::read_to_string(self.path.as_ref()).await?;
-        let value = toml::from_str(&content)?;
-        Ok(value)
+        let config = toml::from_str(&content)?;
+        self.config = config;
+        Ok(())
     }
 }
 
@@ -42,6 +44,7 @@ pub struct ConfigLoader {
     layers: Vec<ConfigLayer>,
     debouncer: Slot<Timeout>,
     subscribers: HashSet<UniqueId<ConfigUpdates>>,
+    merged_config: Value,
 }
 
 impl ConfigLoader {
@@ -50,6 +53,7 @@ impl ConfigLoader {
             layers: Vec::new(),
             debouncer: Slot::empty(),
             subscribers: HashSet::new(),
+            merged_config: table(),
         }
     }
 }
@@ -69,14 +73,51 @@ impl Agent for ConfigLoader {
 }
 
 impl ConfigLoader {
-    fn add_layer(&mut self, path: PathBuf, ctx: &mut Context<Self>) -> Result<()> {
+    async fn add_layer(&mut self, path: PathBuf, ctx: &mut Context<Self>) -> Result<()> {
         let path = Arc::new(path);
         let forwarder = EventsForwarder::new(ctx, path.clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
-        let layer = ConfigLayer { path, watcher };
+        let mut layer = ConfigLayer {
+            path,
+            config: table(),
+            _watcher: watcher,
+        };
+        // TODO: Create a file if that doesn't exist
+        layer.read_config().await?;
         self.layers.push(layer);
         Ok(())
+    }
+
+    async fn distribute_config(&mut self) -> Result<()> {
+        self.debouncer.take()?;
+        let mut new_merged_config = table();
+        for layer in &mut self.layers {
+            layer.read_config().await?;
+            merge_configs(&mut new_merged_config, &layer.config);
+        }
+        if self.merged_config != new_merged_config {
+            let new_config = NewConfig(new_merged_config.clone());
+            for subscriber in &self.subscribers {
+                subscriber.send(new_config.clone()).ok();
+            }
+            self.merged_config = new_merged_config;
+        }
+        Ok(())
+    }
+
+    fn schedule_update(&mut self, ctx: &mut <Self as Agent>::Context) -> Result<()> {
+        if self.debouncer.is_empty() {
+            let address = ctx.address().clone();
+            let duration = Duration::from_millis(250);
+            let timeout = Timeout::new(address, duration, ());
+            self.debouncer.fill(timeout)?;
+        }
+        Ok(())
+    }
+
+    fn current_config(&self) -> Value {
+        self.merged_config.clone()
     }
 }
 
@@ -85,8 +126,18 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let config_dir = dirs::config_dir();
-        // TODO: Read the config here
+        // Global config layer: ~/.config/ice9.toml
+        let config_dir =
+            dirs::config_dir().ok_or_else(|| anyhow!("Config dir is not provided."))?;
+        let global_config = config_dir.join(CONFIG_NAME);
+        self.add_layer(global_config, ctx).await?;
+
+        // Local config layer: $PWD/ice9.toml
+        let local_config = CONFIG_NAME.into();
+        self.add_layer(local_config, ctx).await?;
+
+        self.distribute_config().await?;
+
         Ok(Next::events())
     }
 }
@@ -123,22 +174,6 @@ struct WatchEvent {
     result: WatchResult,
 }
 
-impl ConfigLoader {
-    fn schedule_update(&mut self, ctx: &mut <Self as Agent>::Context) -> Result<()> {
-        if self.debouncer.is_empty() {
-            let address = ctx.address().clone();
-            let duration = Duration::from_millis(250);
-            let timeout = Timeout::new(address, duration, ());
-            self.debouncer.fill(timeout)?;
-        }
-        Ok(())
-    }
-
-    fn current_config(&self) -> Result<Value> {
-        Err(anyhow!("not implemented"))
-    }
-}
-
 #[async_trait]
 impl OnEvent<WatchEvent> for ConfigLoader {
     async fn handle(&mut self, msg: WatchEvent, ctx: &mut Context<Self>) -> Result<()> {
@@ -159,20 +194,11 @@ impl OnEvent<WatchEvent> for ConfigLoader {
 #[async_trait]
 impl OnTimeout for ConfigLoader {
     async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
-        self.debouncer.take()?;
-        for layer in &mut self.layers {
-            let value = layer.read_config().await?;
-        }
-        // TODO: Distribute the merged value
-        /*
-        for subscriber in &self.subscribers {
-            subscriber.send(NewConfig(value.clone())).ok();
-        }
-        */
-        Ok(())
+        self.distribute_config().await
     }
 }
 
+#[derive(Clone)]
 pub struct NewConfig(pub Value);
 
 #[derive(Deref, DerefMut)]
@@ -204,7 +230,7 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     ) -> Result<Value> {
         // Read on initialze and keep
         self.subscribers.insert(sub_id);
-        let value = self.current_config()?;
+        let value = self.current_config();
         Ok(value)
     }
 
@@ -215,5 +241,31 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     ) -> Result<()> {
         self.subscribers.remove(&sub_id);
         Ok(())
+    }
+}
+
+fn table() -> Value {
+    Value::Table(Table::new())
+}
+
+fn merge_configs(base: &mut Value, overlay: &Value) {
+    if let (Value::Table(base_table), Value::Table(overlay_table)) = (base, overlay) {
+        for (key, overlay_value) in overlay_table {
+            match base_table.get_mut(key) {
+                Some(base_value) => {
+                    // If both values are tables, recursively merge them
+                    if overlay_value.is_table() && base_value.is_table() {
+                        merge_configs(base_value, overlay_value);
+                    } else {
+                        // Otherwise, overlay value overwrites base value
+                        *base_value = overlay_value.clone();
+                    }
+                }
+                None => {
+                    // If key doesn't exist in base, add it
+                    base_table.insert(key.clone(), overlay_value.clone());
+                }
+            }
+        }
     }
 }

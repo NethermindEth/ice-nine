@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, MessageFor, ToAddress};
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{Entry, ManageSubscription, StateEntry, SubscribeExt, Subscription};
+use crb::superagent::{Entry, ManageSubscription, SubscribeExt, Subscription};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;
