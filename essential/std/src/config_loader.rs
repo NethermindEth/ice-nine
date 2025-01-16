@@ -75,16 +75,25 @@ impl Agent for ConfigLoader {
 impl ConfigLoader {
     async fn add_layer(&mut self, path: PathBuf, ctx: &mut Context<Self>) -> Result<()> {
         let path = Arc::new(path);
+
+        // Setup a watcher for file
         let forwarder = EventsForwarder::new(ctx, path.clone());
         let mut watcher = recommended_watcher(forwarder)?;
         watcher.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
+
+        // Create a config file if doesn't exist
+        if !path.exists() {
+            fs::write(path.as_ref(), "").await?;
+        }
+
+        // Read a config
         let mut layer = ConfigLayer {
             path,
             config: table(),
             _watcher: watcher,
         };
-        // TODO: Create a file if that doesn't exist
         layer.read_config().await?;
+
         self.layers.push(layer);
         Ok(())
     }
@@ -127,9 +136,12 @@ struct Initialize;
 impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Global config layer: ~/.config/ice9.toml
-        let global_config = dirs::home_dir()
+        let config_dir = dirs::home_dir()
             .ok_or_else(|| anyhow!("Config dir is not provided."))?
-            .join(CONFIG_NAME);
+            .join(".config")
+            .join(".ice9");
+        fs::create_dir_all(&config_dir).await?;
+        let global_config = config_dir.join(CONFIG_NAME);
         self.add_layer(global_config, ctx).await?;
 
         // Local config layer: $PWD/ice9.toml
