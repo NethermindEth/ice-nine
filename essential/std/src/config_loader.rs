@@ -142,7 +142,7 @@ impl Duty<Initialize> for ConfigLoader {
         let config_dir = dirs::home_dir()
             .ok_or_else(|| anyhow!("Config dir is not provided."))?
             .join(".config")
-            .join(".ice9");
+            .join("ice9");
         fs::create_dir_all(&config_dir).await?;
         let global_config = config_dir.join(CONFIG_NAME);
         self.add_layer(global_config, ctx).await?;
