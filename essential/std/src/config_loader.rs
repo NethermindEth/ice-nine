@@ -127,9 +127,9 @@ struct Initialize;
 impl Duty<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Global config layer: ~/.config/ice9.toml
-        let config_dir =
-            dirs::config_dir().ok_or_else(|| anyhow!("Config dir is not provided."))?;
-        let global_config = config_dir.join(CONFIG_NAME);
+        let global_config = dirs::home_dir()
+            .ok_or_else(|| anyhow!("Config dir is not provided."))?
+            .join(CONFIG_NAME);
         self.add_layer(global_config, ctx).await?;
 
         // Local config layer: $PWD/ice9.toml
