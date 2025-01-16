@@ -5,7 +5,7 @@ use crb::agent::{
 };
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, OnTimeout, Subscription, Timeout};
+use crb::superagent::{ManageSubscription, Subscription, Timeout};
 use derive_more::{Deref, DerefMut, From};
 use notify::{
     recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
@@ -227,8 +227,8 @@ impl OnEvent<WatchEvent> for ConfigLoader {
 }
 
 #[async_trait]
-impl OnTimeout for ConfigLoader {
-    async fn on_timeout(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<()> for ConfigLoader {
+    async fn handle(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
         self.update_configs(false).await
     }
 }

@@ -55,6 +55,8 @@ impl Duty<Initialize> for StdioParticle {
         // TODO: Dry configs
         let mut bond = self.substance.bond(&*ctx);
         let (config, entry) = bond.live_config_updates().await?;
+        // TODO: Entry must be optional
+        // + method to store/provide defaults
         self.config_updates = Some(entry);
         self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
