@@ -3,8 +3,10 @@ use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next};
-use crb::core::Slot;
-use crb::superagent::{Entry, FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession};
+use crb::core::{time::Duration, Slot};
+use crb::superagent::{
+    Entry, FetchError, InteractExt, Interval, OnResponse, OnTick, Supervisor, SupervisorSession,
+};
 use ice_nine_core::{ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
@@ -14,6 +16,8 @@ pub struct StdioParticle {
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
     drainer: Slot<Address<StdinDrainer>>,
+    thinking_interval: Option<Interval>,
+    config: StdioConfig,
 }
 
 impl Particle for StdioParticle {
@@ -24,6 +28,8 @@ impl Particle for StdioParticle {
             config_updates: None,
             bond: Slot::empty(),
             drainer: Slot::empty(),
+            thinking_interval: None,
+            config: StdioConfig::default(),
         }
     }
 }
@@ -56,6 +62,8 @@ impl Duty<Initialize> for StdioParticle {
         let drainer = StdinDrainer::new();
         let (addr, _) = ctx.spawn_agent(drainer, ());
         self.drainer.fill(addr)?;
+
+        self.user_prompt(ctx).await?;
         Ok(Next::events())
     }
 }
@@ -87,10 +95,26 @@ impl StdioParticle {
         Ok(())
     }
 
-    async fn start_thinking(&mut self, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn start_thinking(&mut self, ctx: &mut Context<Self>) -> Result<()> {
         self.stdout.write_all(b"Thinking").await?;
         self.stdout.flush().await?;
         // TODO: Start an interval
+
+        let duration = Duration::from_secs(1);
+        let thinking_interval = Interval::new(ctx, duration, ());
+        self.thinking_interval = Some(thinking_interval);
+        Ok(())
+    }
+
+    async fn progress_thinking(&mut self) -> Result<()> {
+        let loader = self.config.loader.as_ref();
+        self.stdout.write_all(loader).await?;
+        self.stdout.flush().await?;
+        Ok(())
+    }
+
+    async fn stop_thinking(&mut self) -> Result<()> {
+        self.thinking_interval.take();
         Ok(())
     }
 }
@@ -98,6 +122,15 @@ impl StdioParticle {
 #[async_trait]
 impl UpdateConfig<StdioConfig> for StdioParticle {
     async fn update_config(&mut self, config: StdioConfig, ctx: &mut Context<Self>) -> Result<()> {
+        self.config = config;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnTick for StdioParticle {
+    async fn on_tick(&mut self, _: &(), _ctx: &mut Context<Self>) -> Result<()> {
+        self.progress_thinking().await?;
         Ok(())
     }
 }

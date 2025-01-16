@@ -64,9 +64,8 @@ impl Duty<Initialize> for TelegramParticle {
         self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
 
-        let address = ctx.address().clone();
         let duration = Duration::from_secs(1);
-        let thinking_interval = Interval::new(address, duration, ());
+        let thinking_interval = Interval::new(ctx, duration, ());
         self.thinking_interval = Some(thinking_interval);
 
         Ok(Next::events())

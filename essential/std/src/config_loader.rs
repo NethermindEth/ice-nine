@@ -214,7 +214,6 @@ struct WatchEvent {
 impl OnEvent<WatchEvent> for ConfigLoader {
     async fn handle(&mut self, msg: WatchEvent, ctx: &mut Context<Self>) -> Result<()> {
         let event = msg.result?;
-        println!("{:#?}", event.paths);
         match event.kind {
             EventKind::Create(_) | EventKind::Modify(_) => {
                 self.schedule_update(msg.tag, ctx)?;
