@@ -10,17 +10,26 @@ impl KeeperLink {
     where
         C: Config,
     {
-        let request = GetConfig {
-            namespace: C::NAMESPACE.to_string(),
-        };
+        let request = GetConfig::new::<C>()?;
         let config = self.address.interact(request).await?.try_into()?;
         Ok(config)
     }
 }
 
 pub struct GetConfig {
-    namespace: String,
-    // TODO: Default in Arc
+    pub namespace: String,
+    pub template: Value,
+}
+
+impl GetConfig {
+    pub fn new<C: Config>() -> Result<Self> {
+        let namespace = C::NAMESPACE.to_string();
+        let template = Value::try_from(C::template())?;
+        Ok(Self {
+            namespace,
+            template,
+        })
+    }
 }
 
 impl Request for GetConfig {
@@ -30,7 +39,7 @@ impl Request for GetConfig {
 #[async_trait]
 impl OnRequest<GetConfig> for Keeper {
     async fn on_request(&mut self, msg: GetConfig, _: &mut Context<Self>) -> Result<Value> {
-        let config = self.config.get_config(&msg.namespace);
+        let config = self.config.get_config_segment(&msg);
         Ok(config)
     }
 }

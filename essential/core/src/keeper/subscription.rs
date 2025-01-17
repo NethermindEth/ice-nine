@@ -1,4 +1,5 @@
 use super::{Config, Keeper, KeeperLink};
+use crate::keeper::GetConfig;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, MessageFor, ToAddress};
@@ -31,11 +32,8 @@ impl KeeperLink {
         let recipient = TypedConfigListener {
             recipient: address.to_address().sender(),
         };
-        let namespace = C::NAMESPACE.to_string();
-        let template = Value::try_from(C::template())?;
         let updates = ConfigSegmentUpdates {
-            namespace,
-            template,
+            get_config: GetConfig::new::<C>()?,
             recipient: Recipient::new(recipient),
         };
         let state_entry = self.subscribe(updates).await?;
@@ -47,11 +45,12 @@ impl KeeperLink {
 pub struct NewConfigSegment(pub Value);
 
 pub struct ConfigSegmentUpdates {
-    namespace: String,
-    template: Value,
+    get_config: GetConfig,
     // TODO: Keep `Arc` with a default value here
     recipient: Recipient<NewConfigSegment>,
 }
+
+impl ConfigSegmentUpdates {}
 
 impl Subscription for ConfigSegmentUpdates {
     type State = Value;
@@ -64,7 +63,7 @@ pub struct Subscriber {
 impl Keeper {
     pub fn distribute(&mut self) {
         for (id, subscriber) in &mut self.subscribers {
-            let value = self.config.get_config(&id.namespace);
+            let value = self.config.get_config_segment(&id.get_config);
             if subscriber.last_value.as_ref() == Some(&value) {
                 subscriber.last_value = Some(value.clone());
             }
@@ -81,7 +80,7 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
         _ctx: &mut Context<Self>,
     ) -> Result<Value> {
         let subscriber = Subscriber { last_value: None };
-        let value = self.config.get_config(&sub_id.namespace);
+        let value = self.config.get_config_segment(&sub_id.get_config);
         self.subscribers.insert(sub_id, subscriber);
         Ok(value)
     }

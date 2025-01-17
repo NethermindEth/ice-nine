@@ -8,6 +8,7 @@ use crb::core::{Slot, UniqueId};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
+use interaction::GetConfig;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use subscription::{ConfigSegmentUpdates, Subscriber};
@@ -86,16 +87,16 @@ impl Duty<Initialize> for Keeper {
 }
 
 impl MergedConfig {
-    fn get_config(&self, namespace: &str) -> Value {
-        self.get_config_opt(namespace)
+    fn get_config_segment(&self, seg: &GetConfig) -> Value {
+        self.get_config_segment_opt(seg)
             // TODO: Get a default value from the provided
             .unwrap_or_else(|| Value::Table(Table::new()))
     }
 
-    fn get_config_opt(&self, namespace: &str) -> Option<Value> {
+    fn get_config_segment_opt(&self, seg: &GetConfig) -> Option<Value> {
         self.value
             .get("particle")?
-            .get(namespace)?
+            .get(&seg.namespace)?
             .get("config")
             .cloned()
     }
