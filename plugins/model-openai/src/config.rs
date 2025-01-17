@@ -5,9 +5,22 @@ use serde::Deserialize;
 pub type Client = OpenAIClient<RawConfig>;
 
 #[derive(Deserialize)]
-#[serde(transparent)]
-pub struct OpenAIConfig(pub RawConfig);
+pub struct OpenAIConfig {
+    api_key: String,
+}
 
 impl Config for OpenAIConfig {
     const NAMESPACE: &str = "openai";
+
+    fn template() -> Self {
+        Self {
+            api_key: "API KEY HERE".into(),
+        }
+    }
+}
+
+impl OpenAIConfig {
+    pub fn extract(&self) -> RawConfig {
+        RawConfig::default().with_api_key(&self.api_key)
+    }
 }

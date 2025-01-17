@@ -6,4 +6,8 @@ pub struct DyDxConfig {}
 
 impl Config for DyDxConfig {
     const NAMESPACE: &str = "dydx";
+
+    fn template() -> Self {
+        Self {}
+    }
 }

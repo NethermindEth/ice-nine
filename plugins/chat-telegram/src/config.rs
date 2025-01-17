@@ -8,4 +8,10 @@ pub struct TelegramConfig {
 
 impl Config for TelegramConfig {
     const NAMESPACE: &str = "telegram";
+
+    fn template() -> Self {
+        Self {
+            api_key: "API KEY HERE".into(),
+        }
+    }
 }

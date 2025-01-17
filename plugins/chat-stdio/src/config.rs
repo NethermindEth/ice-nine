@@ -14,4 +14,8 @@ impl Default for StdioConfig {
 
 impl Config for StdioConfig {
     const NAMESPACE: &str = "stdio";
+
+    fn template() -> Self {
+        Self::default()
+    }
 }

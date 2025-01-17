@@ -70,7 +70,7 @@ impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
             self.client.take()?;
         }
 
-        let client = Client::with_config(config.0);
+        let client = Client::with_config(config.extract());
         let _models = client.models().list().await?; // An alternative to ping
         self.client.fill(client)?;
         Ok(())

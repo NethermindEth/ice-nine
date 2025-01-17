@@ -18,6 +18,8 @@ pub trait Config: DeserializeOwned + Send + 'static {
     // TODO: Add scope
     // TODO: Add methods to get a full path for logging
     const NAMESPACE: &str;
+
+    fn template() -> Self;
 }
 
 #[derive(Deref, DerefMut, From, Clone)]
