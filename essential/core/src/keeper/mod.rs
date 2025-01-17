@@ -8,13 +8,12 @@ use crb::core::{Slot, UniqueId};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
-use subscription::ConfigSegmentUpdates;
-use subscription::Subscriber;
+use subscription::{ConfigSegmentUpdates, Subscriber};
 use toml::{Table, Value};
 
-pub trait Config: DeserializeOwned + Send + 'static {
+pub trait Config: DeserializeOwned + Serialize + Send + 'static {
     // TODO: Add scope
     // TODO: Add methods to get a full path for logging
     const NAMESPACE: &str;

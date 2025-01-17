@@ -1,7 +1,7 @@
 use ice_nine_core::Config;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct DyDxConfig {}
 
 impl Config for DyDxConfig {

@@ -44,12 +44,7 @@ impl<A: Agent> SubstanceBond<A> {
         C: Config,
     {
         let address = self.address.clone();
-        let namespace = C::NAMESPACE.to_string();
-        let pair = self
-            .links
-            .keeper
-            .live_config_updates(address, namespace)
-            .await?;
+        let pair = self.links.keeper.live_config_updates(address).await?;
         Ok(pair)
     }
 

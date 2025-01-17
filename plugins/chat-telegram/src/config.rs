@@ -1,7 +1,7 @@
 use ice_nine_core::Config;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct TelegramConfig {
     pub api_key: String,
 }

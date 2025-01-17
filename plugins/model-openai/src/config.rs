@@ -1,10 +1,10 @@
 use async_openai::{config::OpenAIConfig as RawConfig, Client as OpenAIClient};
 use ice_nine_core::Config;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub type Client = OpenAIClient<RawConfig>;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct OpenAIConfig {
     api_key: String,
 }

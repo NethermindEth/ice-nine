@@ -23,7 +23,6 @@ impl KeeperLink {
     pub async fn live_config_updates<A, C>(
         &self,
         address: impl ToAddress<A>,
-        namespace: String,
     ) -> Result<(C, Entry<ConfigSegmentUpdates>)>
     where
         A: UpdateConfig<C>,
@@ -32,8 +31,11 @@ impl KeeperLink {
         let recipient = TypedConfigListener {
             recipient: address.to_address().sender(),
         };
+        let namespace = C::NAMESPACE.to_string();
+        let template = Value::try_from(C::template())?;
         let updates = ConfigSegmentUpdates {
             namespace,
+            template,
             recipient: Recipient::new(recipient),
         };
         let state_entry = self.subscribe(updates).await?;
@@ -46,6 +48,7 @@ pub struct NewConfigSegment(pub Value);
 
 pub struct ConfigSegmentUpdates {
     namespace: String,
+    template: Value,
     // TODO: Keep `Arc` with a default value here
     recipient: Recipient<NewConfigSegment>,
 }
