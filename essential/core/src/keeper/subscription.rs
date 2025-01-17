@@ -6,6 +6,7 @@ use crb::agent::{Agent, Context, MessageFor, ToAddress};
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{Entry, ManageSubscription, SubscribeExt, Subscription};
+use ice_nine_std::config_loader::{merge_configs, table, StoreTemplate};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;
@@ -72,6 +73,16 @@ impl Keeper {
     }
 }
 
+impl Keeper {
+    fn merged_template(&self) -> Value {
+        let mut merged = table();
+        for (id, _) in &self.subscribers {
+            merge_configs(&mut merged, &id.get_config.template);
+        }
+        merged
+    }
+}
+
 #[async_trait]
 impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
     async fn subscribe(
@@ -82,6 +93,10 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
         let subscriber = Subscriber { last_value: None };
         let value = self.config.get_config_segment(&sub_id.get_config);
         self.subscribers.insert(sub_id, subscriber);
+
+        let template = self.merged_template();
+        let msg = StoreTemplate(template);
+        self.loader.get()?.event(msg)?;
         Ok(value)
     }
 

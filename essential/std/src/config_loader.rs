@@ -18,6 +18,7 @@ use tokio::fs;
 use toml::{Table, Value};
 
 const CONFIG_NAME: &str = "ice9.toml";
+const TEMPLATE_NAME: &str = "ice9.toml.example";
 
 pub struct ConfigLayer {
     path: Arc<PathBuf>,
@@ -279,11 +280,22 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     }
 }
 
-fn table() -> Value {
+pub struct StoreTemplate(pub Value);
+
+#[async_trait]
+impl OnEvent<StoreTemplate> for ConfigLoader {
+    async fn handle(&mut self, msg: StoreTemplate, _ctx: &mut Context<Self>) -> Result<()> {
+        let content = toml::to_string_pretty(&msg.0)?;
+        fs::write(TEMPLATE_NAME, content).await?;
+        Ok(())
+    }
+}
+
+pub fn table() -> Value {
     Value::Table(Table::new())
 }
 
-fn merge_configs(base: &mut Value, overlay: &Value) {
+pub fn merge_configs(base: &mut Value, overlay: &Value) {
     if let (Value::Table(base_table), Value::Table(overlay_table)) = (base, overlay) {
         for (key, overlay_value) in overlay_table {
             match base_table.get_mut(key) {

@@ -44,6 +44,7 @@ pub struct Keeper {
     config: MergedConfig,
     updater: Slot<Entry<ConfigUpdates>>,
     subscribers: HashMap<UniqueId<ConfigSegmentUpdates>, Subscriber>,
+    loader: Slot<Address<ConfigLoader>>,
 }
 
 impl Keeper {
@@ -52,6 +53,7 @@ impl Keeper {
             config: MergedConfig::new(),
             updater: Slot::empty(),
             subscribers: HashMap::new(),
+            loader: Slot::empty(),
         }
     }
 }
@@ -78,6 +80,7 @@ impl Duty<Initialize> for Keeper {
         let (addr, _) = ctx.spawn_agent(loader, ());
         let sub = ConfigUpdates::for_listener(ctx);
         let state_entry = addr.subscribe(sub).await?;
+        self.loader.fill(addr)?;
 
         // No subscribers here, not necessary to distribute the config
         self.config = MergedConfig::from(state_entry.state);
