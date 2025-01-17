@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
-use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
+use crb::superagent::{Entry, IntervalSwitch, OnResponse, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond,
     UpdateConfig,
@@ -24,7 +24,7 @@ pub struct TelegramParticle {
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
-    thinking_interval: Option<Interval>,
+    thinking_interval: IntervalSwitch<Tick>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -33,13 +33,15 @@ impl Supervisor for TelegramParticle {
 
 impl Particle for TelegramParticle {
     fn construct(setup: ParticleSetup) -> Self {
+        let duration = Duration::from_secs(1);
+        let thinking_interval = IntervalSwitch::new(duration, Tick);
         Self {
             substance: setup,
             config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
-            thinking_interval: None,
+            thinking_interval,
         }
     }
 }
@@ -64,9 +66,8 @@ impl Duty<Initialize> for TelegramParticle {
         self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
 
-        let duration = Duration::from_secs(1);
-        let thinking_interval = Interval::new(ctx, duration, Tick);
-        self.thinking_interval = Some(thinking_interval);
+        self.thinking_interval.add_listener(ctx);
+        self.thinking_interval.on();
 
         Ok(Next::events())
     }

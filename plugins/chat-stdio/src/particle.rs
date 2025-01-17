@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{
-    Entry, FetchError, InteractExt, Interval, OnResponse, Supervisor, SupervisorSession,
+    Entry, FetchError, InteractExt, IntervalSwitch, OnResponse, Supervisor, SupervisorSession,
 };
 use ice_nine_core::{ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
@@ -16,19 +16,21 @@ pub struct StdioParticle {
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
     drainer: Slot<Address<StdinDrainer>>,
-    thinking_interval: Option<Interval>,
+    thinking_interval: IntervalSwitch<Tick>,
     config: StdioConfig,
 }
 
 impl Particle for StdioParticle {
     fn construct(setup: ParticleSetup) -> Self {
+        let duration = Duration::from_secs(1);
+        let thinking_interval = IntervalSwitch::new(duration, Tick);
         Self {
             substance: setup,
             stdout: io::stdout(),
             config_updates: None,
             bond: Slot::empty(),
             drainer: Slot::empty(),
-            thinking_interval: None,
+            thinking_interval,
             config: StdioConfig::default(),
         }
     }
@@ -52,6 +54,7 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        self.thinking_interval.add_listener(&*ctx);
         // TODO: Dry configs
         let mut bond = self.substance.bond(&*ctx);
         let (config, entry) = bond.live_config_updates().await?;
@@ -102,9 +105,7 @@ impl StdioParticle {
         self.stdout.flush().await?;
         // TODO: Start an interval
 
-        let duration = Duration::from_secs(1);
-        let thinking_interval = Interval::new(ctx, duration, Tick);
-        self.thinking_interval = Some(thinking_interval);
+        self.thinking_interval.on();
         Ok(())
     }
 
@@ -116,7 +117,7 @@ impl StdioParticle {
     }
 
     async fn stop_thinking(&mut self) -> Result<()> {
-        self.thinking_interval.take();
+        self.thinking_interval.off();
         Ok(())
     }
 }
