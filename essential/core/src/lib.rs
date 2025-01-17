@@ -2,6 +2,7 @@ pub mod essence;
 pub mod keeper;
 pub mod router;
 pub mod sequence;
+pub mod space;
 
 pub use essence::particle::{Particle, ParticleSetup, SubstanceBond};
 pub use essence::substance::{Substance, SubstanceLink};
