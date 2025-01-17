@@ -2,10 +2,10 @@ use crate::config::StdioConfig;
 use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next};
+use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{
-    Entry, FetchError, InteractExt, Interval, OnResponse, OnTick, Supervisor, SupervisorSession,
+    Entry, FetchError, InteractExt, Interval, OnResponse, Supervisor, SupervisorSession,
 };
 use ice_nine_core::{ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
@@ -103,7 +103,7 @@ impl StdioParticle {
         // TODO: Start an interval
 
         let duration = Duration::from_secs(1);
-        let thinking_interval = Interval::new(ctx, duration, ());
+        let thinking_interval = Interval::new(ctx, duration, Tick);
         self.thinking_interval = Some(thinking_interval);
         Ok(())
     }
@@ -129,9 +129,12 @@ impl UpdateConfig<StdioConfig> for StdioParticle {
     }
 }
 
+#[derive(Clone)]
+struct Tick;
+
 #[async_trait]
-impl OnTick for StdioParticle {
-    async fn on_tick(&mut self, _: &(), _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<Tick> for StdioParticle {
+    async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<()> {
         self.progress_thinking().await?;
         Ok(())
     }

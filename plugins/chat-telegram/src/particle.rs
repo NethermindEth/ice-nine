@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
-use crb::superagent::{Entry, Interval, OnResponse, OnTick, Output, Supervisor, SupervisorSession};
+use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond,
     UpdateConfig,
@@ -65,7 +65,7 @@ impl Duty<Initialize> for TelegramParticle {
         self.bond.fill(bond)?;
 
         let duration = Duration::from_secs(1);
-        let thinking_interval = Interval::new(ctx, duration, ());
+        let thinking_interval = Interval::new(ctx, duration, Tick);
         self.thinking_interval = Some(thinking_interval);
 
         Ok(Next::events())
@@ -140,9 +140,12 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
     }
 }
 
+#[derive(Clone)]
+struct Tick;
+
 #[async_trait]
-impl OnTick for TelegramParticle {
-    async fn on_tick(&mut self, _: &(), _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<Tick> for TelegramParticle {
+    async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<()> {
         if self.client.is_filled() {
             let client = self.client.get_mut()?;
             for chat_id in &self.typing {
