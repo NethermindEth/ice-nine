@@ -18,7 +18,7 @@ use tokio::fs;
 use toml::{Table, Value};
 
 const CONFIG_NAME: &str = "ice9.toml";
-const TEMPLATE_NAME: &str = "ice9.toml.example";
+const TEMPLATE_NAME: &str = "ice9.example.toml";
 
 pub struct ConfigLayer {
     path: Arc<PathBuf>,

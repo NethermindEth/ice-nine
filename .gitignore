@@ -2,4 +2,4 @@ target
 .cargo
 .env
 ice9.toml
-ice9.toml.example
+ice9.example.toml
