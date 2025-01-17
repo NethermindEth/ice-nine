@@ -291,6 +291,12 @@ impl OnEvent<StoreTemplate> for ConfigLoader {
     }
 }
 
+pub fn wrap_level(title: &str, value: Value) -> Value {
+    let mut wrapper = Table::new();
+    wrapper.insert(title.into(), value);
+    Value::Table(wrapper)
+}
+
 pub fn table() -> Value {
     Value::Table(Table::new())
 }

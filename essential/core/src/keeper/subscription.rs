@@ -6,7 +6,7 @@ use crb::agent::{Agent, Context, MessageFor, ToAddress};
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{Entry, ManageSubscription, SubscribeExt, Subscription};
-use ice_nine_std::config_loader::{merge_configs, table, StoreTemplate};
+use ice_nine_std::config_loader::{merge_configs, table, wrap_level, StoreTemplate};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;
@@ -75,11 +75,15 @@ impl Keeper {
 
 impl Keeper {
     fn merged_template(&self) -> Value {
-        let mut merged = table();
+        let mut particles = table();
         for (id, _) in &self.subscribers {
-            merge_configs(&mut merged, &id.get_config.template);
+            let template = id.get_config.template.clone();
+            let config = wrap_level("config", template);
+            let scope = &id.get_config.namespace;
+            let scoped = wrap_level(scope, config);
+            merge_configs(&mut particles, &scoped);
         }
-        merged
+        wrap_level("particle", particles)
     }
 }
 
