@@ -89,8 +89,7 @@ impl Duty<Initialize> for Keeper {
 impl MergedConfig {
     fn get_config_segment(&self, seg: &GetConfig) -> Value {
         self.get_config_segment_opt(seg)
-            // TODO: Get a default value from the provided
-            .unwrap_or_else(|| Value::Table(Table::new()))
+            .unwrap_or_else(|| seg.template.clone())
     }
 
     fn get_config_segment_opt(&self, seg: &GetConfig) -> Option<Value> {
