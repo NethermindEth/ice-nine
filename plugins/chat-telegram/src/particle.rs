@@ -7,7 +7,7 @@ use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{Entry, IntervalSwitch, OnResponse, Output, Supervisor, SupervisorSession};
 use ice_nine_core::{
-    ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond,
+    ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
 };
 use std::collections::HashSet;
@@ -17,7 +17,7 @@ use teloxide_core::{
 };
 
 pub struct TelegramParticle {
-    substance: ParticleSetup,
+    substance: SubstanceLinks,
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 
@@ -32,11 +32,11 @@ impl Supervisor for TelegramParticle {
 }
 
 impl Particle for TelegramParticle {
-    fn construct(setup: ParticleSetup) -> Self {
+    fn construct(substance: SubstanceLinks) -> Self {
         let duration = Duration::from_secs(1);
         let thinking_interval = IntervalSwitch::new(duration, Tick);
         Self {
-            substance: setup,
+            substance,
             config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),

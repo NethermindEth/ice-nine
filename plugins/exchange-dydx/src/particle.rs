@@ -5,12 +5,12 @@ use crb::agent::{Agent, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use ice_nine_core::{
-    ConfigSegmentUpdates, Particle, ParticleSetup, SubstanceBond, Tool, UpdateConfig,
+    ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, Tool, UpdateConfig,
 };
 use serde::Deserialize;
 
 pub struct DyDxParticle {
-    substance: ParticleSetup,
+    substance: SubstanceLinks,
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 }
@@ -20,9 +20,9 @@ impl Supervisor for DyDxParticle {
 }
 
 impl Particle for DyDxParticle {
-    fn construct(setup: ParticleSetup) -> Self {
+    fn construct(substance: SubstanceLinks) -> Self {
         Self {
-            substance: setup,
+            substance,
             config_updates: None,
             bond: Slot::empty(),
         }

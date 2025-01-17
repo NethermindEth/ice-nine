@@ -8,14 +8,8 @@ use crate::router::{
 use anyhow::Result;
 use crb::agent::{Address, Agent, ToAddress};
 use crb::superagent::Entry;
-use derive_more::{Deref, DerefMut};
 
-#[derive(Deref, DerefMut)]
-pub struct ParticleSetup {
-    pub links: SubstanceLinks,
-}
-
-impl ParticleSetup {
+impl SubstanceLinks {
     pub async fn config<C: Config>(&mut self) -> Result<C> {
         self.keeper.get_config().await
     }
@@ -23,18 +17,18 @@ impl ParticleSetup {
     pub fn bond<A: Agent>(&mut self, recipient: impl ToAddress<A>) -> SubstanceBond<A> {
         SubstanceBond {
             address: recipient.to_address(),
-            links: self.links.clone(),
+            substance: self.clone(),
         }
     }
 }
 
 pub trait Particle: Agent<Context: Default> {
-    fn construct(setup: ParticleSetup) -> Self;
+    fn construct(substance: SubstanceLinks) -> Self;
 }
 
 pub struct SubstanceBond<A: Agent> {
     address: Address<A>,
-    links: SubstanceLinks,
+    substance: SubstanceLinks,
 }
 
 impl<A: Agent> SubstanceBond<A> {
@@ -44,7 +38,7 @@ impl<A: Agent> SubstanceBond<A> {
         C: Config,
     {
         let address = self.address.clone();
-        let pair = self.links.keeper.live_config_updates(address).await?;
+        let pair = self.substance.keeper.live_config_updates(address).await?;
         Ok(pair)
     }
 
@@ -53,7 +47,7 @@ impl<A: Agent> SubstanceBond<A> {
         A: Model,
     {
         let address = self.address.clone();
-        self.links.router.add_model(address)
+        self.substance.router.add_model(address)
     }
 
     pub async fn add_tool<P>(&mut self, tool: &A) -> Result<()>
@@ -67,7 +61,7 @@ impl<A: Agent> SubstanceBond<A> {
             description: tool.description(),
             parameters: None,
         };
-        self.links.router.add_tool(address, meta).await?;
+        self.substance.router.add_tool(address, meta).await?;
         Ok(())
     }
 }

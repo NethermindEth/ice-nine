@@ -1,4 +1,4 @@
-use super::particle::{Particle, ParticleSetup};
+use super::particle::Particle;
 use super::SubstanceLinks;
 use crate::keeper::Keeper;
 use crate::router::ReasoningRouter;
@@ -22,7 +22,7 @@ impl SubstanceLink {
         self.address.event(msg)
     }
 
-    pub async fn be_particle(&self) -> Result<ParticleSetup> {
+    pub async fn be_particle(&self) -> Result<SubstanceLinks> {
         self.address.interact(BeParticle).await.map_err(Error::from)
     }
 }
@@ -36,9 +36,9 @@ impl Substance {
         Self::new().spawn().equip()
     }
 
-    fn get_setup(&mut self) -> Result<ParticleSetup> {
+    fn get_setup(&mut self) -> Result<SubstanceLinks> {
         let links = self.links.get_mut()?.clone();
-        Ok(ParticleSetup { links })
+        Ok(links)
     }
 }
 
@@ -110,7 +110,7 @@ where
 struct BeParticle;
 
 impl Request for BeParticle {
-    type Response = ParticleSetup;
+    type Response = SubstanceLinks;
 }
 
 #[async_trait]
@@ -119,7 +119,7 @@ impl OnRequest<BeParticle> for Substance {
         &mut self,
         _: BeParticle,
         _ctx: &mut Context<Self>,
-    ) -> Result<ParticleSetup> {
+    ) -> Result<SubstanceLinks> {
         self.get_setup()
     }
 }

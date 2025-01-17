@@ -7,12 +7,12 @@ use crb::agent::{Agent, AgentSession, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, OnRequest};
 use ice_nine_core::{
-    ConfigSegmentUpdates, Model, Particle, ParticleSetup, SubstanceBond, ToolingChatRequest,
+    ConfigSegmentUpdates, Model, Particle, SubstanceBond, SubstanceLinks, ToolingChatRequest,
     ToolingChatResponse, UpdateConfig,
 };
 
 pub struct OpenAIParticle {
-    substance: ParticleSetup,
+    substance: SubstanceLinks,
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
 
@@ -22,9 +22,9 @@ pub struct OpenAIParticle {
 impl Model for OpenAIParticle {}
 
 impl Particle for OpenAIParticle {
-    fn construct(setup: ParticleSetup) -> Self {
+    fn construct(substance: SubstanceLinks) -> Self {
         Self {
-            substance: setup,
+            substance,
             config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),

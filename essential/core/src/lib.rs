@@ -4,7 +4,7 @@ pub mod router;
 pub mod sequence;
 pub mod space;
 
-pub use essence::particle::{Particle, ParticleSetup, SubstanceBond};
+pub use essence::particle::{Particle, SubstanceBond};
 pub use essence::substance::{Substance, SubstanceLink};
 pub use essence::SubstanceLinks;
 pub use keeper::subscription::{ConfigSegmentUpdates, UpdateConfig};
