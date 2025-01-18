@@ -2,6 +2,7 @@ use super::particle::Particle;
 use super::SubstanceLinks;
 use crate::keeper::Keeper;
 use crate::router::ReasoningRouter;
+use crate::space::Space;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
@@ -81,7 +82,14 @@ impl Duty<Configure> for Substance {
         let agent = ReasoningRouter::new();
         let router = ctx.spawn_agent(agent, Group::Services).equip();
 
-        let links = SubstanceLinks { keeper, router };
+        let agent = Space::new();
+        let space = ctx.spawn_agent(agent, Group::Services).equip();
+
+        let links = SubstanceLinks {
+            keeper,
+            router,
+            space,
+        };
         self.links.fill(links)?;
 
         Ok(Next::events())
