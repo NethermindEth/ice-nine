@@ -64,7 +64,6 @@ impl Supervisor for Keeper {
 
 impl Agent for Keeper {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

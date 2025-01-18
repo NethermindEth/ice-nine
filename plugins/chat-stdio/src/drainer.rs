@@ -20,7 +20,6 @@ impl StdinDrainer {
 
 impl Agent for StdinDrainer {
     type Context = AgentSession<Self>;
-    type Output = ();
 }
 
 pub struct ReadLine;

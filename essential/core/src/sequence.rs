@@ -8,7 +8,6 @@ pub struct Sequence {}
 
 impl Agent for Sequence {
     type Context = AgentSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

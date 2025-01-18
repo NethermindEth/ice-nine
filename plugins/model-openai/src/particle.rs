@@ -34,7 +34,6 @@ impl Particle for OpenAIParticle {
 
 impl Agent for OpenAIParticle {
     type Context = AgentSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

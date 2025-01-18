@@ -42,7 +42,6 @@ impl Supervisor for StdioParticle {
 
 impl Agent for StdioParticle {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

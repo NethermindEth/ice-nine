@@ -48,7 +48,6 @@ impl Particle for TelegramParticle {
 
 impl Agent for TelegramParticle {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

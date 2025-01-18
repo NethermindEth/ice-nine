@@ -20,7 +20,6 @@ impl Supervisor for App {
 
 impl Agent for App {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Configure)

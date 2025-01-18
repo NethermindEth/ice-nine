@@ -23,7 +23,6 @@ impl TelegramDrainer {
 
 impl Agent for TelegramDrainer {
     type Context = AgentSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(())

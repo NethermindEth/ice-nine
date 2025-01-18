@@ -39,7 +39,6 @@ impl ReasoningRouter {
 
 impl Agent for ReasoningRouter {
     type Context = AgentSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::events()

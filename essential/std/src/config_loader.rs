@@ -70,7 +70,6 @@ impl ConfigLoader {
 
 impl Agent for ConfigLoader {
     type Context = AgentSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

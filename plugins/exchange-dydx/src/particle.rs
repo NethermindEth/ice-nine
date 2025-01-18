@@ -31,7 +31,6 @@ impl Particle for DyDxParticle {
 
 impl Agent for DyDxParticle {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)

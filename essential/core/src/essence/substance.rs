@@ -54,7 +54,6 @@ impl Substance {
 
 impl Agent for Substance {
     type Context = SupervisorSession<Self>;
-    type Output = ();
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Configure)
