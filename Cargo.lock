@@ -2806,21 +2806,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-std"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "dirs",
- "log",
- "notify",
- "tokio",
- "toml",
-]
-
-[[package]]
 name = "ice9"
 version = "0.0.1"
 
@@ -2834,7 +2819,7 @@ dependencies = [
  "derive_more 1.0.0",
  "dotenvy",
  "envy",
- "ice-nine-std",
+ "ice9-std",
  "log",
  "serde",
  "serde_json",
@@ -2856,6 +2841,21 @@ dependencies = [
  "eframe",
  "egui",
  "tokio",
+]
+
+[[package]]
+name = "ice9-std"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "dirs",
+ "log",
+ "notify",
+ "tokio",
+ "toml",
 ]
 
 [[package]]

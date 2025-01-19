@@ -6,7 +6,7 @@ use crb::agent::{Agent, Context, MessageFor, ToAddress};
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{Entry, ManageSubscription, SubscribeExt, Subscription};
-use ice_nine_std::config_loader::{merge_configs, table, wrap_level, StoreTemplate};
+use ice9_std::config_loader::{merge_configs, table, wrap_level, StoreTemplate};
 use std::any::type_name;
 use std::marker::PhantomData;
 use toml::Value;

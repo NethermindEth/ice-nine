@@ -7,7 +7,7 @@ use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::{Slot, UniqueId};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
-use ice_nine_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
+use ice9_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
 use interaction::GetConfig;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
