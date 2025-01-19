@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, Task};
 use crb::runtime::InteractiveRuntime;
+use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
-use ui9_tool_dashboard::{App, AppUi};
 
 fn main() -> Result<()> {
     // console_subscriber::init();

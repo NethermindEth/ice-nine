@@ -1,7 +1,9 @@
 [package]
-name = "ui9-protocol"
+name = "ice9"
+description = "AI agents runtime"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+repository.workspace = true
 
 [dependencies]

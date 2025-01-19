@@ -12,7 +12,8 @@ async fn main() -> Result<()> {
     substance.add_particle::<OpenAIParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<TelegramParticle>()?;
-    substance.add_particle::<StdioParticle>()?;
+    // Stdio is not compatible with tracing and will be replaced with DUI
+    // substance.add_particle::<StdioParticle>()?;
     substance.join().await?;
     Ok(())
 }

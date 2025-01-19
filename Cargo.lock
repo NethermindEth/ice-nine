@@ -2842,6 +2842,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "ice9"
+version = "0.0.1"
+
+[[package]]
+name = "ice9-maker"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "console-subscriber",
+ "crb",
+ "eframe",
+ "egui",
+ "tokio",
+]
+
+[[package]]
 name = "ics23"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5851,23 +5868,6 @@ dependencies = [
  "memoffset",
  "tempfile",
  "winapi",
-]
-
-[[package]]
-name = "ui9-protocol"
-version = "0.0.1"
-
-[[package]]
-name = "ui9-tool-dashboard"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "console-subscriber",
- "crb",
- "eframe",
- "egui",
- "tokio",
 ]
 
 [[package]]
