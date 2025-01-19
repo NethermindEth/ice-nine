@@ -2808,6 +2808,9 @@ dependencies = [
 [[package]]
 name = "ice9"
 version = "0.0.1"
+dependencies = [
+ "ice9-core",
+]
 
 [[package]]
 name = "ice9-core"
