@@ -31,9 +31,11 @@ struct Configure;
 #[async_trait]
 impl Duty<Configure> for App {
     async fn handle(&mut self, _: Configure, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let address = ctx.address().clone();
-        let drainer = EventsDrainer::new(address);
+        let drainer = EventsDrainer::new(&*ctx);
         ctx.spawn_agent(drainer, ());
+
+        // TODO: Launch the command
+
         Ok(Next::events())
     }
 }

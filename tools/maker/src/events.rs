@@ -1,14 +1,16 @@
 use crate::app::App;
 use anyhow::Result;
-use crb::agent::{Address, Agent, AgentSession, DoSync, Next};
+use crb::agent::{Address, Agent, AgentSession, DoSync, Next, ToAddress};
 
 pub struct EventsDrainer {
     _app: Address<App>,
 }
 
 impl EventsDrainer {
-    pub fn new(app: Address<App>) -> Self {
-        Self { _app: app }
+    pub fn new(app: impl ToAddress<App>) -> Self {
+        Self {
+            _app: app.to_address(),
+        }
     }
 }
 
