@@ -5,7 +5,7 @@ use crb::agent::{
 };
 use crb::core::UniqueId;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, Subscription, Timeout};
+use crb::superagent::{ManageSubscription, Subscription, Timer};
 use derive_more::{Deref, DerefMut, From};
 use notify::{
     recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
@@ -37,12 +37,12 @@ impl ConfigLayer {
 }
 
 pub struct ChangedFiles {
-    _debouncer: Timeout,
+    _debouncer: Timer,
     files: HashSet<Arc<PathBuf>>,
 }
 
 impl ChangedFiles {
-    fn new(debouncer: Timeout) -> Self {
+    fn new(debouncer: Timer) -> Self {
         Self {
             _debouncer: debouncer,
             files: HashSet::new(),
@@ -140,7 +140,7 @@ impl ConfigLoader {
             None => {
                 let address = ctx.address().clone();
                 let duration = Duration::from_millis(250);
-                let timeout = Timeout::new(address, duration, ());
+                let timeout = Timer::new(address, duration, ());
                 let mut changed_files = ChangedFiles::new(timeout);
                 changed_files.files.insert(path);
                 self.changed_files = Some(changed_files);
