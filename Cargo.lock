@@ -985,6 +985,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
+name = "const-str"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3618cccc083bb987a415d85c02ca6c9994ea5b44731ec28b9ecf09658655fba9"
+
+[[package]]
 name = "convert_case"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5867,10 +5873,10 @@ dependencies = [
 [[package]]
 name = "uiio"
 version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d514517b054e8e827aacc343a1e9e0690ce420e1c73738c0297865d43dc1c35d"
+source = "git+https://github.com/runtime-blocks/uiio#b49f90ff04478e59f16ce37c49aed06f6ce843ce"
 dependencies = [
  "anyhow",
+ "const-str",
  "nom",
  "serde",
  "serde_json",
@@ -5880,8 +5886,7 @@ dependencies = [
 [[package]]
 name = "uiio-element"
 version = "0.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d0aeeb697aebb041889c2691c9928db293c945f670977b4d6b6d96bb215e4981"
+source = "git+https://github.com/runtime-blocks/uiio#b49f90ff04478e59f16ce37c49aed06f6ce843ce"
 dependencies = [
  "serde",
  "uiio",

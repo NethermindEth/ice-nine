@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use uiio::fqn::Fqn;
+use uiio::names::Fqn;
 use uiio_element::State;
 
 #[derive(Deserialize, Serialize, PartialEq, Eq)]
@@ -14,9 +14,18 @@ pub struct TracerPack {
 }
 
 impl TracerPack {
-    pub fn new(fqn: Fqn) -> Self {
+    pub fn root(name: &str) -> Self {
+        let fqn = Fqn::root(name);
         Self {
             state: State::new(fqn, ActorState::Created),
         }
+    }
+
+    pub fn active(&mut self) {
+        self.state.set_state(ActorState::Active);
+    }
+
+    pub fn done(&mut self) {
+        self.state.set_state(ActorState::Done);
     }
 }
