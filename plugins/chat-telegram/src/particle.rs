@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{Entry, IntervalSwitch, OnResponse, Output, Supervisor, SupervisorSession};
-use ice_nine_core::{
+use ice9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
 };

@@ -7,7 +7,7 @@ use crb::core::{time::Duration, Slot};
 use crb::superagent::{
     Entry, FetchError, InteractExt, IntervalSwitch, OnResponse, Supervisor, SupervisorSession,
 };
-use ice_nine_core::{ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, UpdateConfig};
+use ice9_core::{ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
 pub struct StdioParticle {

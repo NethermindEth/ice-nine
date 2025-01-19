@@ -1,4 +1,4 @@
-use ice_nine_core::Config;
+use ice9_core::Config;
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]

@@ -8,6 +8,6 @@ license.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
-ice-nine-core.workspace = true
+ice9-core.workspace = true
 serde.workspace = true
 async-openai = "0.26.0"

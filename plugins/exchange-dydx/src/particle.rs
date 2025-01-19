@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
-use ice_nine_core::{
+use ice9_core::{
     ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, Tool, UpdateConfig,
 };
 use serde::Deserialize;

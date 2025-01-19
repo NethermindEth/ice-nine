@@ -2755,27 +2755,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-core"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "dotenvy",
- "envy",
- "ice-nine-std",
- "log",
- "serde",
- "serde_json",
- "toml",
- "typed-slab",
- "typedmap",
- "uiio",
- "uiio-element",
-]
-
-[[package]]
 name = "ice-nine-plugin-chat-stdio"
 version = "0.0.1"
 dependencies = [
@@ -2783,7 +2762,7 @@ dependencies = [
  "async-trait",
  "crb",
  "derive_more 1.0.0",
- "ice-nine-core",
+ "ice9-core",
  "serde",
  "tokio",
 ]
@@ -2796,7 +2775,7 @@ dependencies = [
  "async-trait",
  "crb",
  "derive_more 1.0.0",
- "ice-nine-core",
+ "ice9-core",
  "serde",
  "teloxide-core",
 ]
@@ -2810,7 +2789,7 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "dydx",
- "ice-nine-core",
+ "ice9-core",
  "serde",
 ]
 
@@ -2822,7 +2801,7 @@ dependencies = [
  "async-openai",
  "async-trait",
  "crb",
- "ice-nine-core",
+ "ice9-core",
  "serde",
 ]
 
@@ -2844,6 +2823,27 @@ dependencies = [
 [[package]]
 name = "ice9"
 version = "0.0.1"
+
+[[package]]
+name = "ice9-core"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "dotenvy",
+ "envy",
+ "ice-nine-std",
+ "log",
+ "serde",
+ "serde_json",
+ "toml",
+ "typed-slab",
+ "typedmap",
+ "uiio",
+ "uiio-element",
+]
 
 [[package]]
 name = "ice9-maker"
@@ -5786,11 +5786,11 @@ dependencies = [
  "anyhow",
  "crb",
  "env_logger",
- "ice-nine-core",
  "ice-nine-plugin-chat-stdio",
  "ice-nine-plugin-chat-telegram",
  "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-model-openai",
+ "ice9-core",
  "tokio",
 ]
 
