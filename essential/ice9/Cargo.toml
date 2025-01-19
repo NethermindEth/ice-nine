@@ -7,4 +7,6 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+clap.workspace = true
 ice9-core.workspace = true

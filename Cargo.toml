@@ -19,6 +19,7 @@ repository = "https://github.com/NethermindEth/ice-nine"
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.85"
+clap = { version = "4.5.26", features = ["derive"] }
 crb = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
 derive_more = "1.0.0"
 dotenvy = "0.15.7"
