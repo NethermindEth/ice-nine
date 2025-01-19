@@ -19,17 +19,17 @@ repository = "https://github.com/NethermindEth/ice-nine"
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.85"
-crb.git = "https://github.com/runtime-blocks/crb"
+crb = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
 derive_more = "1.0.0"
 dotenvy = "0.15.7"
 env_logger = "0.11.6"
 envy = "0.4.2"
 futures = "0.3.31"
-ice9-core.path = "essential/core"
+ice9-core = { version = "0.0.1", path = "essential/core" }
 log = "0.4.25"
 serde = "1.0.217"
 serde_json = "1.0.135"
 tokio = "1.43.0"
 toml = "0.8.19"
-uiio.git = "https://github.com/runtime-blocks/uiio"
-uiio-element.git = "https://github.com/runtime-blocks/uiio"
+uiio = { version = "0.0.3", git = "https://github.com/runtime-blocks/uiio" }
+uiio-element = { version = "0.0.3", git = "https://github.com/runtime-blocks/uiio" }
