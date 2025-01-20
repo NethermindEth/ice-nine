@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::mpsc;
 use crb::core::time::Duration;
-use crb::superagent::{IntervalSwitch, Supervisor, SupervisorSession};
+use crb::superagent::{IntervalSwitch, Relation, Supervisor, SupervisorSession};
 
 pub struct App {
     state: AppState,
@@ -27,8 +27,18 @@ impl App {
 
 impl Standalone for App {}
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Group {
+    Watcher,
+    Drainer,
+}
+
 impl Supervisor for App {
-    type GroupBy = ();
+    type GroupBy = Group;
+
+    fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {
+        // TODO: Terminate if the Watcher is terminated
+    }
 }
 
 impl Agent for App {
@@ -45,7 +55,7 @@ struct Initialize;
 impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let drainer = EventsDrainer::new(&*ctx);
-        ctx.spawn_agent(drainer, ());
+        ctx.spawn_agent(drainer, Group::Drainer);
 
         // TODO: Launch the command
 

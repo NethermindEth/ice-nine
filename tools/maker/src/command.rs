@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next};
-use std::process::Stdio;
+use std::process::{ExitStatus, Stdio};
 use thiserror::Error;
 use tokio::io::{AsyncBufReadExt, BufReader, Lines};
 use tokio::process::{Child, ChildStderr, ChildStdout, Command};
@@ -50,6 +50,10 @@ impl Duty<Initialize> for CommandWatcher {
             child,
             stdout,
             stderr,
+
+            exit_status: None,
+            stdout_drained: false,
+            stderr_drained: false,
         };
         Ok(Next::do_async(watch))
     }
@@ -59,6 +63,16 @@ struct Watch {
     child: Child,
     stdout: Lines<BufReader<ChildStdout>>,
     stderr: Lines<BufReader<ChildStderr>>,
+
+    exit_status: Option<ExitStatus>,
+    stdout_drained: bool,
+    stderr_drained: bool,
+}
+
+impl Watch {
+    fn is_done(&self) -> bool {
+        self.exit_status.is_some() && self.stdout_drained && self.stderr_drained
+    }
 }
 
 #[async_trait]
@@ -72,6 +86,7 @@ impl DoAsync<Watch> for CommandWatcher {
             _ = watch.child.wait() => {
             }
         }
-        Ok(None)
+        let state = watch.is_done().then(Next::done);
+        Ok(state)
     }
 }
