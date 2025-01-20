@@ -4,11 +4,13 @@ use crb::agent::{Address, ToAddress};
 use crb::core::mpsc;
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
+use std::time::Duration;
 
 pub struct AppUi {
     counter: usize,
     frame: Option<AppFrame>,
     receiver: mpsc::UnboundedReceiver<AppFrame>,
+    state_changed: bool,
 }
 
 impl AppUi {
@@ -33,28 +35,46 @@ impl AppUi {
             counter: 0,
             frame: None,
             receiver,
+            state_changed: false,
+        }
+    }
+}
+
+impl AppUi {
+    fn receive_updates(&mut self) {
+        for _ in 0..10 {
+            if let Ok(frame) = self.receiver.try_recv() {
+                self.frame = Some(frame);
+                self.state_changed = true;
+            } else {
+                break;
+            }
         }
     }
 }
 
 impl eframe::App for AppUi {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.receive_updates();
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Dashboard");
-            /*
-            for (key, value) in &self.data {
-                ui.horizontal(|ui| {
-                    ui.label(format!("{}:", key));
-                    ui.monospace(value);
-                });
+            if let Some(frame) = &self.frame {
+                for (key, value) in &frame.dashboard {
+                    ui.horizontal(|ui| {
+                        ui.label(format!("{}:", key));
+                        ui.monospace(value);
+                    });
+                }
             }
-            */
         });
+
+        if self.state_changed {
+            ctx.request_repaint();
+            // TODO: Consider using an adaptive rate here
+            self.state_changed = false;
+        } else {
+            ctx.request_repaint_after(Duration::from_millis(100));
+        }
     }
 }
-
-/*
-        while let Ok(message) = self.receiver.try_recv() {
-            self.data.push(message);
-        }
-*/
