@@ -1,22 +1,26 @@
+use crate::args::RunArgs;
+use crate::command::CommandWatcher;
 use crate::events::EventsDrainer;
 use crate::state::{AppFrame, AppState};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, OnEvent, Standalone};
+use crb::agent::{Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone};
 use crb::core::mpsc;
 use crb::core::time::Duration;
 use crb::superagent::{IntervalSwitch, Relation, Supervisor, SupervisorSession};
 
 pub struct App {
+    args: RunArgs,
     state: AppState,
     sender: mpsc::UnboundedSender<AppFrame>,
     interval: IntervalSwitch<Tick>,
 }
 
 impl App {
-    pub fn new() -> (Self, mpsc::UnboundedReceiver<AppFrame>) {
+    pub fn new(args: RunArgs) -> (Self, mpsc::UnboundedReceiver<AppFrame>) {
         let (tx, rx) = mpsc::unbounded_channel();
         let this = Self {
+            args,
             state: AppState::new(),
             sender: tx,
             interval: IntervalSwitch::new(Duration::from_millis(1_000), Tick),
@@ -36,8 +40,10 @@ pub enum Group {
 impl Supervisor for App {
     type GroupBy = Group;
 
-    fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {
-        // TODO: Terminate if the Watcher is terminated
+    fn finished(&mut self, rel: &Relation<Self>, ctx: &mut Context<Self>) {
+        if rel.group == Group::Watcher {
+            // ctx.shutdown();
+        }
     }
 }
 
@@ -54,10 +60,11 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let watcher = CommandWatcher::new(self.args.clone());
+        ctx.spawn_agent(watcher, Group::Watcher);
+
         let drainer = EventsDrainer::new(&*ctx);
         ctx.spawn_agent(drainer, Group::Drainer);
-
-        // TODO: Launch the command
 
         self.interval.add_listener(&*ctx);
         self.interval.on();

@@ -1,12 +1,14 @@
 use anyhow::{anyhow, Result};
+use clap::Parser;
 use crb::agent::{RunAgent, Task};
 use crb::runtime::InteractiveRuntime;
-use ice9_maker::{App, AppUi};
+use ice9_maker::{App, AppUi, RunArgs};
 use tokio::runtime::Runtime;
 
 fn main() -> Result<()> {
     // console_subscriber::init();
-    let (app, rx) = App::new();
+    let args = RunArgs::parse();
+    let (app, rx) = App::new(args);
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();
     let handle = std::thread::spawn(|| {

@@ -1,3 +1,4 @@
+use crate::args::RunArgs;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next};
@@ -10,6 +11,15 @@ use tokio::select;
 pub struct CommandWatcher {
     command: String,
     arguments: Vec<String>,
+}
+
+impl CommandWatcher {
+    pub fn new(args: RunArgs) -> Self {
+        Self {
+            command: args.command,
+            arguments: args.arguments,
+        }
+    }
 }
 
 #[derive(Debug, Error)]
