@@ -1,5 +1,6 @@
 mod app;
 mod app_ui;
+mod command;
 mod events;
 mod state;
 

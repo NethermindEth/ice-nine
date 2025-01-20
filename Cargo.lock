@@ -2885,6 +2885,7 @@ dependencies = [
  "crb",
  "eframe",
  "egui",
+ "thiserror 2.0.11",
  "tokio",
 ]
 

@@ -19,7 +19,7 @@ impl App {
         let this = Self {
             state: AppState::new(),
             sender: tx,
-            interval: IntervalSwitch::new(Duration::from_millis(100), Tick),
+            interval: IntervalSwitch::new(Duration::from_millis(1_000), Tick),
         };
         (this, rx)
     }

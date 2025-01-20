@@ -74,7 +74,7 @@ impl eframe::App for AppUi {
             // TODO: Consider using an adaptive rate here
             self.state_changed = false;
         } else {
-            ctx.request_repaint_after(Duration::from_millis(100));
+            ctx.request_repaint_after(Duration::from_millis(250));
         }
     }
 }

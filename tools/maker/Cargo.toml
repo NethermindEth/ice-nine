@@ -11,4 +11,5 @@ console-subscriber = "0.4.1"
 crb.workspace = true
 eframe = "0.30.0"
 egui = "0.30.0"
+thiserror.workspace = true
 tokio.workspace = true
