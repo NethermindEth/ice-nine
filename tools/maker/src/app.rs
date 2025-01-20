@@ -1,14 +1,20 @@
 use crate::events::EventsDrainer;
+use crate::state::AppFrame;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, Standalone};
+use crb::core::mpsc;
 use crb::superagent::{Supervisor, SupervisorSession};
 
-pub struct App {}
+pub struct App {
+    sender: mpsc::UnboundedSender<AppFrame>,
+}
 
 impl App {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new() -> (Self, mpsc::UnboundedReceiver<AppFrame>) {
+        let (tx, rx) = mpsc::unbounded_channel();
+        let this = Self { sender: tx };
+        (this, rx)
     }
 }
 
