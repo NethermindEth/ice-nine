@@ -144,7 +144,7 @@ impl DoAsync<Watch> for CommandWatcher {
             err_res = watch.stderr.next_line() => {
                 match err_res {
                     Ok(None) | Err(_) => {
-                        watch.stdout_drained = true;
+                        watch.stderr_drained = true;
                     }
                     Ok(Some(line)) => {
                         println!("{line}");
