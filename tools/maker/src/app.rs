@@ -1,5 +1,5 @@
 use crate::args::RunArgs;
-use crate::command::{CommandWatcher, UiioEvent};
+use crate::command::{CommandEvent, CommandWatcher};
 use crate::events::EventsDrainer;
 use crate::state::{AppFrame, AppState};
 use anyhow::Result;
@@ -88,8 +88,9 @@ impl OnEvent<Tick> for App {
 }
 
 #[async_trait]
-impl OnEvent<UiioEvent> for App {
-    async fn handle(&mut self, event: UiioEvent, ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<CommandEvent> for App {
+    async fn handle(&mut self, event: CommandEvent, ctx: &mut Context<Self>) -> Result<()> {
+        println!("EVENT: {event:?}");
         Ok(())
     }
 }

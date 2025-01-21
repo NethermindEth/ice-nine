@@ -2,7 +2,7 @@ use crate::args::RunArgs;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next, ToRecipient};
-use crb::send::Recipient;
+use crb::send::{Recipient, Sender};
 use std::process::{ExitStatus, Stdio};
 use thiserror::Error;
 use tokio::io::{AsyncBufReadExt, BufReader, Lines};
@@ -11,22 +11,26 @@ use tokio::select;
 use tokio::time::{sleep, Duration};
 use uiio::protocol::RecordDe;
 
-pub enum UiioEvent {
+#[derive(Debug)]
+pub enum CommandEvent {
     Stdout(RecordDe),
+    Terminated(Option<ExitStatus>),
 }
 
 pub struct CommandWatcher {
     command: String,
     arguments: Vec<String>,
-    recipient: Recipient<UiioEvent>,
+    recipient: Recipient<CommandEvent>,
+    exit_status: Option<ExitStatus>,
 }
 
 impl CommandWatcher {
-    pub fn new(args: RunArgs, addr: impl ToRecipient<UiioEvent>) -> Self {
+    pub fn new(args: RunArgs, addr: impl ToRecipient<CommandEvent>) -> Self {
         Self {
             command: args.command,
             arguments: args.arguments,
             recipient: addr.to_recipient(),
+            exit_status: None,
         }
     }
 }
@@ -45,6 +49,12 @@ impl Agent for CommandWatcher {
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)
     }
+
+    fn end(&mut self) {
+        let status = self.exit_status.take();
+        let event = CommandEvent::Terminated(status);
+        self.recipient.send(event).ok();
+    }
 }
 
 struct Initialize;
@@ -58,22 +68,7 @@ impl Duty<Initialize> for CommandWatcher {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()?;
-
-        let stdout = child.stdout.take().ok_or(WatchError::NoStdout)?;
-        let stderr = child.stderr.take().ok_or(WatchError::NoStderr)?;
-
-        let stdout = BufReader::new(stdout).lines();
-        let stderr = BufReader::new(stderr).lines();
-
-        let watch = Watch {
-            child,
-            stdout,
-            stderr,
-
-            exit_status: None,
-            stdout_drained: false,
-            stderr_drained: false,
-        };
+        let watch = Watch::from_child(child)?;
         Ok(Next::do_async(watch))
     }
 }
@@ -87,14 +82,27 @@ struct Watch {
     stdout: Lines<BufReader<ChildStdout>>,
     stderr: Lines<BufReader<ChildStderr>>,
 
-    exit_status: Option<ExitStatus>,
+    child_terminated: bool,
     stdout_drained: bool,
     stderr_drained: bool,
 }
 
 impl Watch {
+    fn from_child(mut child: Child) -> Result<Self> {
+        let stdout = child.stdout.take().ok_or(WatchError::NoStdout)?;
+        let stderr = child.stderr.take().ok_or(WatchError::NoStderr)?;
+        Ok(Watch {
+            child,
+            stdout: BufReader::new(stdout).lines(),
+            stderr: BufReader::new(stderr).lines(),
+            child_terminated: false,
+            stdout_drained: false,
+            stderr_drained: false,
+        })
+    }
+
     fn is_done(&self) -> bool {
-        self.exit_status.is_some() && self.stdout_drained && self.stderr_drained
+        self.child_terminated && self.stdout_drained && self.stderr_drained
     }
 }
 
@@ -109,13 +117,24 @@ impl DoAsync<Watch> for CommandWatcher {
                     }
                     Ok(Some(line)) => {
                         let record = serde_json::from_str(&line)?;
-                        let event = UiioEvent::Stdout(record);
+                        let event = CommandEvent::Stdout(record);
+                        self.recipient.send(event)?;
                     }
                 }
             }
             err_res = watch.stderr.next_line() => {
+                match err_res {
+                    Ok(None) | Err(_) => {
+                        watch.stdout_drained = true;
+                    }
+                    Ok(Some(line)) => {
+                        // TODO: Forward logs
+                    }
+                }
             }
-            _ = watch.child.wait() => {
+            exit_res = watch.child.wait() => {
+                watch.child_terminated = true;
+                self.exit_status = Some(exit_res?);
             }
             _ = sleep(Duration::from_secs(1)) => {
                 // Allow to be interrupted
