@@ -8,10 +8,12 @@ use crb::agent::{Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone
 use crb::core::mpsc;
 use crb::core::time::Duration;
 use crb::superagent::{Relation, Supervisor, SupervisorSession, Timer};
+use uiio::state::UiioState;
 
 pub struct App {
     args: RunArgs,
     state: AppState,
+    uiio_state: UiioState,
     frame_sender: mpsc::UnboundedSender<AppFrame>,
     stdin_sender: Option<mpsc::UnboundedSender<CommandControl>>,
     interval: Timer<Tick>,
@@ -25,6 +27,7 @@ impl App {
         let this = Self {
             args,
             state: AppState::new(),
+            uiio_state: UiioState::new(),
             frame_sender: tx,
             stdin_sender: None,
             interval,
@@ -77,15 +80,21 @@ impl Duty<Initialize> for App {
     }
 }
 
+impl App {
+    fn send_frame(&self) -> Result<()> {
+        let frame = self.state.frame();
+        self.frame_sender.send(frame)?;
+        Ok(())
+    }
+}
+
 #[derive(Clone)]
 struct Tick;
 
 #[async_trait]
 impl OnEvent<Tick> for App {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
-        self.state.count_up();
-        let frame = self.state.frame();
-        self.frame_sender.send(frame)?;
+        self.send_frame()?;
         Ok(())
     }
 }
@@ -95,12 +104,12 @@ impl OnEvent<CommandEvent> for App {
     async fn handle(&mut self, event: CommandEvent, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             CommandEvent::Stdout(event) => {
+                self.uiio_state.add_event(event.clone());
                 self.state.add_event(event);
-                let frame = self.state.frame();
-                self.frame_sender.send(frame)?;
             }
             CommandEvent::Terminated(_) => {}
         }
+        self.send_frame()?;
         Ok(())
     }
 }
