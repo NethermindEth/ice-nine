@@ -3,22 +3,30 @@ use ui9::flow::EventFlow;
 use ui9::names::Fqn;
 use ui9::tracer::Tracer;
 
-pub trait Value: Serialize + PartialEq {}
-impl<T> Value for T where Self: Serialize + PartialEq {}
+pub trait Value: ToString + PartialEq {}
+impl<T> Value for T where Self: ToString + PartialEq {}
 
 #[derive(Serialize, Clone)]
-pub struct StateValue<T: Value> {
+pub struct StateValue<T: Value = String> {
     current_state: T,
 }
 
-impl<T: Value> EventFlow for StateValue<T> {
+impl EventFlow for StateValue {
     fn class() -> &'static str {
-        "ui9.element.state"
+        "ui9.state"
+    }
+}
+
+impl<T: Value> StateValue<T> {
+    fn squash(&self) -> StateValue {
+        StateValue {
+            current_state: self.current_state.to_string(),
+        }
     }
 }
 
 pub struct State<T: Value> {
-    tracer: Tracer<StateValue<T>>,
+    tracer: Tracer<StateValue>,
     value: StateValue<T>,
 }
 
@@ -27,14 +35,14 @@ impl<T: Value> State<T> {
         let value = StateValue {
             current_state: initial_state,
         };
-        let tracer = Tracer::new(fqn, &value);
+        let tracer = Tracer::new(fqn, &value.squash());
         Self { tracer, value }
     }
 
     pub fn set_state(&mut self, new_state: T) {
         if new_state != self.value.current_state {
             self.value.current_state = new_state;
-            self.tracer.trace(&self.value);
+            self.tracer.trace(&self.value.squash());
         }
     }
 }

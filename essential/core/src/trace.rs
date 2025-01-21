@@ -1,8 +1,9 @@
+use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 use ui9_tracers::State;
 
-#[derive(Deserialize, Serialize, PartialEq, Eq)]
+#[derive(Display, PartialEq, Eq)]
 pub enum ActorState {
     Created,
     Active,

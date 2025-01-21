@@ -43,3 +43,7 @@ impl Progress {
         }
     }
 }
+
+pub struct ProgressDc {
+    value: u32,
+}
