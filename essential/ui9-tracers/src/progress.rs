@@ -23,8 +23,9 @@ pub struct Progress {
 
 impl Progress {
     pub fn new(fqn: Fqn, total: u64) -> Self {
+        let tracer = Tracer::new(fqn);
         let value = ProgressValue { progress: 0 };
-        let tracer = Tracer::new(fqn, &value);
+        tracer.trace(&value);
         Self {
             tracer,
             current: 0,

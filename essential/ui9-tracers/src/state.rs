@@ -35,7 +35,8 @@ impl<T: Value> State<T> {
         let value = StateValue {
             current_state: initial_state,
         };
-        let tracer = Tracer::new(fqn, &value.squash());
+        let tracer = Tracer::new(fqn);
+        tracer.trace(&value.squash());
         Self { tracer, value }
     }
 

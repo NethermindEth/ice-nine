@@ -13,14 +13,13 @@ impl<OUT> Tracer<OUT>
 where
     OUT: EventFlow,
 {
-    pub fn new(fqn: Fqn, value: &OUT) -> Self {
+    pub fn new(fqn: Fqn) -> Self {
         let this = Self {
             id: GENERATOR.next(),
             fqn,
             _out: PhantomData,
         };
         this.create();
-        this.trace(value);
         this
     }
 
