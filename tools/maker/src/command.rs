@@ -1,5 +1,5 @@
 use crate::args::RunArgs;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next, ToRecipient};
 use crb::core::mpsc;
@@ -135,7 +135,8 @@ impl DoAsync<Watch> for CommandWatcher {
                         watch.stdout_drained = true;
                     }
                     Ok(Some(line)) => {
-                        let record = serde_json::from_str(&line)?;
+                        let record = serde_json::from_str(&line)
+                            .map_err(|err| anyhow!("Failed to deserialize stdout event ({err}): {line}"))?;
                         let event = CommandEvent::Stdout(record);
                         self.recipient.send(event)?;
                     }
@@ -147,7 +148,6 @@ impl DoAsync<Watch> for CommandWatcher {
                         watch.stderr_drained = true;
                     }
                     Ok(Some(line)) => {
-                        println!("{line}");
                         // TODO: Forward logs
                     }
                 }
@@ -162,5 +162,10 @@ impl DoAsync<Watch> for CommandWatcher {
         }
         let state = watch.is_done().then(Next::done);
         Ok(state)
+    }
+
+    async fn repair(&mut self, err: Error) -> Result<(), Error> {
+        log::error!("CommandWatcher failed: {err}");
+        Ok(())
     }
 }

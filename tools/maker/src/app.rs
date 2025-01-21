@@ -94,7 +94,7 @@ impl OnEvent<Tick> for App {
 #[async_trait]
 impl OnEvent<CommandEvent> for App {
     async fn handle(&mut self, event: CommandEvent, ctx: &mut Context<Self>) -> Result<()> {
-        println!("EVENT: {event:?}");
+        log::warn!("EVENT: {event:?}");
         Ok(())
     }
 }

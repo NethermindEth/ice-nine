@@ -7,6 +7,7 @@ use tokio::runtime::Runtime;
 
 fn main() -> Result<()> {
     // console_subscriber::init();
+    env_logger::try_init()?;
     let args = RunArgs::parse();
     let (app, rx) = App::new(args);
     let runtime = RunAgent::new(app);
