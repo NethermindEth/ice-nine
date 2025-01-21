@@ -93,7 +93,14 @@ impl OnEvent<Tick> for App {
 #[async_trait]
 impl OnEvent<CommandEvent> for App {
     async fn handle(&mut self, event: CommandEvent, ctx: &mut Context<Self>) -> Result<()> {
-        log::warn!("EVENT: {event:?}");
+        match event {
+            CommandEvent::Stdout(event) => {
+                self.state.add_event(event);
+                let frame = self.state.frame();
+                self.frame_sender.send(frame)?;
+            }
+            CommandEvent::Terminated(_) => {}
+        }
         Ok(())
     }
 }

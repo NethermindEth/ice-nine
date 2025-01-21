@@ -60,12 +60,20 @@ impl eframe::App for AppUi {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Dashboard");
             if let Some(frame) = &self.frame {
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    for event in frame.events.iter() {
+                        ui.label(format!("{}", event.id));
+                    }
+                });
+
+                /*
                 for (key, value) in &frame.dashboard {
                     ui.horizontal(|ui| {
                         ui.label(format!("{}:", key));
                         ui.monospace(value);
                     });
                 }
+                */
             }
         });
 
