@@ -10,7 +10,7 @@ use tokio::io::{AsyncBufReadExt, BufReader, Lines};
 use tokio::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command};
 use tokio::select;
 use tokio::time::{sleep, Duration};
-use uiio::protocol::RecordDe;
+use ui9::protocol::RecordDe;
 
 #[derive(Debug)]
 pub enum CommandEvent {

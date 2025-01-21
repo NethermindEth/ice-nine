@@ -8,12 +8,12 @@ use crb::agent::{Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone
 use crb::core::mpsc;
 use crb::core::time::Duration;
 use crb::superagent::{Relation, Supervisor, SupervisorSession, Timer};
-use uiio::state::UiioState;
+use ui9::state::UiioState;
 
 pub struct App {
     args: RunArgs,
     state: AppState,
-    uiio_state: UiioState,
+    ui9_state: UiioState,
     frame_sender: mpsc::UnboundedSender<AppFrame>,
     stdin_sender: Option<mpsc::UnboundedSender<CommandControl>>,
     interval: Timer<Tick>,
@@ -27,7 +27,7 @@ impl App {
         let this = Self {
             args,
             state: AppState::new(),
-            uiio_state: UiioState::new(),
+            ui9_state: UiioState::new(),
             frame_sender: tx,
             stdin_sender: None,
             interval,
@@ -104,7 +104,7 @@ impl OnEvent<CommandEvent> for App {
     async fn handle(&mut self, event: CommandEvent, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             CommandEvent::Stdout(event) => {
-                self.uiio_state.add_event(event.clone());
+                self.ui9_state.add_event(event.clone());
                 self.state.add_event(event);
             }
             CommandEvent::Terminated(_) => {}

@@ -2871,8 +2871,8 @@ dependencies = [
  "toml",
  "typed-slab",
  "typedmap",
- "uiio",
- "uiio-element",
+ "ui9",
+ "ui9-tracers",
 ]
 
 [[package]]
@@ -2891,7 +2891,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.11",
  "tokio",
- "uiio",
+ "ui9",
 ]
 
 [[package]]
@@ -5922,12 +5922,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "uiio"
-version = "0.0.3"
-source = "git+https://github.com/runtime-blocks/uiio#b49f90ff04478e59f16ce37c49aed06f6ce843ce"
+name = "ui9"
+version = "0.0.1"
 dependencies = [
  "anyhow",
  "const-str",
+ "derive_more 1.0.0",
  "nom",
  "serde",
  "serde_json",
@@ -5935,12 +5935,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "uiio-element"
-version = "0.0.3"
-source = "git+https://github.com/runtime-blocks/uiio#b49f90ff04478e59f16ce37c49aed06f6ce843ce"
+name = "ui9-tracers"
+version = "0.0.1"
 dependencies = [
+ "anyhow",
  "serde",
- "uiio",
+ "ui9",
 ]
 
 [[package]]

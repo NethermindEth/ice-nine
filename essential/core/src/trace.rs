@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uiio::names::Fqn;
-use uiio_element::State;
+use ui9::names::Fqn;
+use ui9_tracers::State;
 
 #[derive(Deserialize, Serialize, PartialEq, Eq)]
 pub enum ActorState {

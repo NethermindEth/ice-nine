@@ -1,0 +1,16 @@
+[package]
+name = "ui9"
+description = "uiio implementation for ice9"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+const-str = "0.5.7"
+derive_more.workspace = true
+nom = "7.1.3"
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
