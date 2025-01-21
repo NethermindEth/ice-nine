@@ -1,5 +1,5 @@
 use crate::args::RunArgs;
-use crate::command::{CommandEvent, CommandWatcher};
+use crate::command::{CommandControl, CommandEvent, CommandWatcher};
 use crate::events::EventsDrainer;
 use crate::state::{AppFrame, AppState};
 use anyhow::Result;
@@ -12,7 +12,8 @@ use crb::superagent::{Relation, Supervisor, SupervisorSession, Timer};
 pub struct App {
     args: RunArgs,
     state: AppState,
-    sender: mpsc::UnboundedSender<AppFrame>,
+    frame_sender: mpsc::UnboundedSender<AppFrame>,
+    stdin_sender: Option<mpsc::UnboundedSender<CommandControl>>,
     interval: Timer<Tick>,
 }
 
@@ -24,7 +25,8 @@ impl App {
         let this = Self {
             args,
             state: AppState::new(),
-            sender: tx,
+            frame_sender: tx,
+            stdin_sender: None,
             interval,
         };
         (this, rx)
@@ -62,7 +64,9 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let watcher = CommandWatcher::new(self.args.clone(), &ctx);
+        let (tx, rx) = mpsc::unbounded_channel();
+        self.stdin_sender = Some(tx);
+        let watcher = CommandWatcher::new(self.args.clone(), &ctx, rx);
         ctx.spawn_agent(watcher, Group::Watcher);
 
         let drainer = EventsDrainer::new(&ctx);
@@ -82,7 +86,7 @@ impl OnEvent<Tick> for App {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
         self.state.count_up();
         let frame = self.state.frame();
-        self.sender.send(frame)?;
+        self.frame_sender.send(frame)?;
         Ok(())
     }
 }

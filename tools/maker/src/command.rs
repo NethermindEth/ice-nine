@@ -2,11 +2,12 @@ use crate::args::RunArgs;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next, ToRecipient};
+use crb::core::mpsc;
 use crb::send::{Recipient, Sender};
 use std::process::{ExitStatus, Stdio};
 use thiserror::Error;
 use tokio::io::{AsyncBufReadExt, BufReader, Lines};
-use tokio::process::{Child, ChildStderr, ChildStdout, Command};
+use tokio::process::{Child, ChildStderr, ChildStdin, ChildStdout, Command};
 use tokio::select;
 use tokio::time::{sleep, Duration};
 use uiio::protocol::RecordDe;
@@ -17,26 +18,36 @@ pub enum CommandEvent {
     Terminated(Option<ExitStatus>),
 }
 
+pub enum CommandControl {}
+
 pub struct CommandWatcher {
     command: String,
     arguments: Vec<String>,
     recipient: Recipient<CommandEvent>,
     exit_status: Option<ExitStatus>,
+    receiver: mpsc::UnboundedReceiver<CommandControl>,
 }
 
 impl CommandWatcher {
-    pub fn new(args: RunArgs, addr: impl ToRecipient<CommandEvent>) -> Self {
+    pub fn new(
+        args: RunArgs,
+        addr: impl ToRecipient<CommandEvent>,
+        receiver: mpsc::UnboundedReceiver<CommandControl>,
+    ) -> Self {
         Self {
             command: args.command,
             arguments: args.arguments,
             recipient: addr.to_recipient(),
             exit_status: None,
+            receiver,
         }
     }
 }
 
 #[derive(Debug, Error)]
 pub enum WatchError {
+    #[error("No stdin")]
+    NoStdin,
     #[error("No stdout")]
     NoStdout,
     #[error("No stderr")]
@@ -79,6 +90,7 @@ impl CommandWatcher {
 
 struct Watch {
     child: Child,
+    stdin: ChildStdin,
     stdout: Lines<BufReader<ChildStdout>>,
     stderr: Lines<BufReader<ChildStderr>>,
 
@@ -89,10 +101,12 @@ struct Watch {
 
 impl Watch {
     fn from_child(mut child: Child) -> Result<Self> {
+        let stdin = child.stdin.take().ok_or(WatchError::NoStdin)?;
         let stdout = child.stdout.take().ok_or(WatchError::NoStdout)?;
         let stderr = child.stderr.take().ok_or(WatchError::NoStderr)?;
         Ok(Watch {
             child,
+            stdin,
             stdout: BufReader::new(stdout).lines(),
             stderr: BufReader::new(stderr).lines(),
             child_terminated: false,
@@ -110,6 +124,11 @@ impl Watch {
 impl DoAsync<Watch> for CommandWatcher {
     async fn repeat(&mut self, watch: &mut Watch) -> Result<Option<Next<Self>>> {
         select! {
+            command = self.receiver.recv() => {
+                if let Some(command) = command {
+                    // TODO: Write to stdin of the process
+                }
+            }
             out_res = watch.stdout.next_line() => {
                 match out_res {
                     Ok(None) | Err(_) => {
@@ -128,6 +147,7 @@ impl DoAsync<Watch> for CommandWatcher {
                         watch.stdout_drained = true;
                     }
                     Ok(Some(line)) => {
+                        println!("{line}");
                         // TODO: Forward logs
                     }
                 }
