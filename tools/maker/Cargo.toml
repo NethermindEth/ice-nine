@@ -12,5 +12,7 @@ console-subscriber = "0.4.1"
 crb.workspace = true
 eframe = "0.30.0"
 egui = "0.30.0"
+serde_json.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
+uiio.workspace = true

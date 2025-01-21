@@ -1,23 +1,32 @@
 use crate::args::RunArgs;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next, ToRecipient};
+use crb::send::Recipient;
 use std::process::{ExitStatus, Stdio};
 use thiserror::Error;
 use tokio::io::{AsyncBufReadExt, BufReader, Lines};
 use tokio::process::{Child, ChildStderr, ChildStdout, Command};
 use tokio::select;
+use tokio::time::{sleep, Duration};
+use uiio::protocol::RecordDe;
+
+pub enum UiioEvent {
+    Stdout(RecordDe),
+}
 
 pub struct CommandWatcher {
     command: String,
     arguments: Vec<String>,
+    recipient: Recipient<UiioEvent>,
 }
 
 impl CommandWatcher {
-    pub fn new(args: RunArgs) -> Self {
+    pub fn new(args: RunArgs, addr: impl ToRecipient<UiioEvent>) -> Self {
         Self {
             command: args.command,
             arguments: args.arguments,
+            recipient: addr.to_recipient(),
         }
     }
 }
@@ -69,6 +78,10 @@ impl Duty<Initialize> for CommandWatcher {
     }
 }
 
+impl CommandWatcher {
+    fn process_stdout(&mut self, item: u8) {}
+}
+
 struct Watch {
     child: Child,
     stdout: Lines<BufReader<ChildStdout>>,
@@ -90,10 +103,22 @@ impl DoAsync<Watch> for CommandWatcher {
     async fn repeat(&mut self, watch: &mut Watch) -> Result<Option<Next<Self>>> {
         select! {
             out_res = watch.stdout.next_line() => {
+                match out_res {
+                    Ok(None) | Err(_) => {
+                        watch.stdout_drained = true;
+                    }
+                    Ok(Some(line)) => {
+                        let record = serde_json::from_str(&line)?;
+                        let event = UiioEvent::Stdout(record);
+                    }
+                }
             }
             err_res = watch.stderr.next_line() => {
             }
             _ = watch.child.wait() => {
+            }
+            _ = sleep(Duration::from_secs(1)) => {
+                // Allow to be interrupted
             }
         }
         let state = watch.is_done().then(Next::done);

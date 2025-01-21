@@ -1,5 +1,5 @@
 use crate::args::RunArgs;
-use crate::command::CommandWatcher;
+use crate::command::{CommandWatcher, UiioEvent};
 use crate::events::EventsDrainer;
 use crate::state::{AppFrame, AppState};
 use anyhow::Result;
@@ -62,13 +62,13 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let watcher = CommandWatcher::new(self.args.clone());
+        let watcher = CommandWatcher::new(self.args.clone(), &ctx);
         ctx.spawn_agent(watcher, Group::Watcher);
 
-        let drainer = EventsDrainer::new(&*ctx);
+        let drainer = EventsDrainer::new(&ctx);
         ctx.spawn_agent(drainer, Group::Drainer);
 
-        self.interval.add_listener(&*ctx);
+        self.interval.add_listener(&ctx);
         self.interval.on();
         Ok(Next::events())
     }
@@ -83,6 +83,13 @@ impl OnEvent<Tick> for App {
         self.state.count_up();
         let frame = self.state.frame();
         self.sender.send(frame)?;
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<UiioEvent> for App {
+    async fn handle(&mut self, event: UiioEvent, ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
     }
 }

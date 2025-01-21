@@ -18,7 +18,7 @@ fn main() -> Result<()> {
     handle
         .join()
         .map_err(|_| anyhow!("Can't get result of the thread."))?;
-    Ok(())
+    std::process::exit(0);
 }
 
 fn second_main(runtime: RunAgent<App>) {

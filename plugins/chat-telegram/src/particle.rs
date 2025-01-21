@@ -59,7 +59,7 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for TelegramParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let mut bond = self.substance.bond(&*ctx);
+        let mut bond = self.substance.bond(&ctx);
         let (config, entry) = bond.live_config_updates().await?;
         self.config_updates = Some(entry);
         self.update_config(config, ctx).await?;

@@ -53,9 +53,9 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.thinking_interval.add_listener(&*ctx);
+        self.thinking_interval.add_listener(&ctx);
         // TODO: Dry configs
-        let mut bond = self.substance.bond(&*ctx);
+        let mut bond = self.substance.bond(&ctx);
         let (config, entry) = bond.live_config_updates().await?;
         // TODO: Entry must be optional
         // + method to store/provide defaults
