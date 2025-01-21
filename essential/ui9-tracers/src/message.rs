@@ -14,19 +14,20 @@ impl EventFlow for MessageValue {
     }
 }
 
-pub struct Message {
+pub struct MessageTracer {
     tracer: Tracer<MessageValue>,
 }
 
-impl Message {
+impl MessageTracer {
     pub fn new(fqn: Fqn) -> Self {
         let tracer = Tracer::new(fqn);
         Self { tracer }
     }
 
-    pub fn set_value(&mut self, content: &str) {
+    pub fn add_message(&mut self, content: &str) {
         let message = MessageValue {
             content: content.to_owned(),
         };
+        self.tracer.trace(&message);
     }
 }

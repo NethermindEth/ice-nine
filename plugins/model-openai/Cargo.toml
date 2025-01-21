@@ -11,3 +11,5 @@ crb.workspace = true
 ice9-core.workspace = true
 serde.workspace = true
 async-openai = "0.26.0"
+ui9.workspace = true
+ui9-tracers.workspace = true

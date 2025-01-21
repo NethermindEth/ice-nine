@@ -2843,6 +2843,8 @@ dependencies = [
  "crb",
  "ice9-core",
  "serde",
+ "ui9",
+ "ui9-tracers",
 ]
 
 [[package]]

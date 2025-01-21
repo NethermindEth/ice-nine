@@ -67,6 +67,16 @@ impl Request for ToolingChatRequest {
     type Response = ToolingChatResponse;
 }
 
+impl ToolingChatRequest {
+    pub fn squash(&self) -> String {
+        let mut text = String::new();
+        for msg in &self.messages {
+            text.push_str(&msg.content);
+        }
+        text
+    }
+}
+
 #[derive(Default)]
 pub struct ToolingChatResponse {
     pub messages: Vec<Message>,
