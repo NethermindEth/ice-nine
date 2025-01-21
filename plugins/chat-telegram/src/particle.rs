@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
-use crb::superagent::{Entry, IntervalSwitch, OnResponse, Output, Supervisor, SupervisorSession};
+use crb::superagent::{Entry, OnResponse, Output, Supervisor, SupervisorSession, Timer};
 use ice9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
@@ -24,7 +24,7 @@ pub struct TelegramParticle {
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
-    thinking_interval: IntervalSwitch<Tick>,
+    thinking_interval: Timer<Tick>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -33,8 +33,8 @@ impl Supervisor for TelegramParticle {
 
 impl Particle for TelegramParticle {
     fn construct(substance: SubstanceLinks) -> Self {
-        let duration = Duration::from_secs(1);
-        let thinking_interval = IntervalSwitch::new(duration, Tick);
+        let mut thinking_interval = Timer::new(Tick);
+        thinking_interval.set_repeat(true);
         Self {
             substance,
             config_updates: None,

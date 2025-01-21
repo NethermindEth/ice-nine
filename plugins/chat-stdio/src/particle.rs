@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::{time::Duration, Slot};
 use crb::superagent::{
-    Entry, FetchError, InteractExt, IntervalSwitch, OnResponse, Supervisor, SupervisorSession,
+    Entry, FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession, Timer,
 };
 use ice9_core::{ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
@@ -16,14 +16,14 @@ pub struct StdioParticle {
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
     drainer: Slot<Address<StdinDrainer>>,
-    thinking_interval: IntervalSwitch<Tick>,
+    thinking_interval: Timer<Tick>,
     config: StdioConfig,
 }
 
 impl Particle for StdioParticle {
     fn construct(substance: SubstanceLinks) -> Self {
-        let duration = Duration::from_secs(1);
-        let thinking_interval = IntervalSwitch::new(duration, Tick);
+        let mut thinking_interval = Timer::new(Tick);
+        thinking_interval.set_repeat(true);
         Self {
             substance: substance,
             stdout: io::stdout(),

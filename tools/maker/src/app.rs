@@ -7,23 +7,25 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone};
 use crb::core::mpsc;
 use crb::core::time::Duration;
-use crb::superagent::{IntervalSwitch, Relation, Supervisor, SupervisorSession};
+use crb::superagent::{Relation, Supervisor, SupervisorSession, Timer};
 
 pub struct App {
     args: RunArgs,
     state: AppState,
     sender: mpsc::UnboundedSender<AppFrame>,
-    interval: IntervalSwitch<Tick>,
+    interval: Timer<Tick>,
 }
 
 impl App {
     pub fn new(args: RunArgs) -> (Self, mpsc::UnboundedReceiver<AppFrame>) {
         let (tx, rx) = mpsc::unbounded_channel();
+        let mut interval = Timer::new(Tick);
+        interval.set_repeat(true);
         let this = Self {
             args,
             state: AppState::new(),
             sender: tx,
-            interval: IntervalSwitch::new(Duration::from_millis(1_000), Tick),
+            interval,
         };
         (this, rx)
     }
