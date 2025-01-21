@@ -62,7 +62,10 @@ impl eframe::App for AppUi {
             if let Some(frame) = &self.frame {
                 egui::ScrollArea::vertical().show(ui, |ui| {
                     for event in frame.events.iter() {
-                        ui.label(format!("{}", event.id));
+                        ui.horizontal(|ui| {
+                            ui.label(format!("{}", event.id));
+                            ui.label(format!("{}", event.info));
+                        });
                     }
                 });
 
