@@ -64,10 +64,9 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let (tx, rx) = mpsc::unbounded_channel();
-        self.stdin_sender = Some(tx);
-        let watcher = CommandWatcher::new(self.args.clone(), &ctx, rx);
+        let (watcher, tx) = CommandWatcher::new(self.args.clone(), &ctx);
         ctx.spawn_agent(watcher, Group::Watcher);
+        self.stdin_sender = Some(tx);
 
         let drainer = EventsDrainer::new(&ctx);
         ctx.spawn_agent(drainer, Group::Drainer);

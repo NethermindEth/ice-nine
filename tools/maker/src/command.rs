@@ -32,15 +32,16 @@ impl CommandWatcher {
     pub fn new(
         args: RunArgs,
         addr: impl ToRecipient<CommandEvent>,
-        receiver: mpsc::UnboundedReceiver<CommandControl>,
-    ) -> Self {
-        Self {
+    ) -> (Self, mpsc::UnboundedSender<CommandControl>) {
+        let (tx, rx) = mpsc::unbounded_channel();
+        let this = Self {
             command: args.command,
             arguments: args.arguments,
             recipient: addr.to_recipient(),
             exit_status: None,
-            receiver,
-        }
+            receiver: rx,
+        };
+        (this, tx)
     }
 }
 
