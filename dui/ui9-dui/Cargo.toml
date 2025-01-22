@@ -9,5 +9,11 @@ repository.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
+derive_more.workspace = true
+futures.workspace = true
+libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "tcp", "tokio", "request-response", "quic", "yamux"] }
+libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
+serde.workspace = true
+tokio.workspace = true
 ui9.workspace = true
 ui9-flow.workspace = true
