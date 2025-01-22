@@ -20,7 +20,7 @@ repository = "https://github.com/NethermindEth/ice-nine"
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.85"
-clap = { version = "4.5.26", features = ["derive"] }
+clap = { version = "4.5.27", features = ["derive"] }
 crb = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
 derive_more = { version = "1.0.0", features = ["full"] }
 dotenvy = "0.15.7"
@@ -31,7 +31,7 @@ ice9-core = { version = "0.0.1", path = "essential/core" }
 ice9-std = { version = "0.0.1", path = "essential/std" }
 log = "0.4.25"
 serde = "1.0.217"
-serde_json = "1.0.135"
+serde_json = "1.0.137"
 thiserror = "2.0.11"
 tokio = "1.43.0"
 toml = "0.8.19"

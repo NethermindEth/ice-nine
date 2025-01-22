@@ -1,5 +1,5 @@
 use crate::{Codec, ProtocolCodec, ProtocolData};
-use anyhow::{Result, Error};
+use anyhow::{Error, Result};
 use derive_more::{AsRef, Deref, DerefMut, From};
 use serde::{de::DeserializeOwned, Serialize};
 
