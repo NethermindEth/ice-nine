@@ -31,9 +31,9 @@ use std::fmt::Debug;
 /// - Be printable for debugging purposes;
 /// - Type has `'static` lifetime to be compatible with actor's handlers.
 ///
-pub trait ProtocolData: Serialize + DeserializeOwned + Debug + Send + 'static {}
+pub trait ProtocolData: Serialize + DeserializeOwned + Send + 'static {}
 
-impl<T> ProtocolData for T where T: Serialize + DeserializeOwned + Debug + Send + 'static {}
+impl<T> ProtocolData for T where T: Serialize + DeserializeOwned + Send + 'static {}
 
 /// The serialization format for a `Protocol`.
 pub trait ProtocolCodec: Send {

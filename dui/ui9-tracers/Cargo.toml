@@ -9,6 +9,7 @@ edition.workspace = true
 [dependencies]
 serde.workspace = true
 ui9.workspace = true
+ui9-flow.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true

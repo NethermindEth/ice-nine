@@ -8,12 +8,12 @@ use ui9_codec::flex::FlexCodec;
 /// Requirements for a data fraction in a data flow.
 pub trait DataFraction
 where
-    Self: DeserializeOwned + Serialize + Clone + Debug + Sync + Send + 'static,
+    Self: DeserializeOwned + Serialize + Clone + Send + 'static,
 {
 }
 
 impl<T> DataFraction for T where
-    T: DeserializeOwned + Serialize + Clone + Debug + Sync + Send + 'static
+    T: DeserializeOwned + Serialize + Clone + Send + 'static
 {
 }
 

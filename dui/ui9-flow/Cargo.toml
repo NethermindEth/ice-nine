@@ -10,4 +10,4 @@ repository.workspace = true
 anyhow.workspace = true
 derive_more.workspace = true
 serde.workspace = true
-ui9-codec = { path = "../ui9-codec", features = ["flex"] }
+ui9-codec.workspace = true
