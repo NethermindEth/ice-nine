@@ -1,0 +1,13 @@
+[package]
+name = "ui9-dui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+crb.workspace = true
+ui9.workspace = true
+ui9-flow.workspace = true

@@ -6017,6 +6017,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui9-dui"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "ui9",
+ "ui9-flow",
+]
+
+[[package]]
 name = "ui9-flow"
 version = "0.0.1"
 dependencies = [
