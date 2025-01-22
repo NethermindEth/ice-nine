@@ -1,0 +1,13 @@
+[package]
+name = "ui9-flow"
+description = "uiio flows for ice9"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+derive_more.workspace = true
+serde.workspace = true
+ui9-codec = { path = "../ui9-codec", features = ["flex"] }
