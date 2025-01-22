@@ -11,14 +11,12 @@ use ice9_core::{
     ToolingChatResponse, UpdateConfig,
 };
 use ui9::names::Fqn;
-use ui9_tracers::MessageTracer;
 
 pub struct OpenAIParticle {
     substance: SubstanceLinks,
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
     client: Slot<Client>,
-    message_tracer: MessageTracer,
 }
 
 impl Model for OpenAIParticle {}
@@ -31,7 +29,6 @@ impl Particle for OpenAIParticle {
             config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),
-            message_tracer: MessageTracer::new(fqn),
         }
     }
 }
@@ -88,7 +85,6 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
         _: &mut Context<Self>,
     ) -> Result<ToolingChatResponse> {
         let client = self.client.get_mut()?;
-        self.message_tracer.add_message(&request.squash());
         // TODO: Sequental, but could be executed in the reactor
         let messages: Vec<_> = request.messages.into_iter().map(convert::message).collect();
         let request = CreateChatCompletionRequestArgs::default()
@@ -102,7 +98,6 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
             .filter_map(convert::choice)
             .collect();
         let response = ToolingChatResponse { messages };
-        self.message_tracer.add_message(&response.squash());
         Ok(response)
     }
 }
