@@ -7343,6 +7343,7 @@ dependencies = [
  "anyhow",
  "serde",
  "ui9",
+ "ui9-dui",
  "ui9-flow",
 ]
 

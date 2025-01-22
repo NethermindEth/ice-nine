@@ -8,7 +8,6 @@ use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
-// TODO: Use `Link` instead?
 pub static HUB: OnceLock<HubLink> = OnceLock::new();
 
 #[derive(Deref, DerefMut, From, Clone)]

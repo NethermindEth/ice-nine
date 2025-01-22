@@ -9,6 +9,7 @@ pub struct TracerInfo {
     pub fqn: Fqn,
 }
 
+#[derive(Clone)]
 pub struct Tracer<F: Flow> {
     relay: Address<Relay<F>>,
 }
@@ -24,5 +25,9 @@ impl<F: Flow> Tracer<F> {
         }
         // TODO: Send the runtime to the HUB
         Self { relay: address }
+    }
+
+    pub fn event(&mut self, event: F::Event) {
+        self.relay.event(event).ok();
     }
 }
