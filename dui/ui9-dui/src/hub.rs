@@ -1,6 +1,7 @@
+use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
 use std::sync::OnceLock;
@@ -30,12 +31,33 @@ impl Hub {
 
 impl Standalone for Hub {}
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Group {
+    Connector,
+    Relay,
+}
+
 impl Supervisor for Hub {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 impl Agent for Hub {
     type Context = SupervisorSession<Self>;
+
+    fn begin(&mut self) -> Next<Self> {
+        Next::duty(Initialize)
+    }
+}
+
+struct Initialize;
+
+#[async_trait]
+impl Duty<Initialize> for Hub {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let connector = Connector::new();
+        ctx.spawn_agent(connector, Group::Connector);
+        Ok(Next::events())
+    }
 }
 
 pub struct Delegate {
@@ -45,7 +67,7 @@ pub struct Delegate {
 #[async_trait]
 impl OnEvent<Delegate> for Hub {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
-        ctx.spawn_trackable(delegate.runtime, ());
+        ctx.spawn_trackable(delegate.runtime, Group::Relay);
         Ok(())
     }
 }

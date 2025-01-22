@@ -19,6 +19,12 @@ use tokio::select;
 
 pub struct Connector {}
 
+impl Connector {
+    pub fn new() -> Self {
+        Self {}
+    }
+}
+
 #[derive(NetworkBehaviour)]
 struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
@@ -113,27 +119,36 @@ impl DoAsync<EventLoop> for Connector {
     async fn repeat(&mut self, swarm: &mut EventLoop) -> Result<Option<Next<Self>>> {
         select! {
             event = swarm.select_next_some() => match event {
-                SwarmEvent::Behaviour(Ui9BehaviourEvent::Mdns(mdns::Event::Discovered(list))) => {
-                    for (peer_id, _multiaddr) in list {
-                        println!("UI9 node connected: {peer_id}");
-                        swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                SwarmEvent::Behaviour(event) => {
+                    match event {
+                        Ui9BehaviourEvent::Mdns(mdns::Event::Discovered(list)) => {
+                            for (peer_id, _multiaddr) in list {
+                                println!("UI9 node connected: {peer_id}");
+                                swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                            }
+                        },
+                        Ui9BehaviourEvent::Mdns(mdns::Event::Expired(list)) => {
+                            for (peer_id, _multiaddr) in list {
+                                println!("UI9 node disconnected: {peer_id}");
+                                swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
+                            }
+                        },
+                        Ui9BehaviourEvent::Gossipsub(gossipsub::Event::Message {
+                            propagation_source: peer_id,
+                            message_id: id,
+                            message,
+                        }) => {
+                            println!(
+                                "Got message: '{}' with id: {id} from peer: {peer_id}",
+                                String::from_utf8_lossy(&message.data),
+                            );
+                        },
+                        Ui9BehaviourEvent::RequestResponse(_) => {
+                        },
+                        other => {
+                            println!("Not handeled p2p behaviour event: {other:?}");
+                        }
                     }
-                },
-                SwarmEvent::Behaviour(Ui9BehaviourEvent::Mdns(mdns::Event::Expired(list))) => {
-                    for (peer_id, _multiaddr) in list {
-                        println!("UI9 node disconnected: {peer_id}");
-                        swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
-                    }
-                },
-                SwarmEvent::Behaviour(Ui9BehaviourEvent::Gossipsub(gossipsub::Event::Message {
-                    propagation_source: peer_id,
-                    message_id: id,
-                    message,
-                })) => {
-                    println!(
-                        "Got message: '{}' with id: {id} from peer: {peer_id}",
-                        String::from_utf8_lossy(&message.data),
-                    );
                 },
                 SwarmEvent::NewListenAddr { address, .. } => {
                     println!("Local node is listening on {address}");
