@@ -1,20 +1,37 @@
 use crate::connector::Connector;
+use crate::tracer::TracerInfo;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
 use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
+use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
 // TODO: Use `Link` instead?
-pub static HUB: OnceLock<Address<Hub>> = OnceLock::new();
+pub static HUB: OnceLock<HubLink> = OnceLock::new();
+
+#[derive(Deref, DerefMut, From, Clone)]
+pub struct HubLink {
+    hub: Address<Hub>,
+}
+
+impl HubLink {
+    pub fn add_relay(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
+        let delegate = Delegate {
+            tracer_info,
+            runtime: Box::new(runtime),
+        };
+        self.event(delegate)
+    }
+}
 
 pub struct Hub {}
 
 impl Hub {
     pub fn activate() {
         let hub = Hub {};
-        let address = hub.spawn();
+        let address = hub.spawn().equip();
         if let Err(address) = HUB.set(address) {
             // Interrupt since hub is spawned already.
             address.interrupt();
@@ -61,6 +78,7 @@ impl Duty<Initialize> for Hub {
 }
 
 pub struct Delegate {
+    tracer_info: TracerInfo,
     runtime: Box<dyn Runtime>,
 }
 

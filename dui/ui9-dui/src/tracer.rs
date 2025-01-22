@@ -1,17 +1,27 @@
+use crate::hub::HUB;
 use crate::relay::Relay;
 use crb::agent::{Address, RunAgent};
 use crb::runtime::InteractiveRuntime;
+use ui9::names::Fqn;
 use ui9_flow::Flow;
+
+pub struct TracerInfo {
+    pub fqn: Fqn,
+}
 
 pub struct Tracer<F: Flow> {
     relay: Address<Relay<F>>,
 }
 
 impl<F: Flow> Tracer<F> {
-    pub fn new(state: F) -> Self {
+    pub fn new(fqn: Fqn, state: F) -> Self {
         let relay = Relay::new(state);
         let runtime = RunAgent::new(relay);
         let address = runtime.address();
+        if let Some(hub) = HUB.get() {
+            let info = TracerInfo { fqn };
+            hub.add_relay(info, runtime).ok();
+        }
         // TODO: Send the runtime to the HUB
         Self { relay: address }
     }
