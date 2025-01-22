@@ -5912,6 +5912,7 @@ dependencies = [
  "ice-nine-plugin-model-openai",
  "ice9-core",
  "tokio",
+ "ui9-dui",
 ]
 
 [[package]]

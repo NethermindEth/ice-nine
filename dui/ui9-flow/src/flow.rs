@@ -12,10 +12,7 @@ where
 {
 }
 
-impl<T> DataFraction for T where
-    T: DeserializeOwned + Serialize + Clone + Send + 'static
-{
-}
+impl<T> DataFraction for T where T: DeserializeOwned + Serialize + Clone + Send + 'static {}
 
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {

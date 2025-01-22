@@ -1,4 +1,4 @@
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use ui9::flow::EventFlow;
 use ui9::names::Fqn;
 use ui9::tracer::Tracer;
@@ -49,9 +49,7 @@ impl Progress {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum ProgressEvent {
-    SetProgress {
-        value: f64,
-    },
+    SetProgress { value: f64 },
 }
 
 #[derive(Clone, Serialize, Deserialize)]

@@ -36,6 +36,7 @@ thiserror = "2.0.11"
 tokio = "1.43.0"
 toml = "0.8.19"
 ui9 = { version = "0.0.1", path = "dui/ui9" }
+ui9-dui = { version = "0.0.1", path = "dui/ui9-dui" }
 ui9-flow = { version = "0.0.1", path = "dui/ui9-flow" }
 ui9-codec = { version = "0.0.1", path = "dui/ui9-codec", features = ["flex"] }
 ui9-tracers = { version = "0.0.1", path = "dui/ui9-tracers" }

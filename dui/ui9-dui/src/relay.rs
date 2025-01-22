@@ -1,6 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, OnEvent, Context};
+use crb::agent::{Agent, AgentSession, Context, OnEvent};
 use ui9_flow::Flow;
 
 pub struct Relay<F: Flow> {
@@ -9,9 +9,7 @@ pub struct Relay<F: Flow> {
 
 impl<F: Flow> Relay<F> {
     pub fn new(state: F) -> Self {
-        Self {
-            state,
-        }
+        Self { state }
     }
 }
 
