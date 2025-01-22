@@ -7,6 +7,14 @@ pub struct Relay<F: Flow> {
     state: F,
 }
 
+impl<F: Flow> Relay<F> {
+    pub fn new(state: F) -> Self {
+        Self {
+            state,
+        }
+    }
+}
+
 impl<F: Flow> Agent for Relay<F> {
     type Context = AgentSession<Self>;
 }
