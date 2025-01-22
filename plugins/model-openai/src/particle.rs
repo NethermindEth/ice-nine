@@ -84,13 +84,13 @@ impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
 impl OnRequest<ToolingChatRequest> for OpenAIParticle {
     async fn on_request(
         &mut self,
-        msg: ToolingChatRequest,
+        request: ToolingChatRequest,
         _: &mut Context<Self>,
     ) -> Result<ToolingChatResponse> {
         let client = self.client.get_mut()?;
-        self.message_tracer.add_message(&msg.squash());
+        self.message_tracer.add_message(&request.squash());
         // TODO: Sequental, but could be executed in the reactor
-        let messages: Vec<_> = msg.messages.into_iter().map(convert::message).collect();
+        let messages: Vec<_> = request.messages.into_iter().map(convert::message).collect();
         let request = CreateChatCompletionRequestArgs::default()
             .model("gpt-4o")
             .messages(messages)
@@ -101,6 +101,8 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
             .into_iter()
             .filter_map(convert::choice)
             .collect();
-        Ok(ToolingChatResponse { messages })
+        let response = ToolingChatResponse { messages };
+        self.message_tracer.add_message(&response.squash());
+        Ok(response)
     }
 }

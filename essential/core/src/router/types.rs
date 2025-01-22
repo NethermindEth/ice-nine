@@ -83,6 +83,14 @@ pub struct ToolingChatResponse {
 }
 
 impl ToolingChatResponse {
+    pub fn squash(&self) -> String {
+        let mut text = String::new();
+        for msg in &self.messages {
+            text.push_str(&msg.content);
+        }
+        text
+    }
+
     pub fn without_tools(self) -> ChatResponse {
         ChatResponse {
             messages: self.messages,

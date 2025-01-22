@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "dui/*",
     "essential/*",
     "examples/*",
     "plugins/*",
@@ -34,5 +35,5 @@ serde_json = "1.0.135"
 thiserror = "2.0.11"
 tokio = "1.43.0"
 toml = "0.8.19"
-ui9 = { version = "0.0.1", path = "essential/ui9" }
-ui9-tracers = { version = "0.0.1", path = "essential/ui9-tracers" }
+ui9 = { version = "0.0.1", path = "dui/ui9" }
+ui9-tracers = { version = "0.0.1", path = "dui/ui9-tracers" }
