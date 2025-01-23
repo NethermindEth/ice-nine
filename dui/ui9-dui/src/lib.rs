@@ -1,6 +1,7 @@
 pub mod connector;
 pub mod flow;
 pub mod hub;
+pub mod protocol;
 pub mod relay;
 pub mod tracer;
 pub mod tracers;

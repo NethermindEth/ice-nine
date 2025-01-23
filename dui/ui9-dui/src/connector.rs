@@ -1,3 +1,4 @@
+use crate::protocol;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, ManagedContext, Next, OnEvent};
@@ -18,8 +19,6 @@ use std::{
 };
 use tokio::select;
 
-type ReqRespEvent = request_response::Event<Ui9Request, Ui9Response>;
-
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
 }
@@ -36,14 +35,8 @@ impl Connector {
 struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
     mdns: mdns::tokio::Behaviour,
-    request_response: request_response::cbor::Behaviour<Ui9Request, Ui9Response>,
+    request_response: request_response::cbor::Behaviour<protocol::Request, protocol::Response>,
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Ui9Request(Vec<u8>);
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Ui9Response(Vec<u8>);
 
 #[async_trait]
 impl Agent for Connector {
@@ -211,8 +204,8 @@ impl OnEvent<gossipsub::Event> for Connector {
 }
 
 #[async_trait]
-impl OnEvent<ReqRespEvent> for Connector {
-    async fn handle(&mut self, event: ReqRespEvent, ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<protocol::Event> for Connector {
+    async fn handle(&mut self, event: protocol::Event, ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
     }
 }
