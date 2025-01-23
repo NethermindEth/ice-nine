@@ -1,6 +1,6 @@
+use crate::flow::Flow;
 use crate::hub::HUB;
 use crate::relay::Relay;
-use crate::flow::Flow;
 use crb::agent::{Address, RunAgent};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};

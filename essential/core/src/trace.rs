@@ -1,32 +1,32 @@
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
-use ui9_tracers::State;
+use ui9_tracers::Phase;
 
 #[derive(Display, PartialEq, Eq)]
-pub enum ActorState {
+pub enum ActorPhase {
     Created,
     Active,
     Done,
 }
 
 pub struct TracerPack {
-    pub state: State<ActorState>,
+    pub state: Phase<ActorPhase>,
 }
 
 impl TracerPack {
     pub fn root(name: &str) -> Self {
         let fqn = Fqn::root(name);
         Self {
-            state: State::new(fqn, ActorState::Created),
+            state: Phase::new(fqn, ActorPhase::Created),
         }
     }
 
     pub fn active(&mut self) {
-        self.state.set_state(ActorState::Active);
+        self.state.set_phase(ActorPhase::Active);
     }
 
     pub fn done(&mut self) {
-        self.state.set_state(ActorState::Done);
+        self.state.set_phase(ActorPhase::Done);
     }
 }
