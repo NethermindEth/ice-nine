@@ -3328,6 +3328,20 @@ dependencies = [
  "anyhow",
  "async-trait",
  "clap",
+ "crb",
+ "eframe",
+ "egui",
+ "env_logger",
+ "tokio",
+]
+
+[[package]]
+name = "ice9-maker-io"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "clap",
  "console-subscriber",
  "crb",
  "eframe",

@@ -20,10 +20,13 @@ repository = "https://github.com/NethermindEth/ice-nine"
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.85"
+console-subscriber = "0.4.1"
 clap = { version = "4.5.27", features = ["derive"] }
 crb = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
 derive_more = { version = "1.0.0", features = ["full"] }
 dotenvy = "0.15.7"
+eframe = "0.30.0"
+egui = "0.30.0"
 env_logger = "0.11.6"
 envy = "0.4.2"
 futures = "0.3.31"
