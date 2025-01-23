@@ -1,32 +1,32 @@
 use crate::flow::Flow;
-use crate::publisher::{Publisher, PublisherInfo};
+use crate::publisher::{Tracer, TracerInfo};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use ui9::names::{FlowId, Fqn};
 
 pub struct Tree {
-    publisher: Publisher<TreeState>,
+    tracer: Tracer<TreeState>,
 }
 
 impl Tree {
     pub fn new() -> Self {
         let fqn = Fqn::root("@tree");
         let state = TreeState::default();
-        let publisher = Publisher::new(fqn, state);
-        Self { publisher }
+        let tracer = Tracer::new(fqn, state);
+        Self { tracer }
     }
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum TreeEvent {
-    AddFlow { id: FlowId, info: PublisherInfo },
+    AddFlow { id: FlowId, info: TracerInfo },
     DelFlow { id: FlowId },
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub struct TreeState {
     pub root: Level,
-    pub info: HashMap<FlowId, PublisherInfo>,
+    pub info: HashMap<FlowId, TracerInfo>,
 }
 
 impl Flow for TreeState {

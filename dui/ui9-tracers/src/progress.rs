@@ -1,9 +1,9 @@
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
-use ui9_dui::{Flow, Publisher};
+use ui9_dui::{Flow, Tracer};
 
 pub struct Progress {
-    publisher: Publisher<ProgressState>,
+    tracer: Tracer<ProgressState>,
     current: u64,
     total: u64,
     /// A calculated value with `current * precision / total`
@@ -15,9 +15,9 @@ pub struct Progress {
 impl Progress {
     pub fn new(fqn: Fqn, total: u64) -> Self {
         let state = ProgressState { value: 0.0 };
-        let publisher = Publisher::new(fqn, state);
+        let tracer = Tracer::new(fqn, state);
         Self {
-            publisher,
+            tracer,
             current: 0,
             total,
             progress: 0,
@@ -34,7 +34,7 @@ impl Progress {
             let event = ProgressEvent::SetProgress {
                 value: self.progress as f32 / self.precision as f32,
             };
-            self.publisher.event(event);
+            self.tracer.event(event);
         }
     }
 }

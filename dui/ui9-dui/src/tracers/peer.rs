@@ -1,30 +1,30 @@
 use crate::flow::Flow;
-use crate::publisher::Publisher;
+use crate::publisher::Tracer;
 use libp2p::PeerId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use ui9::names::Fqn;
 
 pub struct PeerTracer {
-    publisher: Publisher<PeerState>,
+    tracer: Tracer<PeerState>,
 }
 
 impl PeerTracer {
     pub fn new() -> Self {
         let fqn = Fqn::root("@peers");
         let state = PeerState::default();
-        let publisher = Publisher::new(fqn, state);
-        Self { publisher }
+        let tracer = Tracer::new(fqn, state);
+        Self { tracer }
     }
 
     pub fn add_peer(&mut self, peer_id: PeerId) {
         let event = PeerEvent::AddPeer { peer_id };
-        self.publisher.event(event);
+        self.tracer.event(event);
     }
 
     pub fn del_peer(&mut self, peer_id: PeerId) {
         let event = PeerEvent::DelPeer { peer_id };
-        self.publisher.event(event);
+        self.tracer.event(event);
     }
 }
 

@@ -5,13 +5,14 @@ use serde::{de::DeserializeOwned, Serialize};
 use ui9_codec::flex::FlexCodec;
 
 /// Requirements for a data fraction in a data flow.
+/// `Sync` is needed to access through the `watch` channel of the `Player`.
 pub trait DataFraction
 where
-    Self: DeserializeOwned + Serialize + Clone + Send + 'static,
+    Self: DeserializeOwned + Serialize + Clone + Sync + Send + 'static,
 {
 }
 
-impl<T> DataFraction for T where T: DeserializeOwned + Serialize + Clone + Send + 'static {}
+impl<T> DataFraction for T where T: DeserializeOwned + Serialize + Clone + Sync + Send + 'static {}
 
 /// Immutable state of a data flow.
 pub trait Flow: DataFraction {

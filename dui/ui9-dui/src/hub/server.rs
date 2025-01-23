@@ -1,5 +1,5 @@
 use crate::connector::Connector;
-use crate::publisher::PublisherInfo;
+use crate::publisher::TracerInfo;
 use crate::tracers::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -18,7 +18,7 @@ pub struct HubServerLink {
 }
 
 impl HubServerLink {
-    pub fn add_relay(&self, tracer_info: PublisherInfo, runtime: impl Runtime) -> Result<()> {
+    pub fn add_relay(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
         let delegate = Delegate {
             tracer_info,
             runtime: Box::new(runtime),
@@ -94,7 +94,7 @@ impl Duty<Initialize> for HubServer {
 }
 
 pub struct Delegate {
-    tracer_info: PublisherInfo,
+    tracer_info: TracerInfo,
     runtime: Box<dyn Runtime>,
 }
 
