@@ -25,7 +25,8 @@ impl HubLink {
     }
 }
 
-pub struct Hub {}
+pub struct Hub {
+}
 
 impl Hub {
     pub fn activate() {

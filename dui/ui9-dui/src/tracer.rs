@@ -1,10 +1,10 @@
 use crate::hub::HUB;
 use crate::relay::Relay;
+use crate::flow::Flow;
 use crb::agent::{Address, RunAgent};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
-use ui9_flow::Flow;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerInfo {

@@ -1,5 +1,5 @@
-use crate::encoding::FlowPack;
-use crate::packed::{PackedAction, PackedEvent, PackedState};
+use super::encoding::FlowPack;
+use super::packed::{PackedAction, PackedEvent, PackedState};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Serialize};
 use std::fmt::Debug;

@@ -7323,16 +7323,6 @@ dependencies = [
  "serde",
  "tokio",
  "ui9",
- "ui9-flow",
-]
-
-[[package]]
-name = "ui9-flow"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "derive_more 1.0.0",
- "serde",
  "ui9-codec",
 ]
 
@@ -7344,7 +7334,6 @@ dependencies = [
  "serde",
  "ui9",
  "ui9-dui",
- "ui9-flow",
 ]
 
 [[package]]

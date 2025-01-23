@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
-use ui9_dui::Tracer;
-use ui9_flow::Flow;
+use ui9_dui::{Tracer, Flow};
 
 pub struct Progress {
     tracer: Tracer<ProgressState>,

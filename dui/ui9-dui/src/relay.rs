@@ -1,7 +1,7 @@
+use crate::flow::Flow;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, OnEvent};
-use ui9_flow::Flow;
 
 pub struct Relay<F: Flow> {
     state: F,
