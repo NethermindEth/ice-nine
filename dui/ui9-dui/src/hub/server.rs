@@ -10,7 +10,7 @@ use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
-static HUB: OnceLock<HubServerLink> = OnceLock::new();
+static SERVER: OnceLock<HubServerLink> = OnceLock::new();
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubServerLink {
@@ -18,7 +18,7 @@ pub struct HubServerLink {
 }
 
 impl HubServerLink {
-    pub fn add_relay(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
+    pub fn add_recorder(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
         let delegate = Delegate {
             tracer_info,
             runtime: Box::new(runtime),
@@ -34,7 +34,7 @@ pub struct HubServer {
 
 impl HubServer {
     pub fn link() -> Option<&'static HubServerLink> {
-        HUB.get()
+        SERVER.get()
     }
 
     pub fn activate() -> Result<()> {
@@ -42,7 +42,7 @@ impl HubServer {
             tree: Slot::empty(),
         };
         let address = hub.spawn().equip();
-        if let Err(address) = HUB.set(address) {
+        if let Err(address) = SERVER.set(address) {
             // Interrupt since hub is spawned already.
             address.interrupt()?;
             Err(anyhow!("Hub is already activated"))
@@ -52,7 +52,7 @@ impl HubServer {
     }
 
     pub async fn deactivate() -> Result<()> {
-        if let Some(mut address) = HUB.get().cloned() {
+        if let Some(mut address) = SERVER.get().cloned() {
             address.interrupt()?;
             address.join().await?;
         }

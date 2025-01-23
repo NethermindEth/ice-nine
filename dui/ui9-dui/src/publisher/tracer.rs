@@ -28,13 +28,13 @@ impl<F: Flow> Tracer<F> {
                 fqn,
                 class: F::class().into(),
             };
-            hub.add_relay(info, runtime).ok();
+            hub.add_recorder(info, runtime).ok();
         }
         // TODO: Send the runtime to the HUB
         Self { recorder: address }
     }
 
-    pub fn event(&mut self, event: F::Event) {
+    pub fn event(&self, event: F::Event) {
         self.recorder.event(event).ok();
     }
 }

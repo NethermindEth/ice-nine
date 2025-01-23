@@ -1,10 +1,25 @@
 use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next};
+use derive_more::{Deref, DerefMut, From};
+use crb::agent::{Agent, Context, Duty, Next, Address};
 use crb::superagent::{Supervisor, SupervisorSession};
+use std::sync::OnceLock;
+
+static CLIENT: OnceLock<HubClientLink> = OnceLock::new();
+
+#[derive(Deref, DerefMut, From, Clone)]
+pub struct HubClientLink {
+    hub: Address<HubClient>,
+}
 
 pub struct HubClient {}
+
+impl HubClient {
+    pub fn link() -> Option<&'static HubClientLink> {
+        CLIENT.get()
+    }
+}
 
 impl Supervisor for HubClient {
     type GroupBy = ();
