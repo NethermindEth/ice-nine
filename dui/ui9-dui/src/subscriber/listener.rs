@@ -1,6 +1,6 @@
-use super::client::HubClient;
 use super::player::{Player, Ported};
 use crate::flow::Flow;
+use crate::hub::Hub;
 use crb::agent::{Address, Equip, RunAgent, StopAddress};
 use crb::core::watch;
 use crb::runtime::InteractiveRuntime;
@@ -17,8 +17,8 @@ impl<F: Flow> Listener<F> {
         let player = Player::new(tx);
         let runtime = RunAgent::new(player);
         let address = runtime.address();
-        if let Some(hub) = HubClient::link() {
-            hub.add_player(runtime).ok();
+        if let Some(hub) = Hub::link() {
+            hub.client.add_player(runtime).ok();
         }
         Self {
             player: Arc::new(address.equip()),

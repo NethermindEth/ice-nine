@@ -1,6 +1,6 @@
 use super::recorder::Recorder;
-use super::server::HubServer;
 use crate::flow::Flow;
+use crate::hub::Hub;
 use crb::agent::{Address, Equip, RunAgent, StopAddress};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
@@ -24,12 +24,12 @@ impl<F: Flow> Tracer<F> {
         let recorder = Recorder::new(state);
         let runtime = RunAgent::new(recorder);
         let address = runtime.address();
-        if let Some(hub) = HubServer::link() {
+        if let Some(hub) = Hub::link() {
             let info = TracerInfo {
                 fqn,
                 class: F::class().into(),
             };
-            hub.add_recorder(info, runtime).ok();
+            hub.server.add_recorder(info, runtime).ok();
         }
         // TODO: Send the runtime to the HUB
         Self {

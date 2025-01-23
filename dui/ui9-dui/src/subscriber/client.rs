@@ -5,9 +5,6 @@ use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
-use std::sync::OnceLock;
-
-static CLIENT: OnceLock<HubClientLink> = OnceLock::new();
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubClientLink {
@@ -26,8 +23,8 @@ impl HubClientLink {
 pub struct HubClient {}
 
 impl HubClient {
-    pub fn link() -> Option<&'static HubClientLink> {
-        CLIENT.get()
+    pub fn new() -> Self {
+        Self {}
     }
 }
 

@@ -10,8 +10,6 @@ use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
-static SERVER: OnceLock<HubServerLink> = OnceLock::new();
-
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubServerLink {
     hub: Address<HubServer>,
@@ -33,30 +31,10 @@ pub struct HubServer {
 }
 
 impl HubServer {
-    pub fn link() -> Option<&'static HubServerLink> {
-        SERVER.get()
-    }
-
-    pub fn activate() -> Result<()> {
-        let hub = HubServer {
+    pub fn new() -> Self {
+        Self {
             tree: Slot::empty(),
-        };
-        let address = hub.spawn().equip();
-        if let Err(address) = SERVER.set(address) {
-            // Interrupt since hub is spawned already.
-            address.interrupt()?;
-            Err(anyhow!("Hub is already activated"))
-        } else {
-            Ok(())
         }
-    }
-
-    pub async fn deactivate() -> Result<()> {
-        if let Some(mut address) = SERVER.get().cloned() {
-            address.interrupt()?;
-            address.join().await?;
-        }
-        Ok(())
     }
 }
 
