@@ -9,6 +9,8 @@ use ui9_flow::Flow;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerInfo {
     pub fqn: Fqn,
+    // TODO: Use `Class` wrapper
+    pub class: String,
 }
 
 #[derive(Clone)]
@@ -22,7 +24,10 @@ impl<F: Flow> Tracer<F> {
         let runtime = RunAgent::new(relay);
         let address = runtime.address();
         if let Some(hub) = HUB.get() {
-            let info = TracerInfo { fqn };
+            let info = TracerInfo {
+                fqn,
+                class: F::class().into(),
+            };
             hub.add_relay(info, runtime).ok();
         }
         // TODO: Send the runtime to the HUB

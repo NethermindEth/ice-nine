@@ -25,7 +25,7 @@ pub trait Flow: DataFraction {
     /// Generic name with pack.
     ///
     /// Used in spans and for rendering.
-    fn name() -> &'static str {
+    fn class() -> &'static str {
         std::any::type_name::<Self>()
     }
 
