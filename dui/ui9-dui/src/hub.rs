@@ -1,9 +1,11 @@
 use crate::connector::Connector;
 use crate::tracer::TracerInfo;
+use crate::tracers::Tree;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
 use crb::runtime::Runtime;
+use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
@@ -26,11 +28,15 @@ impl HubLink {
 }
 
 pub struct Hub {
+    /// `Tree` needs `Hub` itself (uses `Tracer`), so it will be initialized after actor activation
+    tree: Slot<Tree>,
 }
 
 impl Hub {
     pub fn activate() {
-        let hub = Hub {};
+        let hub = Hub {
+            tree: Slot::empty(),
+        };
         let address = hub.spawn().equip();
         if let Err(address) = HUB.set(address) {
             // Interrupt since hub is spawned already.
@@ -71,6 +77,8 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        self.tree.fill(Tree::new())?;
+
         let connector = Connector::new();
         ctx.spawn_agent(connector, Group::Connector);
         Ok(Next::events())
