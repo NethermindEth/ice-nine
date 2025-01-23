@@ -10,14 +10,14 @@ use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
-pub static HUB: OnceLock<HubLink> = OnceLock::new();
+static HUB: OnceLock<HubServerLink> = OnceLock::new();
 
 #[derive(Deref, DerefMut, From, Clone)]
-pub struct HubLink {
-    hub: Address<Hub>,
+pub struct HubServerLink {
+    hub: Address<HubServer>,
 }
 
-impl HubLink {
+impl HubServerLink {
     pub fn add_relay(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
         let delegate = Delegate {
             tracer_info,
@@ -27,14 +27,18 @@ impl HubLink {
     }
 }
 
-pub struct Hub {
-    /// `Tree` needs `Hub` itself (uses `Tracer`), so it will be initialized after actor activation
+pub struct HubServer {
+    /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Slot<Tree>,
 }
 
-impl Hub {
+impl HubServer {
+    pub fn link() -> Option<&'static HubServerLink> {
+        HUB.get()
+    }
+
     pub fn activate() {
-        let hub = Hub {
+        let hub = HubServer {
             tree: Slot::empty(),
         };
         let address = hub.spawn().equip();
@@ -52,7 +56,7 @@ impl Hub {
     }
 }
 
-impl Standalone for Hub {}
+impl Standalone for HubServer {}
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
@@ -60,11 +64,11 @@ pub enum Group {
     Relay,
 }
 
-impl Supervisor for Hub {
+impl Supervisor for HubServer {
     type GroupBy = Group;
 }
 
-impl Agent for Hub {
+impl Agent for HubServer {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
@@ -75,7 +79,7 @@ impl Agent for Hub {
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Hub {
+impl Duty<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.tree.fill(Tree::new())?;
 
@@ -91,7 +95,7 @@ pub struct Delegate {
 }
 
 #[async_trait]
-impl OnEvent<Delegate> for Hub {
+impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
         ctx.spawn_trackable(delegate.runtime, Group::Relay);
         Ok(())

@@ -1,5 +1,5 @@
 use crate::flow::Flow;
-use crate::hub::HUB;
+use crate::hub::HubServer;
 use crate::relay::Relay;
 use crb::agent::{Address, RunAgent};
 use crb::runtime::InteractiveRuntime;
@@ -23,7 +23,7 @@ impl<F: Flow> Tracer<F> {
         let relay = Relay::new(state);
         let runtime = RunAgent::new(relay);
         let address = runtime.address();
-        if let Some(hub) = HUB.get() {
+        if let Some(hub) = HubServer::link() {
             let info = TracerInfo {
                 fqn,
                 class: F::class().into(),

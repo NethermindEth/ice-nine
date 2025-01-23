@@ -7,6 +7,6 @@ pub mod tracers;
 
 pub use connector::Connector;
 pub use flow::Flow;
-pub use hub::Hub;
+pub use hub::HubServer;
 pub use relay::Relay;
 pub use tracer::{Tracer, TracerInfo};
