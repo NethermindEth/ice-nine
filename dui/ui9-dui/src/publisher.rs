@@ -7,24 +7,24 @@ use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TracerInfo {
+pub struct PublisherInfo {
     pub fqn: Fqn,
     // TODO: Use `Class` wrapper
     pub class: String,
 }
 
 #[derive(Clone)]
-pub struct Tracer<F: Flow> {
+pub struct Publisher<F: Flow> {
     relay: Address<Relay<F>>,
 }
 
-impl<F: Flow> Tracer<F> {
+impl<F: Flow> Publisher<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
         let relay = Relay::new(state);
         let runtime = RunAgent::new(relay);
         let address = runtime.address();
         if let Some(hub) = HubServer::link() {
-            let info = TracerInfo {
+            let info = PublisherInfo {
                 fqn,
                 class: F::class().into(),
             };

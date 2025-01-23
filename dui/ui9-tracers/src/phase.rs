@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
-use ui9_dui::{Flow, Tracer};
+use ui9_dui::{Flow, Publisher};
 
 pub trait PhaseValue: ToString + PartialEq {}
 impl<T> PhaseValue for T where Self: ToString + PartialEq {}
 
 pub struct Phase<P> {
-    tracer: Tracer<PhaseState>,
+    publisher: Publisher<PhaseState>,
     phase: P,
 }
 
@@ -15,8 +15,8 @@ impl<P: PhaseValue> Phase<P> {
         let state = PhaseState {
             phase: phase.to_string(),
         };
-        let tracer = Tracer::new(fqn, state);
-        Self { tracer, phase }
+        let publisher = Publisher::new(fqn, state);
+        Self { publisher, phase }
     }
 
     pub fn set_phase(&mut self, new_phase: P) {
