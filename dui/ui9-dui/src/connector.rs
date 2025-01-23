@@ -1,6 +1,7 @@
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, ManagedContext, Next};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, ManagedContext, Next, OnEvent};
+use crb::core::Slot;
 use derive_more::{Deref, DerefMut};
 use futures::stream::StreamExt;
 use libp2p::{
@@ -17,11 +18,17 @@ use std::{
 };
 use tokio::select;
 
-pub struct Connector {}
+type ReqRespEvent = request_response::Event<Ui9Request, Ui9Response>;
+
+pub struct Connector {
+    swarm: Slot<Swarm<Ui9Behaviour>>,
+}
 
 impl Connector {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            swarm: Slot::empty(),
+        }
     }
 }
 
@@ -47,11 +54,18 @@ impl Agent for Connector {
     }
 
     async fn event(&mut self, ctx: &mut Context<Self>) -> Result<()> {
-        let envelope = ctx.next_envelope();
-        if let Some(envelope) = envelope.await {
-            envelope.handle(self, ctx).await?;
-        } else {
-            ctx.stop();
+        let swarm = self.swarm.get_mut()?;
+        select! {
+            envelope = ctx.next_envelope() => {
+                if let Some(envelope) = envelope {
+                    envelope.handle(self, ctx).await?;
+                } else {
+                    ctx.stop();
+                }
+            }
+            event = swarm.select_next_some() => {
+                self.route_swarm_event(event, ctx).await?;
+            }
         }
         Ok(())
     }
@@ -115,60 +129,90 @@ impl Duty<Initialize> for Connector {
         swarm.listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse()?)?;
         swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
-        let event_loop = EventLoop { swarm };
-        Ok(Next::do_async(event_loop))
+        self.swarm.fill(swarm);
+        Ok(Next::events())
     }
 }
 
-#[derive(Deref, DerefMut)]
-struct EventLoop {
-    swarm: Swarm<Ui9Behaviour>,
+impl Connector {
+    async fn route_swarm_event(
+        &mut self,
+        event: SwarmEvent<Ui9BehaviourEvent>,
+        ctx: &mut Context<Self>,
+    ) -> Result<()> {
+        let swarm = self.swarm.get_mut()?;
+        match event {
+            SwarmEvent::Behaviour(event) => match event {
+                Ui9BehaviourEvent::Mdns(event) => {
+                    OnEvent::handle(self, event, ctx).await?;
+                }
+                Ui9BehaviourEvent::Gossipsub(event) => {
+                    OnEvent::handle(self, event, ctx).await?;
+                }
+                Ui9BehaviourEvent::RequestResponse(event) => {
+                    OnEvent::handle(self, event, ctx).await?;
+                }
+                _ => {}
+            },
+            SwarmEvent::NewListenAddr { address, .. } => {
+                println!("Local node is listening on {address}");
+            }
+            other => {
+                println!("Not handeled p2p event: {other:?}");
+            }
+        }
+        Ok(())
+    }
 }
 
 #[async_trait]
-impl DoAsync<EventLoop> for Connector {
-    async fn repeat(&mut self, swarm: &mut EventLoop) -> Result<Option<Next<Self>>> {
-        select! {
-            event = swarm.select_next_some() => match event {
-                SwarmEvent::Behaviour(event) => {
-                    match event {
-                        Ui9BehaviourEvent::Mdns(mdns::Event::Discovered(list)) => {
-                            for (peer_id, _multiaddr) in list {
-                                println!("UI9 node connected: {peer_id}");
-                                swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
-                            }
-                        },
-                        Ui9BehaviourEvent::Mdns(mdns::Event::Expired(list)) => {
-                            for (peer_id, _multiaddr) in list {
-                                println!("UI9 node disconnected: {peer_id}");
-                                swarm.behaviour_mut().gossipsub.remove_explicit_peer(&peer_id);
-                            }
-                        },
-                        Ui9BehaviourEvent::Gossipsub(gossipsub::Event::Message {
-                            propagation_source: peer_id,
-                            message_id: id,
-                            message,
-                        }) => {
-                            println!(
-                                "Got message: '{}' with id: {id} from peer: {peer_id}",
-                                String::from_utf8_lossy(&message.data),
-                            );
-                        },
-                        Ui9BehaviourEvent::RequestResponse(_) => {
-                        },
-                        other => {
-                            println!("Not handeled p2p behaviour event: {other:?}");
-                        }
-                    }
-                },
-                SwarmEvent::NewListenAddr { address, .. } => {
-                    println!("Local node is listening on {address}");
+impl OnEvent<mdns::Event> for Connector {
+    async fn handle(&mut self, event: mdns::Event, ctx: &mut Context<Self>) -> Result<()> {
+        use mdns::Event::*;
+        let swarm = self.swarm.get_mut()?;
+        match event {
+            Discovered(list) => {
+                for (peer_id, _multiaddr) in list {
+                    println!("UI9 node connected: {peer_id}");
+                    swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
                 }
-                other => {
-                    println!("Not handeled p2p event: {other:?}");
+            }
+            Expired(list) => {
+                for (peer_id, _multiaddr) in list {
+                    println!("UI9 node disconnected: {peer_id}");
+                    swarm
+                        .behaviour_mut()
+                        .gossipsub
+                        .remove_explicit_peer(&peer_id);
                 }
             }
         }
-        Ok(None)
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<gossipsub::Event> for Connector {
+    async fn handle(&mut self, event: gossipsub::Event, ctx: &mut Context<Self>) -> Result<()> {
+        use gossipsub::Event::*;
+        if let Message {
+            propagation_source,
+            message_id,
+            message,
+        } = event
+        {
+            println!(
+                "Got message: '{}' with id: {message_id} from peer: {propagation_source}",
+                String::from_utf8_lossy(&message.data),
+            );
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<ReqRespEvent> for Connector {
+    async fn handle(&mut self, event: ReqRespEvent, ctx: &mut Context<Self>) -> Result<()> {
+        Ok(())
     }
 }
