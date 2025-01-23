@@ -1,10 +1,10 @@
 use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
-use derive_more::{Deref, DerefMut, From};
-use crb::agent::{Agent, Context, Duty, Next, Address, OnEvent};
+use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
+use derive_more::{Deref, DerefMut, From};
 use std::sync::OnceLock;
 
 static CLIENT: OnceLock<HubClientLink> = OnceLock::new();
