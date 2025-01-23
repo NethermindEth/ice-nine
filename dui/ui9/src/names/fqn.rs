@@ -36,6 +36,10 @@ pub struct Fqn {
 }
 
 impl Fqn {
+    pub fn genesis() -> Self {
+        Self::from_iter([])
+    }
+
     pub fn root(name: &str) -> Self {
         Self::from_iter(iter::once(name))
     }
