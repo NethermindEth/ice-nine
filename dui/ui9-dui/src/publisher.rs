@@ -1,6 +1,6 @@
 use crate::flow::Flow;
 use crate::hub::HubServer;
-use crate::relay::Relay;
+use crate::recorder::Recorder;
 use crb::agent::{Address, RunAgent};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
@@ -15,13 +15,13 @@ pub struct PublisherInfo {
 
 #[derive(Clone)]
 pub struct Publisher<F: Flow> {
-    relay: Address<Relay<F>>,
+    recorder: Address<Recorder<F>>,
 }
 
 impl<F: Flow> Publisher<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
-        let relay = Relay::new(state);
-        let runtime = RunAgent::new(relay);
+        let recorder = Recorder::new(state);
+        let runtime = RunAgent::new(recorder);
         let address = runtime.address();
         if let Some(hub) = HubServer::link() {
             let info = PublisherInfo {
@@ -31,10 +31,10 @@ impl<F: Flow> Publisher<F> {
             hub.add_relay(info, runtime).ok();
         }
         // TODO: Send the runtime to the HUB
-        Self { relay: address }
+        Self { recorder: address }
     }
 
     pub fn event(&mut self, event: F::Event) {
-        self.relay.event(event).ok();
+        self.recorder.event(event).ok();
     }
 }
