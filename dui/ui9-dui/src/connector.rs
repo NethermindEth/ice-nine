@@ -1,6 +1,6 @@
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, Next};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, ManagedContext, Next};
 use derive_more::{Deref, DerefMut};
 use futures::stream::StreamExt;
 use libp2p::{
@@ -38,11 +38,22 @@ pub struct Ui9Request(Vec<u8>);
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Ui9Response(Vec<u8>);
 
+#[async_trait]
 impl Agent for Connector {
     type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)
+    }
+
+    async fn event(&mut self, ctx: &mut Context<Self>) -> Result<()> {
+        let envelope = ctx.next_envelope();
+        if let Some(envelope) = envelope.await {
+            envelope.handle(self, ctx).await?;
+        } else {
+            ctx.stop();
+        }
+        Ok(())
     }
 }
 
