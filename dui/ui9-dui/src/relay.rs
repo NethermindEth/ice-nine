@@ -19,7 +19,7 @@ impl<F: Flow> Agent for Relay<F> {
 
 #[async_trait]
 impl<F: Flow> OnEvent<F::Event> for Relay<F> {
-    async fn handle(&mut self, event: F::Event, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: F::Event, _ctx: &mut Context<Self>) -> Result<()> {
         self.state.apply(event);
         // TODO: Distirbute events to subscribers...
         Ok(())

@@ -2,7 +2,6 @@ use super::encoding::FlowPack;
 use super::packed::{PackedAction, PackedEvent, PackedState};
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
 use ui9_codec::flex::FlexCodec;
 
 /// Requirements for a data fraction in a data flow.

@@ -4,7 +4,7 @@ use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
-use crb::core::{time::Duration, Slot};
+use crb::core::Slot;
 use crb::superagent::{Entry, OnResponse, Output, Supervisor, SupervisorSession, Timer};
 use ice9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,

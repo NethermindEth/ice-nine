@@ -1,7 +1,7 @@
 use crate::connector::Connector;
 use crate::tracer::TracerInfo;
 use crate::tracers::Tree;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
 use crb::core::Slot;
@@ -37,22 +37,26 @@ impl HubServer {
         HUB.get()
     }
 
-    pub fn activate() {
+    pub fn activate() -> Result<()> {
         let hub = HubServer {
             tree: Slot::empty(),
         };
         let address = hub.spawn().equip();
         if let Err(address) = HUB.set(address) {
             // Interrupt since hub is spawned already.
-            address.interrupt();
+            address.interrupt()?;
+            Err(anyhow!("Hub is already activated"))
+        } else {
+            Ok(())
         }
     }
 
-    pub async fn deactivate() {
+    pub async fn deactivate() -> Result<()> {
         if let Some(mut address) = HUB.get().cloned() {
-            address.interrupt();
-            address.join().await;
+            address.interrupt()?;
+            address.join().await?;
         }
+        Ok(())
     }
 }
 

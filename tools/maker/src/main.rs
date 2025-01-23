@@ -1,13 +1,11 @@
 use anyhow::{anyhow, Result};
-use clap::Parser;
 use crb::agent::{RunAgent, Task};
 use crb::runtime::InteractiveRuntime;
-use ice9_maker::{App, AppUi, RunArgs};
+use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
 
 fn main() -> Result<()> {
     env_logger::try_init()?;
-    let args = RunArgs::parse();
     let app = App::new();
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();

@@ -3,7 +3,7 @@ use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
-use crb::core::{time::Duration, Slot};
+use crb::core::Slot;
 use crb::superagent::{
     Entry, FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession, Timer,
 };
@@ -80,7 +80,7 @@ impl OnResponse<Line> for StdioParticle {
         _: (),
         ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let line = line?.ok_or_else(|| anyhow!("Stdin is closed"))?;
+        let _line = line?.ok_or_else(|| anyhow!("Stdin is closed"))?;
         // TODO: Call the chat
         self.start_thinking(ctx).await?;
         Ok(())

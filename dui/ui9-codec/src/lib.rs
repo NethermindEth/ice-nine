@@ -20,7 +20,6 @@ pub use xml::Xml;
 
 use anyhow::Error;
 use serde::{de::DeserializeOwned, Serialize};
-use std::fmt::Debug;
 
 /// Generic procotol type.
 ///

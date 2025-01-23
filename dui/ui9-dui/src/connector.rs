@@ -1,17 +1,15 @@
 use crate::protocol;
-use anyhow::{Error, Result};
+use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Duty, ManagedContext, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
-use derive_more::{Deref, DerefMut};
 use futures::stream::StreamExt;
 use libp2p::{
     gossipsub, mdns, noise,
-    request_response::{self, OutboundRequestId, ProtocolSupport, ResponseChannel},
+    request_response::{self, ProtocolSupport},
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux, StreamProtocol, Swarm,
 };
-use serde::{Deserialize, Serialize};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
@@ -68,7 +66,7 @@ pub struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for Connector {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut swarm = libp2p::SwarmBuilder::with_new_identity()
             .with_tokio()
             .with_tcp(
@@ -122,7 +120,7 @@ impl Duty<Initialize> for Connector {
         swarm.listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse()?)?;
         swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
-        self.swarm.fill(swarm);
+        self.swarm.fill(swarm)?;
         Ok(Next::events())
     }
 }
@@ -133,7 +131,6 @@ impl Connector {
         event: SwarmEvent<Ui9BehaviourEvent>,
         ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let swarm = self.swarm.get_mut()?;
         match event {
             SwarmEvent::Behaviour(event) => match event {
                 Ui9BehaviourEvent::Mdns(event) => {
@@ -145,7 +142,6 @@ impl Connector {
                 Ui9BehaviourEvent::RequestResponse(event) => {
                     OnEvent::handle(self, event, ctx).await?;
                 }
-                _ => {}
             },
             SwarmEvent::NewListenAddr { address, .. } => {
                 println!("Local node is listening on {address}");
@@ -160,7 +156,7 @@ impl Connector {
 
 #[async_trait]
 impl OnEvent<mdns::Event> for Connector {
-    async fn handle(&mut self, event: mdns::Event, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: mdns::Event, _ctx: &mut Context<Self>) -> Result<()> {
         use mdns::Event::*;
         let swarm = self.swarm.get_mut()?;
         match event {
@@ -186,7 +182,7 @@ impl OnEvent<mdns::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<gossipsub::Event> for Connector {
-    async fn handle(&mut self, event: gossipsub::Event, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: gossipsub::Event, _ctx: &mut Context<Self>) -> Result<()> {
         use gossipsub::Event::*;
         if let Message {
             propagation_source,
@@ -205,7 +201,7 @@ impl OnEvent<gossipsub::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<protocol::Event> for Connector {
-    async fn handle(&mut self, event: protocol::Event, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, _event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
     }
 }

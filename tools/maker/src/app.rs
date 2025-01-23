@@ -31,7 +31,7 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for App {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         Ok(Next::events())
     }
 }

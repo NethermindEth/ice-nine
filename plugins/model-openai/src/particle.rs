@@ -10,7 +10,6 @@ use ice9_core::{
     ConfigSegmentUpdates, Model, Particle, SubstanceBond, SubstanceLinks, ToolingChatRequest,
     ToolingChatResponse, UpdateConfig,
 };
-use ui9::names::Fqn;
 
 pub struct OpenAIParticle {
     substance: SubstanceLinks,
@@ -23,7 +22,6 @@ impl Model for OpenAIParticle {}
 
 impl Particle for OpenAIParticle {
     fn construct(substance: SubstanceLinks) -> Self {
-        let fqn = Fqn::root("openai");
         Self {
             substance,
             config_updates: None,
