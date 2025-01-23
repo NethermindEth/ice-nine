@@ -2,7 +2,8 @@ use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
 use derive_more::{Deref, DerefMut, From};
-use crb::agent::{Agent, Context, Duty, Next, Address};
+use crb::agent::{Agent, Context, Duty, Next, Address, OnEvent};
+use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
 use std::sync::OnceLock;
 
@@ -11,6 +12,15 @@ static CLIENT: OnceLock<HubClientLink> = OnceLock::new();
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubClientLink {
     hub: Address<HubClient>,
+}
+
+impl HubClientLink {
+    pub fn add_player(&self, runtime: impl Runtime) -> Result<()> {
+        let delegate = Delegate {
+            runtime: Box::new(runtime),
+        };
+        self.event(delegate)
+    }
 }
 
 pub struct HubClient {}
@@ -41,5 +51,17 @@ impl Duty<Initialize> for HubClient {
         let connector = Connector::new();
         ctx.spawn_agent(connector, ());
         Ok(Next::events())
+    }
+}
+
+pub struct Delegate {
+    runtime: Box<dyn Runtime>,
+}
+
+#[async_trait]
+impl OnEvent<Delegate> for HubClient {
+    async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
+        ctx.spawn_trackable(delegate.runtime, ());
+        Ok(())
     }
 }

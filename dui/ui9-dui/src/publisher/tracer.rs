@@ -1,10 +1,11 @@
 use crate::flow::Flow;
 use crate::hub::HubServer;
 use super::recorder::Recorder;
-use crb::agent::{Address, RunAgent};
+use crb::agent::{Address, RunAgent, StopAddress, Equip};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
+use std::sync::Arc;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerInfo {
@@ -15,7 +16,7 @@ pub struct TracerInfo {
 
 #[derive(Clone)]
 pub struct Tracer<F: Flow> {
-    recorder: Address<Recorder<F>>,
+    recorder: Arc<StopAddress<Recorder<F>>>,
 }
 
 impl<F: Flow> Tracer<F> {
@@ -31,7 +32,7 @@ impl<F: Flow> Tracer<F> {
             hub.add_recorder(info, runtime).ok();
         }
         // TODO: Send the runtime to the HUB
-        Self { recorder: address }
+        Self { recorder: Arc::new(address.equip()) }
     }
 
     pub fn event(&self, event: F::Event) {

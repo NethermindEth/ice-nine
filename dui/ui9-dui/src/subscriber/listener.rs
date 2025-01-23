@@ -1,13 +1,14 @@
 use super::player::{Player, Ported};
 use crate::hub::HubClient;
 use crate::flow::Flow;
-use crb::agent::{Address, RunAgent};
+use crb::agent::{Address, RunAgent, Equip, StopAddress};
 use crb::runtime::InteractiveRuntime;
 use crb::core::watch;
 use ui9::names::Fqn;
+use std::sync::Arc;
 
 pub struct Listener<F: Flow> {
-    player: Address<Player<F>>,
+    player: Arc<StopAddress<Player<F>>>,
 }
 
 
@@ -18,8 +19,8 @@ impl<F: Flow> Listener<F> {
         let runtime = RunAgent::new(player);
         let address = runtime.address();
         if let Some(hub) = HubClient::link() {
-            // hub.add_relay(info, runtime).ok();
+            hub.add_player(runtime).ok();
         }
-        Self { player: address }
+        Self { player: Arc::new(address.equip()) }
     }
 }
