@@ -3,7 +3,8 @@ use crate::publisher::{HubServer, HubServerLink};
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Equip, Next, Standalone, ToAddress};
+use crb::agent::{Address, Agent, Context, Duty, Equip, Next, RunAgent, Standalone, ToAddress};
+use crb::runtime::InteractiveRuntime;
 use crb::superagent::{PingExt, Supervisor, SupervisorSession};
 use std::sync::OnceLock;
 
@@ -62,12 +63,13 @@ struct Initialize;
 impl Duty<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let connector = Connector::new();
-        ctx.spawn_agent(connector, ());
+        let connector_runtime = RunAgent::new(connector);
+        let connector_address = connector_runtime.address();
 
-        let server = HubServer::new();
+        let server = HubServer::new(connector_address.clone());
         let server = ctx.spawn_agent(server, ());
 
-        let client = HubClient::new();
+        let client = HubClient::new(connector_address.clone());
         let client = ctx.spawn_agent(client, ());
 
         let link = HubLink {
@@ -77,6 +79,9 @@ impl Duty<Initialize> for Hub {
         };
         HUB.set(link)
             .map_err(|_| anyhow!("Hub is already activated"))?;
+
+        // Spawning the connector after the `Hub` is set, because it has peers tracer
+        ctx.spawn_runtime(connector_runtime, ());
 
         Ok(Next::events())
     }

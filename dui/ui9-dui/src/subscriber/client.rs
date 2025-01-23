@@ -20,11 +20,13 @@ impl HubClientLink {
     }
 }
 
-pub struct HubClient {}
+pub struct HubClient {
+    connector: Address<Connector>,
+}
 
 impl HubClient {
-    pub fn new() -> Self {
-        Self {}
+    pub fn new(connector: Address<Connector>) -> Self {
+        Self { connector }
     }
 }
 
@@ -45,8 +47,6 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for HubClient {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let connector = Connector::new();
-        ctx.spawn_agent(connector, ());
         Ok(Next::events())
     }
 }

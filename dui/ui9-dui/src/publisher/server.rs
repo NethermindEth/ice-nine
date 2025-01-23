@@ -28,12 +28,14 @@ impl HubServerLink {
 pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Slot<Tree>,
+    connector: Address<Connector>,
 }
 
 impl HubServer {
-    pub fn new() -> Self {
+    pub fn new(connector: Address<Connector>) -> Self {
         Self {
             tree: Slot::empty(),
+            connector,
         }
     }
 }
@@ -65,8 +67,6 @@ impl Duty<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.tree.fill(Tree::new())?;
 
-        let connector = Connector::new();
-        ctx.spawn_agent(connector, Group::Connector);
         Ok(Next::events())
     }
 }
