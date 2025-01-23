@@ -10,7 +10,7 @@ pub struct Tree {
 
 impl Tree {
     pub fn new() -> Self {
-        let fqn = Fqn::genesis();
+        let fqn = Fqn::root("@tree");
         let state = TreeState::default();
         let tracer = Tracer::new(fqn, state);
         Self { tracer }

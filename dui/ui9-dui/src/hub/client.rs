@@ -1,11 +1,10 @@
 use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Duty, Context, Next};
+use crb::agent::{Agent, Context, Duty, Next};
 use crb::superagent::{Supervisor, SupervisorSession};
 
-pub struct HubClient {
-}
+pub struct HubClient {}
 
 impl Supervisor for HubClient {
     type GroupBy = ();

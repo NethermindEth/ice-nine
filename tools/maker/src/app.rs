@@ -1,15 +1,13 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Standalone, Agent, Next, Context, Duty};
+use crb::agent::{Agent, Context, Duty, Next, Standalone};
 use crb::superagent::{Supervisor, SupervisorSession};
 
-pub struct App {
-}
+pub struct App {}
 
 impl App {
     pub fn new() -> Self {
-        Self {
-        }
+        Self {}
     }
 }
 

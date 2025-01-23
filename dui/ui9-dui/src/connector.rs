@@ -1,4 +1,5 @@
 use crate::protocol;
+use crate::tracers::PeerTracer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
@@ -19,12 +20,14 @@ use tokio::select;
 
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
+    peer_tracer: PeerTracer,
 }
 
 impl Connector {
     pub fn new() -> Self {
         Self {
             swarm: Slot::empty(),
+            peer_tracer: PeerTracer::new(),
         }
     }
 }
@@ -164,6 +167,7 @@ impl OnEvent<mdns::Event> for Connector {
                 for (peer_id, _multiaddr) in list {
                     println!("UI9 node connected: {peer_id}");
                     swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                    self.peer_tracer.add_peer(peer_id);
                 }
             }
             Expired(list) => {
@@ -173,6 +177,7 @@ impl OnEvent<mdns::Event> for Connector {
                         .behaviour_mut()
                         .gossipsub
                         .remove_explicit_peer(&peer_id);
+                    self.peer_tracer.del_peer(peer_id);
                 }
             }
         }
