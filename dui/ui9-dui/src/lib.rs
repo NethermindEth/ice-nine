@@ -6,4 +6,4 @@ pub mod tracer;
 pub use connector::Connector;
 pub use hub::Hub;
 pub use relay::Relay;
-pub use tracer::Tracer;
+pub use tracer::{Tracer, TracerInfo};

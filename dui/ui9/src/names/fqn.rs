@@ -91,6 +91,12 @@ impl AsRef<str> for Fqn {
     }
 }
 
+impl AsRef<[String]> for Fqn {
+    fn as_ref(&self) -> &[String] {
+        &self.components
+    }
+}
+
 impl fmt::Display for Fqn {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.rendered)
