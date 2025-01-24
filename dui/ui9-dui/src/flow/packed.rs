@@ -1,3 +1,4 @@
+use super::flow::Flow;
 use derive_more::{From, Into};
 use serde::{Deserialize, Serialize};
 use std::fmt;

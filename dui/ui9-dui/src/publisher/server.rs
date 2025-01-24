@@ -6,8 +6,9 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::runtime::Runtime;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
+use ui9::names::FlowId;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubServerLink {
@@ -82,3 +83,14 @@ impl OnEvent<Delegate> for HubServer {
         Ok(())
     }
 }
+
+pub struct Discover {
+    id: FlowId,
+}
+
+impl Request for Discover {
+    // TODO: Generic Link
+    type Response = ();
+}
+
+impl OnRequest<Discover> for HubServer {}

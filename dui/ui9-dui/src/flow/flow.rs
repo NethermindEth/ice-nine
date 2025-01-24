@@ -1,6 +1,6 @@
 use super::encoding::FlowPack;
 use super::packed::{PackedAction, PackedEvent, PackedState};
-use anyhow::Error;
+use anyhow::Result;
 use serde::{de::DeserializeOwned, Serialize};
 use ui9_codec::flex::FlexCodec;
 
@@ -41,32 +41,32 @@ pub trait Flow: DataFraction {
     }
 
     /// Packs the state.
-    fn pack_state(&self) -> Result<PackedState, Error> {
+    fn pack_state(&self) -> Result<PackedState> {
         FlexCodec::pack(self)
     }
 
     /// Unpacks the state.
-    fn unpack_state(data: &PackedState) -> Result<Self, Error> {
+    fn unpack_state(data: &PackedState) -> Result<Self> {
         FlexCodec::unpack(data)
     }
 
     /// Packs the event.
-    fn pack_event(delta: &Self::Event) -> Result<PackedEvent, Error> {
+    fn pack_event(delta: &Self::Event) -> Result<PackedEvent> {
         FlexCodec::pack(delta)
     }
 
     /// Unpacks the event.
-    fn unpack_event(data: &PackedEvent) -> Result<Self::Event, Error> {
+    fn unpack_event(data: &PackedEvent) -> Result<Self::Event> {
         FlexCodec::unpack(data)
     }
 
     /// Packs the action.
-    fn pack_action(action: &Self::Action) -> Result<PackedAction, Error> {
+    fn pack_action(action: &Self::Action) -> Result<PackedAction> {
         FlexCodec::pack(action)
     }
 
     /// Unpacks the action.
-    fn unpack_action(data: &PackedAction) -> Result<Self::Action, Error> {
+    fn unpack_action(data: &PackedAction) -> Result<Self::Action> {
         FlexCodec::unpack(data)
     }
 }

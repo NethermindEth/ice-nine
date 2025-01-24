@@ -1,7 +1,8 @@
-use super::recorder::Recorder;
+use super::recorder::{Recorder, Update};
 use crate::flow::Flow;
 use crate::hub::Hub;
 use crb::agent::{Equip, RunAgent, StopAddress};
+use crb::core::{mpsc, sync::Mutex};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -14,14 +15,15 @@ pub struct TracerInfo {
     pub class: String,
 }
 
-#[derive(Clone)]
 pub struct Tracer<F: Flow> {
-    recorder: Arc<StopAddress<Recorder<F>>>,
+    recorder: StopAddress<Recorder<F>>,
+    actions: mpsc::UnboundedReceiver<F::Action>,
 }
 
 impl<F: Flow> Tracer<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
-        let recorder = Recorder::new(state);
+        let (tx, rx) = mpsc::unbounded_channel();
+        let recorder = Recorder::new(state, tx);
         let runtime = RunAgent::new(recorder);
         let address = runtime.address();
         if let Some(hub) = Hub::link() {
@@ -31,13 +33,14 @@ impl<F: Flow> Tracer<F> {
             };
             hub.server.add_recorder(info, runtime).ok();
         }
-        // TODO: Send the runtime to the HUB
         Self {
-            recorder: Arc::new(address.equip()),
+            recorder: address.equip(),
+            actions: rx,
         }
     }
 
     pub fn event(&self, event: F::Event) {
-        self.recorder.event(event).ok();
+        let update = Update { event };
+        self.recorder.event(update).ok();
     }
 }
