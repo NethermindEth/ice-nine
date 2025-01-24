@@ -1,18 +1,20 @@
-use crate::flow::{Flow, PackedAction, PackedState};
+use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, OnEvent};
-use crb::core::mpsc::UnboundedSender;
+use crb::core::mpsc;
 use crb::core::UniqueId;
+use crb::send::Recipient;
 use crb::superagent::{ManageSubscription, Subscription};
 
 pub struct Recorder<F: Flow> {
     state: F,
-    actions_tx: UnboundedSender<F::Action>,
+    actions_tx: mpsc::UnboundedSender<F::Action>,
+    // TODO: Add listeners here
 }
 
 impl<F: Flow> Recorder<F> {
-    pub fn new(state: F, actions_tx: UnboundedSender<F::Action>) -> Self {
+    pub fn new(state: F, actions_tx: mpsc::UnboundedSender<F::Action>) -> Self {
         Self { state, actions_tx }
     }
 }
@@ -42,6 +44,7 @@ impl<F: Flow> OnEvent<Update<F>> for Recorder<F> {
 }
 
 pub struct EventFlow {
+    recipient: Recipient<PackedEvent>,
     // TODO: Packed Events listener here
 }
 
