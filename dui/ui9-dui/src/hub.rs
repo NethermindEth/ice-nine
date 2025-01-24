@@ -1,3 +1,4 @@
+use crate::relay::Relay;
 use crate::connector::Connector;
 use crate::publisher::{HubServer, HubServerLink};
 use crate::subscriber::{HubClient, HubClientLink};
@@ -71,6 +72,9 @@ impl Duty<Initialize> for Hub {
 
         let client = HubClient::new(connector_address.clone());
         let client = ctx.spawn_agent(client, ());
+
+        let relay = Relay::new(connector_address.clone());
+        let relay = ctx.spawn_agent(relay, ());
 
         let link = HubLink {
             hub: ctx.to_address(),

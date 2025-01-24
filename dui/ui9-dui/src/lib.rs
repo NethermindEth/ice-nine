@@ -3,6 +3,7 @@ pub mod flow;
 pub mod hub;
 pub mod protocol;
 pub mod publisher;
+pub mod relay;
 pub mod subscriber;
 pub mod tracers;
 
