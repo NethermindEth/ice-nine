@@ -9,7 +9,7 @@ use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
 use crb::superagent::{OnRequest, Relation, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::collections::HashMap;
-use ui9::names::FlowId;
+use ui9::names::Fqn;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubServerLink {
@@ -35,8 +35,8 @@ pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Slot<Tree>,
     connector: Address<Connector>,
-    recorders: HashMap<FlowId, RecorderLink>,
-    relations: HashMap<Relation<Self>, FlowId>,
+    recorders: HashMap<Fqn, Record>,
+    relations: HashMap<Relation<Self>, Fqn>,
 }
 
 impl HubServer {
@@ -88,6 +88,11 @@ impl Duty<Initialize> for HubServer {
     }
 }
 
+struct Record {
+    tracer_info: TracerInfo,
+    link: RecorderLink,
+}
+
 pub struct Delegate {
     tracer_info: TracerInfo,
     link: RecorderLink,
@@ -97,17 +102,22 @@ pub struct Delegate {
 #[async_trait]
 impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
-        let flow_id = FlowId::new(); // TODO: Slab can be used here
+        let fqn = delegate.tracer_info.fqn.clone();
+        // TODO: Check it doesn't exist
         let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
-        self.recorders.insert(flow_id, delegate.link);
-        self.relations.insert(rel, flow_id);
+        self.relations.insert(rel, fqn.clone());
+        let record = Record {
+            tracer_info: delegate.tracer_info,
+            link: delegate.link,
+        };
+        self.recorders.insert(fqn.clone(), record);
         // TODO: Add to the aliases tree
         Ok(())
     }
 }
 
 pub struct Discover {
-    id: FlowId,
+    fqn: Fqn,
 }
 
 impl Request for Discover {

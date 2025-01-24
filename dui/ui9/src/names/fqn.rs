@@ -29,10 +29,9 @@ pub enum Error {
     Remaining(String),
 }
 
-#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Deserialize, Serialize)]
 pub struct Fqn {
     components: Vec<String>,
-    rendered: String,
 }
 
 impl Fqn {
@@ -45,22 +44,8 @@ impl Fqn {
     }
 
     pub fn from_iter<'a>(components: impl IntoIterator<Item = &'a str>) -> Self {
-        let mut rendered = String::new();
-        let components: Vec<_> = components
-            .into_iter()
-            .enumerate()
-            .map(|(idx, item)| {
-                if idx > 0 {
-                    rendered.push('.');
-                }
-                rendered.push_str(item);
-                String::from(item)
-            })
-            .collect();
-        Fqn {
-            components,
-            rendered,
-        }
+        let components: Vec<_> = components.into_iter().map(String::from).collect();
+        Fqn { components }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &'_ str> {
@@ -85,12 +70,6 @@ impl FromStr for Fqn {
     }
 }
 
-impl AsRef<str> for Fqn {
-    fn as_ref(&self) -> &str {
-        self.rendered.as_ref()
-    }
-}
-
 impl AsRef<[String]> for Fqn {
     fn as_ref(&self) -> &[String] {
         &self.components
@@ -99,7 +78,7 @@ impl AsRef<[String]> for Fqn {
 
 impl fmt::Display for Fqn {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.rendered)
+        write!(f, "{}", self.components.join("."))
     }
 }
 
