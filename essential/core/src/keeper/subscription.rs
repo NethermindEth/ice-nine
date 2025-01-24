@@ -3,7 +3,7 @@ use crate::keeper::GetConfig;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, MessageFor, ToAddress};
-use crb::core::UniqueId;
+use crb::core::Unique;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{Entry, ManageSubscription, SubscribeExt, Subscription};
 use ice9_std::config_loader::{merge_configs, table, wrap_level, StoreTemplate};
@@ -91,7 +91,7 @@ impl Keeper {
 impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
     async fn subscribe(
         &mut self,
-        sub_id: UniqueId<ConfigSegmentUpdates>,
+        sub_id: Unique<ConfigSegmentUpdates>,
         _ctx: &mut Context<Self>,
     ) -> Result<Value> {
         let subscriber = Subscriber { last_value: None };
@@ -106,7 +106,7 @@ impl ManageSubscription<ConfigSegmentUpdates> for Keeper {
 
     async fn unsubscribe(
         &mut self,
-        sub_id: UniqueId<ConfigSegmentUpdates>,
+        sub_id: Unique<ConfigSegmentUpdates>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
         self.subscribers.remove(&sub_id);

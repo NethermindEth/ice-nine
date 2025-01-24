@@ -3,19 +3,24 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, OnEvent};
 use crb::core::mpsc;
-use crb::core::UniqueId;
-use crb::send::Recipient;
+use crb::core::Unique;
+use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, Subscription};
+use std::collections::HashSet;
 
 pub struct Recorder<F: Flow> {
     state: F,
     actions_tx: mpsc::UnboundedSender<F::Action>,
-    // TODO: Add listeners here
+    subscribers: HashSet<Unique<EventFlow>>,
 }
 
 impl<F: Flow> Recorder<F> {
     pub fn new(state: F, actions_tx: mpsc::UnboundedSender<F::Action>) -> Self {
-        Self { state, actions_tx }
+        Self {
+            state,
+            actions_tx,
+            subscribers: HashSet::new(),
+        }
     }
 }
 
@@ -24,9 +29,13 @@ impl<F: Flow> Agent for Recorder<F> {
 }
 
 impl<F: Flow> Recorder<F> {
-    fn distribute(&mut self, event: F::Event) {
+    fn distribute(&mut self, event: F::Event) -> Result<()> {
+        let packed_event = F::pack_event(&event)?;
         self.state.apply(event);
-        // TODO: Distirbute events to subscribers...
+        for subscriber in &self.subscribers {
+            subscriber.recipient.send(packed_event.clone());
+        }
+        Ok(())
     }
 }
 
@@ -38,14 +47,13 @@ pub struct Update<F: Flow> {
 #[async_trait]
 impl<F: Flow> OnEvent<Update<F>> for Recorder<F> {
     async fn handle(&mut self, update: Update<F>, _ctx: &mut Context<Self>) -> Result<()> {
-        self.distribute(update.event);
+        self.distribute(update.event)?;
         Ok(())
     }
 }
 
 pub struct EventFlow {
     recipient: Recipient<PackedEvent>,
-    // TODO: Packed Events listener here
 }
 
 impl Subscription for EventFlow {
@@ -56,18 +64,20 @@ impl Subscription for EventFlow {
 impl<F: Flow> ManageSubscription<EventFlow> for Recorder<F> {
     async fn subscribe(
         &mut self,
-        sub_id: UniqueId<EventFlow>,
+        sub: Unique<EventFlow>,
         _ctx: &mut Context<Self>,
     ) -> Result<PackedState> {
-        // TODO: Add a subscriber
-        self.state.pack_state()
+        let packed_state = self.state.pack_state()?;
+        self.subscribers.insert(sub);
+        Ok(packed_state)
     }
 
     async fn unsubscribe(
         &mut self,
-        sub_id: UniqueId<EventFlow>,
+        sub: Unique<EventFlow>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
+        self.subscribers.remove(&sub);
         Ok(())
     }
 }
@@ -78,7 +88,7 @@ impl<F: Flow> OnEvent<PackedAction> for Recorder<F> {
         let action = F::unpack_action(&action)?;
         let reaction = self.state.reaction(&action);
         if let Some(event) = reaction {
-            self.distribute(event);
+            self.distribute(event)?;
         }
         self.actions_tx.send(action)?;
         Ok(())

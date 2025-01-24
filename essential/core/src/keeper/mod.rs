@@ -4,7 +4,7 @@ pub mod subscription;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
-use crb::core::{Slot, UniqueId};
+use crb::core::{Slot, Unique};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use ice9_std::config_loader::{ConfigLoader, ConfigUpdates, NewConfig};
@@ -43,7 +43,7 @@ impl MergedConfig {
 pub struct Keeper {
     config: MergedConfig,
     updater: Slot<Entry<ConfigUpdates>>,
-    subscribers: HashMap<UniqueId<ConfigSegmentUpdates>, Subscriber>,
+    subscribers: HashMap<Unique<ConfigSegmentUpdates>, Subscriber>,
     loader: Slot<Address<ConfigLoader>>,
 }
 

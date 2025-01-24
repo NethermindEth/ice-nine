@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToAddress,
 };
-use crb::core::UniqueId;
+use crb::core::Unique;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, Subscription, Timer, TimerHandle};
 use derive_more::{Deref, DerefMut, From};
@@ -53,7 +53,7 @@ impl ChangedFiles {
 pub struct ConfigLoader {
     layers: Vec<ConfigLayer>,
     changed_files: Option<ChangedFiles>,
-    subscribers: HashSet<UniqueId<ConfigUpdates>>,
+    subscribers: HashSet<Unique<ConfigUpdates>>,
     merged_config: Value,
 }
 
@@ -260,7 +260,7 @@ impl Subscription for ConfigUpdates {
 impl ManageSubscription<ConfigUpdates> for ConfigLoader {
     async fn subscribe(
         &mut self,
-        sub_id: UniqueId<ConfigUpdates>,
+        sub_id: Unique<ConfigUpdates>,
         _ctx: &mut Context<Self>,
     ) -> Result<Value> {
         // Read on initialze and keep
@@ -271,7 +271,7 @@ impl ManageSubscription<ConfigUpdates> for ConfigLoader {
 
     async fn unsubscribe(
         &mut self,
-        sub_id: UniqueId<ConfigUpdates>,
+        sub_id: Unique<ConfigUpdates>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
         self.subscribers.remove(&sub_id);
