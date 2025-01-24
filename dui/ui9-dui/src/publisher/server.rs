@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
-use crb::superagent::{OnRequest, Relation, Request, Supervisor, SupervisorSession};
+use crb::superagent::{InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::collections::HashMap;
 use ui9::names::Fqn;
@@ -29,6 +29,12 @@ impl HubServerLink {
             runtime: Box::new(runtime),
         };
         self.event(delegate)
+    }
+
+    pub async fn discover(&self, fqn: Fqn) -> Result<RecorderLink> {
+        let msg = Discover { fqn };
+        let link = self.hub.interact(msg).await?;
+        Ok(link)
     }
 }
 

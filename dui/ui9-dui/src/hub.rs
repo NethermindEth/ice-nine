@@ -19,8 +19,8 @@ pub struct HubLink {
 pub struct Hub {}
 
 impl Hub {
-    pub fn link() -> Option<&'static HubLink> {
-        HUB.get()
+    pub fn link() -> Result<&'static HubLink> {
+        HUB.get().ok_or_else(|| anyhow!("Hub is not assigned"))
     }
 
     pub async fn activate() -> Result<()> {

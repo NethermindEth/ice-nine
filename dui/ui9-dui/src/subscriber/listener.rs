@@ -1,4 +1,4 @@
-use super::player::{Player, Ported};
+use super::player::{Act, Player, Ported};
 use crate::flow::Flow;
 use crate::hub::Hub;
 use crb::agent::{Equip, RunAgent, StopAddress};
@@ -14,10 +14,10 @@ pub struct Listener<F: Flow> {
 impl<F: Flow> Listener<F> {
     pub fn new(fqn: Fqn) -> Self {
         let (tx, rx) = watch::channel(Ported::Loading);
-        let player = Player::new(tx);
+        let player = Player::new(fqn, tx);
         let runtime = RunAgent::new(player);
         let address = runtime.address();
-        if let Some(hub) = Hub::link() {
+        if let Ok(hub) = Hub::link() {
             hub.client.add_player(runtime).ok();
         }
         Self {
@@ -26,6 +26,7 @@ impl<F: Flow> Listener<F> {
     }
 
     pub fn action(&self, action: F::Action) {
-        self.player.event(action).ok();
+        let msg = Act { action };
+        self.player.event(msg).ok();
     }
 }

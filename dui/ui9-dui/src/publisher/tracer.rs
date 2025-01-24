@@ -25,7 +25,7 @@ impl<F: Flow> Tracer<F> {
         let recorder = Recorder::new(state, tx);
         let runtime = RunAgent::new(recorder);
         let address = runtime.address();
-        if let Some(hub) = Hub::link() {
+        if let Ok(hub) = Hub::link() {
             let info = TracerInfo {
                 class: F::class().into(),
             };

@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, EventExt, OnEvent, UniAddress};
 use crb::core::{mpsc, Unique};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, SubscribeExt, Subscription};
+use crb::superagent::{ManageSubscription, StateEntry, SubscribeExt, Subscription};
 use std::collections::HashSet;
 
 #[derive(Clone)]
@@ -17,6 +17,15 @@ impl RecorderLink {
         Self {
             address: UniAddress::new(address),
         }
+    }
+
+    pub async fn subscribe(
+        &mut self,
+        recipient: Recipient<PackedEvent>,
+    ) -> Result<StateEntry<EventFlow>> {
+        let msg = EventFlow { recipient };
+        let state = self.address.subscribe(msg).await?;
+        Ok(state)
     }
 }
 
