@@ -1,5 +1,5 @@
 use crate::connector::Connector;
-use crb::agent::{Agent, AgentSession, Address};
+use crb::agent::{Address, Agent, AgentSession};
 
 /// A hub server that keep information about remote components.
 pub struct Relay {
@@ -8,9 +8,7 @@ pub struct Relay {
 
 impl Relay {
     pub fn new(connector: Address<Connector>) -> Self {
-        Self {
-            connector,
-        }
+        Self { connector }
     }
 }
 
