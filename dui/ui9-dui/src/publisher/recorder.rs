@@ -1,12 +1,34 @@
 use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, OnEvent};
-use crb::core::mpsc;
-use crb::core::Unique;
+use crb::agent::{Address, Agent, AgentSession, Context, EventExt, OnEvent, UniAddress};
+use crb::core::{mpsc, Unique};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, Subscription};
+use crb::superagent::{ManageSubscription, SubscribeExt, Subscription};
 use std::collections::HashSet;
+
+#[derive(Clone)]
+pub struct RecorderLink {
+    address: UniAddress<dyn UniRecoder>,
+}
+
+impl RecorderLink {
+    pub fn new(address: impl UniRecoder) -> Self {
+        Self {
+            address: UniAddress::new(address),
+        }
+    }
+}
+
+pub trait UniRecoder
+where
+    Self: Sync + Send + 'static,
+    Self: SubscribeExt<EventFlow>,
+    Self: EventExt<PackedAction>,
+{
+}
+
+impl<F: Flow> UniRecoder for Address<Recorder<F>> {}
 
 pub struct Recorder<F: Flow> {
     state: F,
@@ -33,13 +55,13 @@ impl<F: Flow> Recorder<F> {
         let packed_event = F::pack_event(&event)?;
         self.state.apply(event);
         for subscriber in &self.subscribers {
-            subscriber.recipient.send(packed_event.clone());
+            subscriber.recipient.send(packed_event.clone()).ok();
         }
         Ok(())
     }
 }
 
-// TODO: Eliminate the wrapper
+// TODO: Eliminate the wrapper when `!Flow` restriction will be available for `F::Event`
 pub struct Update<F: Flow> {
     pub event: F::Event,
 }

@@ -4,5 +4,5 @@ mod id;
 mod pqn;
 
 pub use fqn::Fqn;
-pub use id::{FlowId, GENERATOR};
+pub use id::FlowId;
 pub use pqn::Pqn;

@@ -1,13 +1,14 @@
 use crate::connector::Connector;
-use crate::publisher::TracerInfo;
+use crate::publisher::{RecorderLink, TracerInfo, UniRecoder};
 use crate::tracers::Tree;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
-use crb::runtime::Runtime;
+use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
 use crb::superagent::{OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
+use std::collections::HashMap;
 use ui9::names::FlowId;
 
 #[derive(Deref, DerefMut, From, Clone)]
@@ -16,9 +17,14 @@ pub struct HubServerLink {
 }
 
 impl HubServerLink {
-    pub fn add_recorder(&self, tracer_info: TracerInfo, runtime: impl Runtime) -> Result<()> {
+    pub fn add_recorder<R>(&self, tracer_info: TracerInfo, runtime: R) -> Result<()>
+    where
+        R: InteractiveRuntime,
+        <R::Context as ReachableContext>::Address: UniRecoder,
+    {
         let delegate = Delegate {
             tracer_info,
+            link: RecorderLink::new(runtime.address().clone()),
             runtime: Box::new(runtime),
         };
         self.event(delegate)
@@ -29,6 +35,7 @@ pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Slot<Tree>,
     connector: Address<Connector>,
+    recorders: HashMap<FlowId, RecorderLink>,
 }
 
 impl HubServer {
@@ -36,6 +43,7 @@ impl HubServer {
         Self {
             tree: Slot::empty(),
             connector,
+            recorders: HashMap::new(),
         }
     }
 }
@@ -73,13 +81,17 @@ impl Duty<Initialize> for HubServer {
 
 pub struct Delegate {
     tracer_info: TracerInfo,
+    link: RecorderLink,
     runtime: Box<dyn Runtime>,
 }
 
 #[async_trait]
 impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
+        let flow_id = FlowId::new(); // TODO: Slab can be used here
         ctx.spawn_trackable(delegate.runtime, Group::Relay);
+        self.recorders.insert(flow_id, delegate.link);
+        // TODO: Add to the aliases tree
         Ok(())
     }
 }
@@ -89,8 +101,7 @@ pub struct Discover {
 }
 
 impl Request for Discover {
-    // TODO: Generic Link
-    type Response = ();
+    type Response = RecorderLink;
 }
 
 impl OnRequest<Discover> for HubServer {}
