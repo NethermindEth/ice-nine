@@ -17,12 +17,13 @@ pub struct HubServerLink {
 }
 
 impl HubServerLink {
-    pub fn add_recorder<R>(&self, tracer_info: TracerInfo, runtime: R) -> Result<()>
+    pub fn add_recorder<R>(&self, fqn: Fqn, tracer_info: TracerInfo, runtime: R) -> Result<()>
     where
         R: InteractiveRuntime,
         <R::Context as ReachableContext>::Address: UniRecoder,
     {
         let delegate = Delegate {
+            fqn,
             tracer_info,
             link: RecorderLink::new(runtime.address().clone()),
             runtime: Box::new(runtime),
@@ -94,6 +95,7 @@ struct Record {
 }
 
 pub struct Delegate {
+    fqn: Fqn,
     tracer_info: TracerInfo,
     link: RecorderLink,
     runtime: Box<dyn Runtime>,
@@ -102,7 +104,7 @@ pub struct Delegate {
 #[async_trait]
 impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
-        let fqn = delegate.tracer_info.fqn.clone();
+        let fqn = delegate.fqn;
         // TODO: Check it doesn't exist
         let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
         self.relations.insert(rel, fqn.clone());

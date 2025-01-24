@@ -19,14 +19,13 @@ impl Tree {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub enum TreeEvent {
-    AddFlow { id: FlowId, info: TracerInfo },
-    DelFlow { id: FlowId },
+    AddFlow { fqn: Fqn, info: TracerInfo },
+    DelFlow { fqn: Fqn },
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
 pub struct TreeState {
     pub root: Level,
-    pub info: HashMap<FlowId, TracerInfo>,
 }
 
 impl Flow for TreeState {
@@ -35,19 +34,14 @@ impl Flow for TreeState {
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            TreeEvent::AddFlow { id, info } => {
-                let level = self.root.discover(&info.fqn);
-                level.flows.insert(id);
-                self.info.insert(id, info);
+            TreeEvent::AddFlow { fqn, info } => {
+                let level = self.root.discover(&fqn);
+                level.tracer_info = Some(info);
             }
-            TreeEvent::DelFlow { id } => {
-                if let Some(info) = self.info.remove(&id) {
-                    let level = self.root.discover(&info.fqn);
-                    level.flows.remove(&id);
-                    if level.flows.is_empty() {
-                        self.root.remove(&info.fqn);
-                    }
-                }
+            TreeEvent::DelFlow { fqn } => {
+                let level = self.root.discover(&fqn);
+                level.tracer_info.take();
+                self.root.remove(&fqn);
             }
         }
     }
@@ -56,7 +50,7 @@ impl Flow for TreeState {
 #[derive(Default, Clone, Serialize, Deserialize)]
 pub struct Level {
     pub levels: BTreeMap<String, Level>,
-    pub flows: HashSet<FlowId>,
+    pub tracer_info: Option<TracerInfo>,
 }
 
 impl Level {

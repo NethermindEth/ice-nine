@@ -10,7 +10,6 @@ use ui9::names::Fqn;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracerInfo {
-    pub fqn: Fqn,
     // TODO: Use `Class` wrapper
     pub class: String,
 }
@@ -28,10 +27,9 @@ impl<F: Flow> Tracer<F> {
         let address = runtime.address();
         if let Some(hub) = Hub::link() {
             let info = TracerInfo {
-                fqn,
                 class: F::class().into(),
             };
-            hub.server.add_recorder(info, runtime).ok();
+            hub.server.add_recorder(fqn, info, runtime).ok();
         }
         Self {
             recorder: address.equip(),
