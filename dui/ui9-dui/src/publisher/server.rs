@@ -36,7 +36,7 @@ pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Slot<Tree>,
     connector: Address<Connector>,
-    recorders: HashMap<Fqn, Record>,
+    recorders: HashMap<Fqn, RecorderLink>,
     relations: HashMap<Relation<Self>, Fqn>,
 }
 
@@ -91,10 +91,6 @@ impl Duty<Initialize> for HubServer {
     }
 }
 
-struct Record {
-    link: RecorderLink,
-}
-
 pub struct Delegate {
     fqn: Fqn,
     tracer_info: TracerInfo,
@@ -107,15 +103,10 @@ impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
         let fqn = delegate.fqn;
         if !self.recorders.contains_key(&fqn) {
-            // TODO: Check it doesn't exist
             let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
             self.relations.insert(rel, fqn.clone());
-            let record = Record {
-                link: delegate.link,
-            };
-            self.recorders.insert(fqn.clone(), record);
+            self.recorders.insert(fqn.clone(), delegate.link);
             self.tree.get_mut()?.add(fqn, delegate.tracer_info);
-            // TODO: Add to the aliases tree
             Ok(())
         } else {
             Err(anyhow!("Recorder {fqn} already registered"))
@@ -131,4 +122,12 @@ impl Request for Discover {
     type Response = RecorderLink;
 }
 
-impl OnRequest<Discover> for HubServer {}
+#[async_trait]
+impl OnRequest<Discover> for HubServer {
+    async fn on_request(&mut self, req: Discover, ctx: &mut Context<Self>) -> Result<RecorderLink> {
+        self.recorders
+            .get(&req.fqn)
+            .cloned()
+            .ok_or_else(|| anyhow!("Recorder {} not found", req.fqn))
+    }
+}
