@@ -1,7 +1,7 @@
 use super::recorder::Recorder;
 use crate::flow::Flow;
 use crate::hub::Hub;
-use crb::agent::{Address, Equip, RunAgent, StopAddress};
+use crb::agent::{Equip, RunAgent, StopAddress};
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;

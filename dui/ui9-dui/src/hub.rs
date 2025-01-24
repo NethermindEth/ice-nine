@@ -30,7 +30,7 @@ impl Hub {
     }
 
     pub async fn deactivate() -> Result<()> {
-        if let Some(mut link) = HUB.get() {
+        if let Some(link) = HUB.get() {
             let mut hub = link.hub.clone();
             hub.interrupt()?;
             hub.join().await?;

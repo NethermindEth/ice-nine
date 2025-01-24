@@ -1,7 +1,7 @@
 use super::player::{Player, Ported};
 use crate::flow::Flow;
 use crate::hub::Hub;
-use crb::agent::{Address, Equip, RunAgent, StopAddress};
+use crb::agent::{Equip, RunAgent, StopAddress};
 use crb::core::watch;
 use crb::runtime::InteractiveRuntime;
 use std::sync::Arc;
@@ -23,5 +23,9 @@ impl<F: Flow> Listener<F> {
         Self {
             player: Arc::new(address.equip()),
         }
+    }
+
+    pub fn action(&self, action: F::Action) {
+        self.player.event(action).ok();
     }
 }

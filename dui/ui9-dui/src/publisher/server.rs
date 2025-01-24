@@ -1,14 +1,13 @@
 use crate::connector::Connector;
 use crate::publisher::TracerInfo;
 use crate::tracers::Tree;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::runtime::Runtime;
 use crb::superagent::{Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
-use std::sync::OnceLock;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubServerLink {
@@ -64,7 +63,7 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for HubServer {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.tree.fill(Tree::new())?;
 
         Ok(Next::events())
