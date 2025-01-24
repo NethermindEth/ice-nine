@@ -17,7 +17,7 @@ pub struct TracerInfo {
 
 pub struct Tracer<F: Flow> {
     recorder: StopAddress<Recorder<F>>,
-    actions: mpsc::UnboundedReceiver<F::Action>,
+    actions: Option<mpsc::UnboundedReceiver<F::Action>>,
 }
 
 impl<F: Flow> Tracer<F> {
@@ -35,8 +35,12 @@ impl<F: Flow> Tracer<F> {
         }
         Self {
             recorder: address.equip(),
-            actions: rx,
+            actions: Some(rx),
         }
+    }
+
+    pub fn ignore_actions(&mut self) {
+        self.actions.take();
     }
 
     pub fn event(&self, event: F::Event) {
