@@ -1,10 +1,11 @@
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
-use crate::publisher::RecorderLink;
+use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
 use crb::core::{watch, Slot};
+use crb::superagent::Entry;
 use ui9::names::Fqn;
 
 pub enum Ported<F> {
@@ -15,6 +16,7 @@ pub enum Ported<F> {
 pub struct Player<F: Flow> {
     fqn: Fqn,
     link: Slot<RecorderLink>,
+    entry: Slot<Entry<EventFlow>>,
     state: watch::Sender<Ported<F>>,
 }
 
@@ -23,6 +25,7 @@ impl<F: Flow> Player<F> {
         Self {
             fqn,
             link: Slot::empty(),
+            entry: Slot::empty(),
             state,
         }
     }
@@ -41,11 +44,20 @@ struct Initialize;
 #[async_trait]
 impl<F: Flow> Duty<Initialize> for Player<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        // Subscribing to events stream
         let hub = Hub::link()?;
         let mut link = hub.server.discover(self.fqn.clone()).await?;
         let recipient = ctx.recipient();
-        let entry = link.subscribe(recipient).await;
+        let state_entry = link.subscribe(recipient).await?;
+
+        // Assign the initial state
+        let unpacked_state = F::unpack_state(&state_entry.state)?;
+        let state = Ported::Loaded(unpacked_state);
+        self.state.send(state)?;
+
+        // Store subscription handle and a link to forward actions
         self.link.fill(link)?;
+        self.entry.fill(state_entry.entry)?;
         Ok(Next::events())
     }
 
