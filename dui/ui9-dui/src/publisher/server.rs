@@ -1,7 +1,7 @@
 use crate::connector::Connector;
 use crate::publisher::{RecorderLink, TracerInfo, UniRecoder};
 use crate::tracers::Tree;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
@@ -63,9 +63,11 @@ impl Supervisor for HubServer {
     type GroupBy = Group;
 
     fn finished(&mut self, rel: &Relation<Self>, ctx: &mut Context<Self>) {
-        if let Some(flow_id) = self.relations.remove(rel) {
-            self.recorders.remove(&flow_id);
-            // TODO: Remove from the tree as well
+        if let Some(fqn) = self.relations.remove(rel) {
+            self.recorders.remove(&fqn);
+            if let Ok(tree) = self.tree.get_mut() {
+                tree.del(fqn);
+            }
         }
     }
 }
@@ -90,7 +92,6 @@ impl Duty<Initialize> for HubServer {
 }
 
 struct Record {
-    tracer_info: TracerInfo,
     link: RecorderLink,
 }
 
@@ -105,16 +106,20 @@ pub struct Delegate {
 impl OnEvent<Delegate> for HubServer {
     async fn handle(&mut self, delegate: Delegate, ctx: &mut Context<Self>) -> Result<()> {
         let fqn = delegate.fqn;
-        // TODO: Check it doesn't exist
-        let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
-        self.relations.insert(rel, fqn.clone());
-        let record = Record {
-            tracer_info: delegate.tracer_info,
-            link: delegate.link,
-        };
-        self.recorders.insert(fqn.clone(), record);
-        // TODO: Add to the aliases tree
-        Ok(())
+        if !self.recorders.contains_key(&fqn) {
+            // TODO: Check it doesn't exist
+            let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
+            self.relations.insert(rel, fqn.clone());
+            let record = Record {
+                link: delegate.link,
+            };
+            self.recorders.insert(fqn.clone(), record);
+            self.tree.get_mut()?.add(fqn, delegate.tracer_info);
+            // TODO: Add to the aliases tree
+            Ok(())
+        } else {
+            Err(anyhow!("Recorder {fqn} already registered"))
+        }
     }
 }
 
