@@ -27,6 +27,10 @@ impl RecorderLink {
         let state = self.address.subscribe(msg).await?;
         Ok(state)
     }
+
+    pub fn act(&mut self, action: PackedAction) -> Result<()> {
+        self.address.event(action)
+    }
 }
 
 pub trait UniRecoder

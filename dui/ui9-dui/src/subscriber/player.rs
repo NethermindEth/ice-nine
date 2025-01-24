@@ -15,7 +15,7 @@ pub enum Ported<F> {
 
 pub struct Player<F: Flow> {
     fqn: Fqn,
-    link: Slot<RecorderLink>,
+    recorder: Slot<RecorderLink>,
     entry: Slot<Entry<EventFlow>>,
     state: watch::Sender<Ported<F>>,
 }
@@ -24,7 +24,7 @@ impl<F: Flow> Player<F> {
     pub fn new(fqn: Fqn, state: watch::Sender<Ported<F>>) -> Self {
         Self {
             fqn,
-            link: Slot::empty(),
+            recorder: Slot::empty(),
             entry: Slot::empty(),
             state,
         }
@@ -46,9 +46,9 @@ impl<F: Flow> Duty<Initialize> for Player<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Subscribing to events stream
         let hub = Hub::link()?;
-        let mut link = hub.server.discover(self.fqn.clone()).await?;
+        let mut recorder = hub.server.discover(self.fqn.clone()).await?;
         let recipient = ctx.recipient();
-        let state_entry = link.subscribe(recipient).await?;
+        let state_entry = recorder.subscribe(recipient).await?;
 
         // Assign the initial state
         let unpacked_state = F::unpack_state(&state_entry.state)?;
@@ -56,7 +56,7 @@ impl<F: Flow> Duty<Initialize> for Player<F> {
         self.state.send(state)?;
 
         // Store subscription handle and a link to forward actions
-        self.link.fill(link)?;
+        self.recorder.fill(recorder)?;
         self.entry.fill(state_entry.entry)?;
         Ok(Next::events())
     }
@@ -66,7 +66,13 @@ impl<F: Flow> Duty<Initialize> for Player<F> {
 
 #[async_trait]
 impl<F: Flow> OnEvent<PackedEvent> for Player<F> {
-    async fn handle(&mut self, action: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
+        let event = F::unpack_event(&event)?;
+        self.state.send_modify(|ported| {
+            if let Ported::Loaded(state) = ported {
+                state.apply(event);
+            }
+        });
         Ok(())
     }
 }
@@ -78,7 +84,9 @@ pub struct Act<F: Flow> {
 #[async_trait]
 impl<F: Flow> OnEvent<Act<F>> for Player<F> {
     async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
-        // TODO: Forward action to a recorder (hub)
+        let recorder = self.recorder.get_mut()?;
+        let packed_action = F::pack_action(&action.action)?;
+        recorder.act(packed_action)?;
         Ok(())
     }
 }
