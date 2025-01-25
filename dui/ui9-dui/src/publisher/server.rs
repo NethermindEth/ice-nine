@@ -98,8 +98,10 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        log::debug!("HubServer starting...");
         PUB_BRIDGE.subscribe(&ctx);
         self.tree.fill(Tree::new())?;
+        log::debug!("HubServer active");
 
         Ok(Next::events())
     }

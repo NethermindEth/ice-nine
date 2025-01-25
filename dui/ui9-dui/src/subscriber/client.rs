@@ -50,7 +50,9 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for HubClient {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        log::debug!("HubClient starting...");
         SUB_BRIDGE.subscribe(&ctx);
+        log::debug!("HubClient active");
         Ok(Next::events())
     }
 }
