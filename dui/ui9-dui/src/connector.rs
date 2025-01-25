@@ -3,8 +3,7 @@ use crate::tracers::PeerTracer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
-use crb::core::{Slot, Unique};
-use crb::superagent::{ManageSubscription, Subscription};
+use crb::core::Slot;
 use futures::stream::StreamExt;
 use libp2p::{
     gossipsub, mdns, noise,
@@ -215,30 +214,3 @@ impl OnEvent<protocol::Event> for Connector {
         Ok(())
     }
 }
-
-/*
-pub struct PeerUpdates;
-
-impl Subscription for PeerUpdates {
-    type State = ();
-}
-
-#[async_trait]
-impl ManageSubscription<PeerUpdates> for Connector {
-    async fn subscribe(
-        &mut self,
-        sub: Unique<PeerUpdates>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        Ok(())
-    }
-
-    async fn unsubscribe(
-        &mut self,
-        sub: Unique<PeerUpdates>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        Ok(())
-    }
-}
-*/

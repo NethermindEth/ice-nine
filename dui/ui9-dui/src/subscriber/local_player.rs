@@ -14,14 +14,14 @@ pub enum Ported<F> {
     Loaded(F),
 }
 
-pub struct Player<F: Flow> {
+pub struct LocalPlayer<F: Flow> {
     fqn: Fqn,
     recorder: Slot<RecorderLink>,
     entry: Slot<Entry<EventFlow>>,
     state: watch::Sender<Ported<F>>,
 }
 
-impl<F: Flow> Player<F> {
+impl<F: Flow> LocalPlayer<F> {
     pub fn new(fqn: Fqn, state: watch::Sender<Ported<F>>) -> Self {
         Self {
             fqn,
@@ -32,7 +32,7 @@ impl<F: Flow> Player<F> {
     }
 }
 
-impl<F: Flow> Agent for Player<F> {
+impl<F: Flow> Agent for LocalPlayer<F> {
     type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
@@ -43,7 +43,7 @@ impl<F: Flow> Agent for Player<F> {
 struct Initialize;
 
 #[async_trait]
-impl<F: Flow> Duty<Initialize> for Player<F> {
+impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Subscribing to events stream
         let hub = Hub::link()?;
@@ -66,7 +66,7 @@ impl<F: Flow> Duty<Initialize> for Player<F> {
 }
 
 #[async_trait]
-impl<F: Flow> OnEvent<PackedEvent> for Player<F> {
+impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
         let event = F::unpack_event(&event)?;
         self.state.send_modify(|ported| {
@@ -83,7 +83,7 @@ pub struct Act<F: Flow> {
 }
 
 #[async_trait]
-impl<F: Flow> OnEvent<Act<F>> for Player<F> {
+impl<F: Flow> OnEvent<Act<F>> for LocalPlayer<F> {
     async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
         let recorder = self.recorder.get_mut()?;
         let packed_action = F::pack_action(&action.action)?;

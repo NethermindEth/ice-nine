@@ -75,7 +75,7 @@ pub enum Group {
 impl Supervisor for HubServer {
     type GroupBy = Group;
 
-    fn finished(&mut self, rel: &Relation<Self>, ctx: &mut Context<Self>) {
+    fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {
         if let Some(fqn) = self.relations.remove(rel) {
             self.recorders.remove(&fqn);
             if let Ok(tree) = self.tree.get_mut() {
@@ -140,7 +140,11 @@ impl Request for Discover {
 
 #[async_trait]
 impl OnRequest<Discover> for HubServer {
-    async fn on_request(&mut self, req: Discover, ctx: &mut Context<Self>) -> Result<RecorderLink> {
+    async fn on_request(
+        &mut self,
+        req: Discover,
+        _ctx: &mut Context<Self>,
+    ) -> Result<RecorderLink> {
         self.recorders
             .get(&req.fqn)
             .cloned()

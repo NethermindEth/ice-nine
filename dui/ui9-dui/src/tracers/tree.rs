@@ -1,8 +1,8 @@
 use crate::flow::Flow;
 use crate::publisher::{Tracer, TracerInfo};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, HashMap, HashSet};
-use ui9::names::{FlowId, Fqn};
+use std::collections::BTreeMap;
+use ui9::names::Fqn;
 
 pub struct Tree {
     tracer: Tracer<TreeState>,

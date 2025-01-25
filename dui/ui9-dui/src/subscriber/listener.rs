@@ -1,7 +1,6 @@
 use super::client::HubClient;
-use super::player::{Act, Player, Ported};
+use super::local_player::{Act, LocalPlayer, Ported};
 use crate::flow::Flow;
-use crate::hub::Hub;
 use crb::agent::{Equip, RunAgent, StopAddress};
 use crb::core::watch;
 use crb::runtime::InteractiveRuntime;
@@ -9,14 +8,14 @@ use std::sync::Arc;
 use ui9::names::Fqn;
 
 pub struct Listener<F: Flow> {
-    player: Arc<StopAddress<Player<F>>>,
+    player: Arc<StopAddress<LocalPlayer<F>>>,
     state: watch::Receiver<Ported<F>>,
 }
 
 impl<F: Flow> Listener<F> {
     pub fn new(fqn: Fqn) -> Self {
         let (tx, rx) = watch::channel(Ported::Loading);
-        let player = Player::new(fqn.clone(), tx);
+        let player = LocalPlayer::new(fqn.clone(), tx);
         let runtime = RunAgent::new(player);
         let address = runtime.address();
         HubClient::add_player(runtime);

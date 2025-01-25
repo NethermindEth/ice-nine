@@ -3,7 +3,7 @@ use crate::tracers::PeerListener;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, Duty, Next, OnEvent};
-use crb::superagent::{SubscribeExt, Timer};
+use crb::superagent::Timer;
 
 /// A hub server that keep information about remote components.
 pub struct Relay {
@@ -47,7 +47,7 @@ struct Tick;
 
 #[async_trait]
 impl OnEvent<Tick> for Relay {
-    async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<()> {
         let state = self.peer_listener.state();
         println!("PEERS: {:?}", *state);
         Ok(())
