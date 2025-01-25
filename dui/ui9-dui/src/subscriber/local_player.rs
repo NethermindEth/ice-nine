@@ -1,3 +1,4 @@
+use super::Ported;
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
@@ -7,12 +8,6 @@ use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
 use crb::core::{watch, Slot};
 use crb::superagent::Entry;
 use ui9::names::Fqn;
-
-#[derive(Debug, Clone)]
-pub enum Ported<F> {
-    Loading,
-    Loaded(F),
-}
 
 pub struct LocalPlayer<F: Flow> {
     fqn: Fqn,

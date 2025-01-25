@@ -1,5 +1,6 @@
 use super::client::HubClient;
-use super::local_player::{Act, LocalPlayer, Ported};
+use super::local_player::{Act, LocalPlayer};
+use super::Ported;
 use crate::flow::Flow;
 use crb::agent::{Equip, RunAgent, StopAddress};
 use crb::core::watch;
