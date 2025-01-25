@@ -1,3 +1,4 @@
+use super::client::HubClient;
 use super::player::{Act, Player, Ported};
 use crate::flow::Flow;
 use crate::hub::Hub;
@@ -18,12 +19,7 @@ impl<F: Flow> Listener<F> {
         let player = Player::new(fqn.clone(), tx);
         let runtime = RunAgent::new(player);
         let address = runtime.address();
-        if let Ok(hub) = Hub::link() {
-            // TODO: Use a lazy channel for spawning instead
-            hub.client.add_player(runtime).ok();
-        } else {
-            log::error!("Listener can't reach hub: {fqn}");
-        }
+        HubClient::add_player(runtime);
         Self {
             player: Arc::new(address.equip()),
             state: rx,

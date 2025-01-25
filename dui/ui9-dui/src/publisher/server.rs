@@ -6,9 +6,12 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
-use crb::superagent::{InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession};
+use crb::superagent::{
+    EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
+};
 use derive_more::{Deref, DerefMut, From};
 use std::collections::HashMap;
+use std::sync::LazyLock;
 use ui9::names::Fqn;
 
 #[derive(Deref, DerefMut, From, Clone)]
@@ -17,7 +20,17 @@ pub struct HubServerLink {
 }
 
 impl HubServerLink {
-    pub fn add_recorder<R>(&self, fqn: Fqn, tracer_info: TracerInfo, runtime: R) -> Result<()>
+    pub async fn discover(&self, fqn: Fqn) -> Result<RecorderLink> {
+        let msg = Discover { fqn };
+        let link = self.hub.interact(msg).await?;
+        Ok(link)
+    }
+}
+
+static PUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
+
+impl HubServer {
+    pub fn add_recorder<R>(fqn: Fqn, tracer_info: TracerInfo, runtime: R)
     where
         R: InteractiveRuntime,
         <R::Context as ReachableContext>::Address: UniRecorder,
@@ -28,13 +41,7 @@ impl HubServerLink {
             link: RecorderLink::new(runtime.address().clone()),
             runtime: Box::new(runtime),
         };
-        self.event(delegate)
-    }
-
-    pub async fn discover(&self, fqn: Fqn) -> Result<RecorderLink> {
-        let msg = Discover { fqn };
-        let link = self.hub.interact(msg).await?;
-        Ok(link)
+        PUB_BRIDGE.send(delegate);
     }
 }
 
@@ -90,7 +97,8 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for HubServer {
-    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        PUB_BRIDGE.subscribe(&ctx);
         self.tree.fill(Tree::new())?;
 
         Ok(Next::events())

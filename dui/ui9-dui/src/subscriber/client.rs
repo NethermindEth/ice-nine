@@ -1,26 +1,25 @@
-use crate::subscriber::bridge::EventBridge;
 use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::runtime::Runtime;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{EventBridge, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::LazyLock;
-
-pub static SUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubClientLink {
     hub: Address<HubClient>,
 }
 
-impl HubClientLink {
-    pub fn add_player(&self, runtime: impl Runtime) -> Result<()> {
+static SUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
+
+impl HubClient {
+    pub fn add_player(runtime: impl Runtime) {
         let delegate = Delegate {
             runtime: Box::new(runtime),
         };
-        self.event(delegate)
+        SUB_BRIDGE.send(delegate);
     }
 }
 
