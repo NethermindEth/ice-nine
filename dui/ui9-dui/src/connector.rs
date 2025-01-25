@@ -4,8 +4,11 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
 use crb::core::{Slot, Unique};
+use crb::send::Recipient;
 use crb::superagent::{ManageSubscription, Subscription};
+use derive_more::{From, Into};
 use futures::stream::StreamExt;
+use libp2p::PeerId;
 use libp2p::{
     gossipsub, mdns, noise,
     request_response::{self, ProtocolSupport},
@@ -13,15 +16,19 @@ use libp2p::{
     tcp, yamux, StreamProtocol, Swarm,
 };
 use std::{
-    collections::hash_map::DefaultHasher,
+    collections::hash_map::{DefaultHasher, HashMap},
     hash::{Hash, Hasher},
     time::Duration,
 };
 use tokio::select;
+use typed_slab::TypedSlab;
 
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
     peer_tracer: PeerTracer,
+
+    connections: TypedSlab<ConnectionId, Connection>,
+    connection_ids: HashMap<Unique<OpenConnection>, ConnectionId>,
 }
 
 impl Connector {
@@ -29,6 +36,8 @@ impl Connector {
         Self {
             swarm: Slot::empty(),
             peer_tracer: PeerTracer::new(),
+            connections: TypedSlab::new(),
+            connection_ids: HashMap::new(),
         }
     }
 }
@@ -216,10 +225,26 @@ impl OnEvent<protocol::Event> for Connector {
     }
 }
 
-pub struct OpenConnection;
+pub struct OpenConnection {
+    peer_id: PeerId,
+    recipient: Recipient<protocol::Response>,
+}
+
+pub struct Connection {
+    sub: Unique<OpenConnection>,
+}
+
+#[derive(From, Into, Clone, Copy)]
+struct ConnectionId(usize);
+
+pub struct ConnectionSender {
+    peer_id: PeerId,
+    id: ConnectionId,
+    recipient: Recipient<ForwardRequest>,
+}
 
 impl Subscription for OpenConnection {
-    type State = ();
+    type State = ConnectionSender;
 }
 
 #[async_trait]
@@ -227,9 +252,17 @@ impl ManageSubscription<OpenConnection> for Connector {
     async fn subscribe(
         &mut self,
         sub: Unique<OpenConnection>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        Ok(())
+        ctx: &mut Context<Self>,
+    ) -> Result<ConnectionSender> {
+        let connection = Connection { sub: sub.clone() };
+        let id = self.connections.insert(connection);
+        let connection = ConnectionSender {
+            peer_id: sub.peer_id.clone(),
+            id,
+            recipient: ctx.recipient(),
+        };
+        self.connection_ids.insert(sub, id);
+        Ok(connection)
     }
 
     async fn unsubscribe(
@@ -237,6 +270,23 @@ impl ManageSubscription<OpenConnection> for Connector {
         sub: Unique<OpenConnection>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
+        let id = self.connection_ids.remove(&sub);
+        if let Some(id) = id {
+            self.connections.remove(id);
+        }
+        Ok(())
+    }
+}
+
+struct ForwardRequest {
+    peer_id: PeerId,
+    id: ConnectionId,
+    request: protocol::Request,
+}
+
+#[async_trait]
+impl OnEvent<ForwardRequest> for Connector {
+    async fn handle(&mut self, _event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
     }
 }

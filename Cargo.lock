@@ -7229,11 +7229,11 @@ dependencies = [
 
 [[package]]
 name = "typed-slab"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83a642c7ed943babed2ba8681bf96321c557ffc1d68a52a510c64e270f36119a"
+checksum = "d8a7466e5aed4fc55a50dd0528da8b78886cf605217e04dadd4ccbc51e5df377"
 dependencies = [
- "derive_more 0.99.18",
+ "derive_more 1.0.0",
  "slab",
 ]
 
@@ -7303,6 +7303,7 @@ dependencies = [
  "log",
  "serde",
  "tokio",
+ "typed-slab",
  "ui9",
  "ui9-codec",
 ]
