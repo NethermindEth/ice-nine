@@ -16,7 +16,7 @@ impl Relay {
     pub fn new(connector: Address<Connector>) -> Self {
         Self {
             connector,
-            peer_listener: PeerListener::new(),
+            peer_listener: PeerListener::new(None),
             interval: Timer::new(Tick),
         }
     }

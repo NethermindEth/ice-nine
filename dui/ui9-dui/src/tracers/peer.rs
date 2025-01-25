@@ -15,10 +15,10 @@ pub struct PeerListener {
 }
 
 impl PeerListener {
-    pub fn new() -> Self {
+    pub fn new(peer: Option<PeerId>) -> Self {
         let fqn = Fqn::root(PEERS);
         Self {
-            listener: Listener::new(fqn),
+            listener: Listener::new(peer, fqn),
         }
     }
 }
