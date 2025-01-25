@@ -3,13 +3,13 @@ use crate::tracers::PeerListener;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, Duty, Next, OnEvent};
-use crb::superagent::Timer;
+use crb::superagent::Interval;
 
 /// A hub server that keep information about remote components.
 pub struct Relay {
     connector: Address<Connector>,
     peer_listener: PeerListener,
-    interval: Timer<Tick>,
+    interval: Interval<Tick>,
 }
 
 impl Relay {
@@ -17,7 +17,7 @@ impl Relay {
         Self {
             connector,
             peer_listener: PeerListener::new(None),
-            interval: Timer::new(Tick),
+            interval: Interval::default(),
         }
     }
 }
@@ -35,14 +35,12 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.interval.add_listener(&ctx);
-        self.interval.set_repeat(true);
-        self.interval.on();
+        self.interval.enable(&ctx);
         Ok(Next::events())
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct Tick;
 
 #[async_trait]

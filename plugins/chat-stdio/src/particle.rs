@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{
-    Entry, FetchError, InteractExt, OnResponse, Supervisor, SupervisorSession, Timer,
+    Entry, FetchError, InteractExt, Interval, OnResponse, Supervisor, SupervisorSession,
 };
 use ice9_core::{ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks, UpdateConfig};
 use tokio::io::{self, AsyncWriteExt, Stdout};
@@ -16,21 +16,19 @@ pub struct StdioParticle {
     config_updates: Option<Entry<ConfigSegmentUpdates>>,
     bond: Slot<SubstanceBond<Self>>,
     drainer: Slot<Address<StdinDrainer>>,
-    thinking_interval: Timer<Tick>,
+    thinking_interval: Interval<Tick>,
     config: StdioConfig,
 }
 
 impl Particle for StdioParticle {
     fn construct(substance: SubstanceLinks) -> Self {
-        let mut thinking_interval = Timer::new(Tick);
-        thinking_interval.set_repeat(true);
         Self {
             substance: substance,
             stdout: io::stdout(),
             config_updates: None,
             bond: Slot::empty(),
             drainer: Slot::empty(),
-            thinking_interval,
+            thinking_interval: Interval::default(),
             config: StdioConfig::default(),
         }
     }
@@ -104,7 +102,7 @@ impl StdioParticle {
         self.stdout.flush().await?;
         // TODO: Start an interval
 
-        self.thinking_interval.on();
+        self.thinking_interval.start();
         Ok(())
     }
 
@@ -116,7 +114,7 @@ impl StdioParticle {
     }
 
     async fn stop_thinking(&mut self) -> Result<()> {
-        self.thinking_interval.off();
+        self.thinking_interval.stop();
         Ok(())
     }
 }
@@ -129,7 +127,7 @@ impl UpdateConfig<StdioConfig> for StdioParticle {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct Tick;
 
 #[async_trait]

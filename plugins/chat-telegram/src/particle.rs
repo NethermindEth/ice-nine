@@ -5,7 +5,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Entry, OnResponse, Output, Supervisor, SupervisorSession, Timer};
+use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
 use ice9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
@@ -24,7 +24,7 @@ pub struct TelegramParticle {
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
-    thinking_interval: Timer<Tick>,
+    thinking_interval: Interval<Tick>,
 }
 
 impl Supervisor for TelegramParticle {
@@ -33,15 +33,13 @@ impl Supervisor for TelegramParticle {
 
 impl Particle for TelegramParticle {
     fn construct(substance: SubstanceLinks) -> Self {
-        let mut thinking_interval = Timer::new(Tick);
-        thinking_interval.set_repeat(true);
         Self {
             substance,
             config_updates: None,
             bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
-            thinking_interval,
+            thinking_interval: Interval::default(),
         }
     }
 }
@@ -65,8 +63,7 @@ impl Duty<Initialize> for TelegramParticle {
         self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
 
-        self.thinking_interval.add_listener(ctx);
-        self.thinking_interval.on();
+        self.thinking_interval.enable(ctx);
 
         Ok(Next::events())
     }
@@ -140,7 +137,7 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 struct Tick;
 
 #[async_trait]
