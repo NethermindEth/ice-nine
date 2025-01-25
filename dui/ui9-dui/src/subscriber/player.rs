@@ -8,6 +8,7 @@ use crb::core::{watch, Slot};
 use crb::superagent::Entry;
 use ui9::names::Fqn;
 
+#[derive(Debug, Clone)]
 pub enum Ported<F> {
     Loading,
     Loaded(F),

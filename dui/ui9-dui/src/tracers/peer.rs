@@ -1,9 +1,27 @@
 use crate::flow::Flow;
 use crate::publisher::Tracer;
+use crate::subscriber::Listener;
+use derive_more::{Deref, DerefMut};
 use libp2p::PeerId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use ui9::names::Fqn;
+
+static PEERS: &str = "@peers";
+
+#[derive(Deref, DerefMut)]
+pub struct PeerListener {
+    listener: Listener<PeerState>,
+}
+
+impl PeerListener {
+    pub fn new() -> Self {
+        let fqn = Fqn::root(PEERS);
+        Self {
+            listener: Listener::new(fqn),
+        }
+    }
+}
 
 pub struct PeerTracer {
     tracer: Tracer<PeerState>,
@@ -11,7 +29,7 @@ pub struct PeerTracer {
 
 impl PeerTracer {
     pub fn new() -> Self {
-        let fqn = Fqn::root("@peers");
+        let fqn = Fqn::root(PEERS);
         let state = PeerState::default();
         let tracer = Tracer::new(fqn, state);
         Self { tracer }
@@ -28,13 +46,13 @@ impl PeerTracer {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PeerEvent {
     AddPeer { peer_id: PeerId },
     DelPeer { peer_id: PeerId },
 }
 
-#[derive(Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PeerState {
     pub peers: BTreeSet<PeerId>,
 }

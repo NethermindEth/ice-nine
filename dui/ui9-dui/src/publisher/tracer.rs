@@ -29,7 +29,10 @@ impl<F: Flow> Tracer<F> {
             let info = TracerInfo {
                 class: F::class().into(),
             };
+            // TODO: Use a lazy channel for spawning instead
             hub.server.add_recorder(fqn, info, runtime).ok();
+        } else {
+            log::error!("Tracer can't reach hub: {fqn}");
         }
         Self {
             recorder: address.equip(),

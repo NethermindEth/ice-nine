@@ -7300,6 +7300,7 @@ dependencies = [
  "futures",
  "libp2p",
  "libp2p-request-response",
+ "log",
  "serde",
  "tokio",
  "ui9",

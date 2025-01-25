@@ -64,17 +64,16 @@ struct Initialize;
 impl Duty<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let connector = Connector::new();
-        let connector_runtime = RunAgent::new(connector);
-        let connector_address = connector_runtime.address();
+        let connector = ctx.schedule(connector, ());
 
-        let server = HubServer::new(connector_address.clone());
-        let server = ctx.spawn_agent(server, ());
+        let server = HubServer::new(connector.clone());
+        let server = ctx.schedule(server, ());
 
-        let client = HubClient::new(connector_address.clone());
-        let client = ctx.spawn_agent(client, ());
+        let client = HubClient::new(connector.clone());
+        let client = ctx.schedule(client, ());
 
-        let relay = Relay::new(connector_address.clone());
-        let relay = ctx.spawn_agent(relay, ());
+        let relay = Relay::new(connector.clone());
+        let relay = ctx.schedule(relay, ());
 
         let link = HubLink {
             hub: ctx.to_address(),
@@ -85,7 +84,7 @@ impl Duty<Initialize> for Hub {
             .map_err(|_| anyhow!("Hub is already activated"))?;
 
         // Spawning the connector after the `Hub` is set, because it has peers tracer
-        ctx.spawn_runtime(connector_runtime, ());
+        ctx.spawn_scheduled();
 
         Ok(Next::events())
     }

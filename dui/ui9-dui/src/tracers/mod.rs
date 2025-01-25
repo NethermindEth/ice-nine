@@ -1,5 +1,5 @@
 pub mod peer;
 pub mod tree;
 
-pub use peer::PeerTracer;
+pub use peer::{PeerListener, PeerTracer};
 pub use tree::Tree;

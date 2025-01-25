@@ -13,6 +13,7 @@ derive_more.workspace = true
 futures.workspace = true
 libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "serde", "tcp", "tokio", "request-response", "quic", "yamux"] }
 libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
+log.workspace = true
 serde.workspace = true
 tokio.workspace = true
 ui9.workspace = true
