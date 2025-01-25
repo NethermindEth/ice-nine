@@ -9,11 +9,11 @@ use std::collections::HashSet;
 
 #[derive(Clone)]
 pub struct RecorderLink {
-    address: UniAddress<dyn UniRecoder>,
+    address: UniAddress<dyn UniRecorder>,
 }
 
 impl RecorderLink {
-    pub fn new(address: impl UniRecoder) -> Self {
+    pub fn new(address: impl UniRecorder) -> Self {
         Self {
             address: UniAddress::new(address),
         }
@@ -33,7 +33,7 @@ impl RecorderLink {
     }
 }
 
-pub trait UniRecoder
+pub trait UniRecorder
 where
     Self: Sync + Send + 'static,
     Self: SubscribeExt<EventFlow>,
@@ -41,7 +41,7 @@ where
 {
 }
 
-impl<F: Flow> UniRecoder for Address<Recorder<F>> {}
+impl<F: Flow> UniRecorder for Address<Recorder<F>> {}
 
 pub struct Recorder<F: Flow> {
     state: F,

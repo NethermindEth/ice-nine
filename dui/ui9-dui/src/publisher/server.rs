@@ -1,5 +1,5 @@
 use crate::connector::Connector;
-use crate::publisher::{RecorderLink, TracerInfo, UniRecoder};
+use crate::publisher::{RecorderLink, TracerInfo, UniRecorder};
 use crate::tracers::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -20,7 +20,7 @@ impl HubServerLink {
     pub fn add_recorder<R>(&self, fqn: Fqn, tracer_info: TracerInfo, runtime: R) -> Result<()>
     where
         R: InteractiveRuntime,
-        <R::Context as ReachableContext>::Address: UniRecoder,
+        <R::Context as ReachableContext>::Address: UniRecorder,
     {
         let delegate = Delegate {
             fqn,
