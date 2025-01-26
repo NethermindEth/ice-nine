@@ -3,12 +3,12 @@ use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
 use super::{Act, Ported, TelePorted};
 use crate::flow::Flow;
-use crb::agent::{Equip, RunAgent, StopAddress};
+use crb::agent::{RunAgent, StopRecipient};
 use crb::core::watch;
 use crb::runtime::InteractiveRuntime;
+use crb::send::Sender;
 use derive_more::From;
 use libp2p::PeerId;
-use std::sync::Arc;
 use ui9::names::Fqn;
 
 #[derive(Debug, From)]
@@ -54,7 +54,7 @@ impl<F: Flow> ListenerInterface<F> for LocalListener<F> {
 
     fn action(&self, action: F::Action) {
         let msg = Act { action };
-        self.player.event(msg).ok();
+        self.player.send(msg).ok();
     }
 }
 
@@ -65,12 +65,12 @@ impl<F: Flow> ListenerInterface<F> for RemoteListener<F> {
 
     fn action(&self, action: F::Action) {
         let msg = Act { action };
-        self.player.event(msg).ok();
+        self.player.send(msg).ok();
     }
 }
 
 pub struct LocalListener<F: Flow> {
-    player: StopAddress<LocalPlayer<F>>,
+    player: StopRecipient<Act<F>>,
     state: watch::Receiver<Ported<F>>,
 }
 
@@ -79,7 +79,7 @@ impl<F: Flow> LocalListener<F> {
         let (tx, rx) = watch::channel(Ported::Loading);
         let player = LocalPlayer::new(fqn.clone(), tx);
         let runtime = RunAgent::new(player);
-        let player = runtime.address().equip();
+        let player = runtime.address().to_stop_address().to_stop_recipient();
         HubClient::add_player(runtime);
         Self { player, state: rx }
     }
@@ -90,7 +90,7 @@ impl<F: Flow> LocalListener<F> {
 }
 
 pub struct RemoteListener<F: Flow> {
-    player: StopAddress<RemotePlayer<F>>,
+    player: StopRecipient<Act<F>>,
     state: watch::Receiver<TelePorted<F>>,
 }
 
@@ -99,7 +99,7 @@ impl<F: Flow> RemoteListener<F> {
         let (tx, rx) = watch::channel(TelePorted::Loading);
         let player = RemotePlayer::new(peer_id, fqn.clone(), tx);
         let runtime = RunAgent::new(player);
-        let player = runtime.address().equip();
+        let player = runtime.address().to_stop_address().to_stop_recipient();
         HubClient::add_player(runtime);
         Self { player, state: rx }
     }

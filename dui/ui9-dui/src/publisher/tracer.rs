@@ -29,7 +29,7 @@ impl<F: Flow> Tracer<F> {
         };
         HubServer::add_recorder(fqn, info, runtime);
         Self {
-            recorder: address.equip(),
+            recorder: address.to_stop_address(),
             actions: Some(rx),
         }
     }
