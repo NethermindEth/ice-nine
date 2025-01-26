@@ -1,9 +1,9 @@
-use super::TelePorted;
+use super::{Act, TelePorted};
 use crate::connector::OpenConnection;
 use crate::hub::Hub;
 use crate::protocol;
 use crate::Flow;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
 use crb::core::{watch, Slot};
@@ -55,5 +55,14 @@ impl<F: Flow> Duty<Initialize> for RemotePlayer<F> {
 impl<F: Flow> OnEvent<protocol::Response> for RemotePlayer<F> {
     async fn handle(&mut self, _res: protocol::Response, _ctx: &mut Context<Self>) -> Result<()> {
         Ok(())
+    }
+}
+
+#[async_trait]
+impl<F: Flow> OnEvent<Act<F>> for RemotePlayer<F> {
+    async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
+        Err(anyhow!(
+            "Not yet implemented: sending action to a remote component"
+        ))
     }
 }

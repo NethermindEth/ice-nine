@@ -1,4 +1,4 @@
-use super::Ported;
+use super::{Act, Ported};
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
@@ -71,10 +71,6 @@ impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
         });
         Ok(())
     }
-}
-
-pub struct Act<F: Flow> {
-    pub action: F::Action,
 }
 
 #[async_trait]
