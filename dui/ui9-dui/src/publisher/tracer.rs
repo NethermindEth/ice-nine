@@ -1,7 +1,7 @@
 use super::recorder::{Recorder, Update};
 use super::server::HubServer;
 use crate::flow::Flow;
-use crb::agent::{Equip, RunAgent, StopAddress};
+use crb::agent::{RunAgent, StopAddress};
 use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
 use serde::{Deserialize, Serialize};
@@ -14,6 +14,7 @@ pub struct TracerInfo {
 }
 
 pub struct Tracer<F: Flow> {
+    // TODO: Consider using StopRecipient
     recorder: StopAddress<Recorder<F>>,
     actions: Option<mpsc::UnboundedReceiver<F::Action>>,
 }

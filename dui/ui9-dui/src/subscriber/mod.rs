@@ -13,14 +13,6 @@ use crate::flow::Flow;
 pub enum Ported<F> {
     Loading,
     Loaded(F),
-    Stale(F),
-}
-
-#[derive(Debug, Clone)]
-pub enum TelePorted<F> {
-    Loading,
-    Loaded(F),
-    Stale(F),
 }
 
 pub struct Act<F: Flow> {

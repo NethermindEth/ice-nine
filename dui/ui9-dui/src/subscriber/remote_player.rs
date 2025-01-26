@@ -1,4 +1,4 @@
-use super::{Act, TelePorted};
+use super::{Act, Ported};
 use crate::connector::OpenConnection;
 use crate::hub::Hub;
 use crate::protocol;
@@ -14,12 +14,12 @@ use ui9::names::Fqn;
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
     fqn: Fqn,
-    state: watch::Sender<TelePorted<F>>,
+    state: watch::Sender<Ported<F>>,
     entry: Slot<StateEntry<OpenConnection>>,
 }
 
 impl<F: Flow> RemotePlayer<F> {
-    pub fn new(peer_id: PeerId, fqn: Fqn, state: watch::Sender<TelePorted<F>>) -> Self {
+    pub fn new(peer_id: PeerId, fqn: Fqn, state: watch::Sender<Ported<F>>) -> Self {
         Self {
             peer_id,
             fqn,
