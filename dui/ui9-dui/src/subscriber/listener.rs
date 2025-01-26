@@ -6,45 +6,66 @@ use crate::flow::Flow;
 use crb::agent::{Equip, RunAgent, StopAddress};
 use crb::core::watch;
 use crb::runtime::InteractiveRuntime;
+use derive_more::From;
 use libp2p::PeerId;
 use std::sync::Arc;
 use ui9::names::Fqn;
 
+#[derive(Debug, From)]
+pub enum State<'a, F: Flow> {
+    Local(watch::Ref<'a, Ported<F>>),
+    Remote(watch::Ref<'a, TelePorted<F>>),
+}
+
 pub struct Listener<F: Flow> {
-    player: Arc<dyn Player<F>>,
-    state: watch::Receiver<Ported<F>>,
+    player: Box<dyn ListenerInterface<F>>,
 }
 
 impl<F: Flow> Listener<F> {
     pub fn new(peer: Option<PeerId>, fqn: Fqn) -> Self {
-        let (tx, rx) = watch::channel(Ported::Loading);
-        let player = LocalPlayer::new(fqn.clone(), tx);
-        let runtime = RunAgent::new(player);
-        let address: StopAddress<LocalPlayer<F>> = runtime.address().equip();
-        HubClient::add_player(runtime);
-        Self {
-            player: Arc::new(address),
-            state: rx,
-        }
+        let player: Box<dyn ListenerInterface<F>> = {
+            if let Some(peer) = peer {
+                Box::new(RemoteListener::new(peer, fqn))
+            } else {
+                Box::new(LocalListener::new(fqn))
+            }
+        };
+        Self { player }
+    }
+
+    pub fn state(&self) -> State<F> {
+        self.player.state()
     }
 
     pub fn action(&self, action: F::Action) {
         self.player.action(action);
     }
-
-    pub fn state(&self) -> watch::Ref<Ported<F>> {
-        self.state.borrow()
-    }
 }
 
-trait Player<F: Flow>: Sync + Send {
+trait ListenerInterface<F: Flow>: Sync + Send {
+    fn state(&self) -> State<F>;
     fn action(&self, action: F::Action);
 }
 
-impl<F: Flow> Player<F> for StopAddress<LocalPlayer<F>> {
+impl<F: Flow> ListenerInterface<F> for LocalListener<F> {
+    fn state(&self) -> State<F> {
+        State::Local(self.state.borrow())
+    }
+
     fn action(&self, action: F::Action) {
         let msg = Act { action };
-        self.event(msg).ok();
+        self.player.event(msg).ok();
+    }
+}
+
+impl<F: Flow> ListenerInterface<F> for RemoteListener<F> {
+    fn state(&self) -> State<F> {
+        State::Remote(self.state.borrow())
+    }
+
+    fn action(&self, action: F::Action) {
+        let msg = Act { action };
+        self.player.event(msg).ok();
     }
 }
 
@@ -61,11 +82,6 @@ impl<F: Flow> LocalListener<F> {
         let player = runtime.address().equip();
         HubClient::add_player(runtime);
         Self { player, state: rx }
-    }
-
-    pub fn action(&self, action: F::Action) {
-        let msg = Act { action };
-        self.player.event(msg).ok();
     }
 
     pub fn state(&self) -> watch::Ref<Ported<F>> {
@@ -86,11 +102,6 @@ impl<F: Flow> RemoteListener<F> {
         let player = runtime.address().equip();
         HubClient::add_player(runtime);
         Self { player, state: rx }
-    }
-
-    pub fn action(&self, action: F::Action) {
-        let msg = Act { action };
-        self.player.event(msg).ok();
     }
 
     pub fn state(&self) -> watch::Ref<TelePorted<F>> {
