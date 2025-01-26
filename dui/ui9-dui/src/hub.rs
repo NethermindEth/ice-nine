@@ -1,4 +1,4 @@
-use crate::connector::Connector;
+use crate::connector::{Connector, ConnectorLink};
 use crate::publisher::{HubServer, HubServerLink};
 use crate::relay::Relay;
 use crate::subscriber::{HubClient, HubClientLink};
@@ -14,6 +14,7 @@ pub struct HubLink {
     pub hub: Address<Hub>,
     pub server: HubServerLink,
     pub client: HubClientLink,
+    pub connector: ConnectorLink,
 }
 
 pub struct Hub {}
@@ -78,6 +79,7 @@ impl Duty<Initialize> for Hub {
             hub: ctx.to_address(),
             server: server.equip(),
             client: client.equip(),
+            connector: connector.equip(),
         };
         HUB.set(link)
             .map_err(|_| anyhow!("Hub is already activated"))?;

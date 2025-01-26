@@ -11,4 +11,12 @@ pub use local_player::LocalPlayer;
 pub enum Ported<F> {
     Loading,
     Loaded(F),
+    Stale(F),
+}
+
+#[derive(Debug, Clone)]
+pub enum TelePorted<F> {
+    Loading,
+    Loaded(F),
+    Stale(F),
 }

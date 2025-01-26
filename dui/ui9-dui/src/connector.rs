@@ -2,11 +2,13 @@ use crate::protocol;
 use crate::tracers::PeerTracer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToRecipient,
+};
 use crb::core::{Slot, Unique};
 use crb::send::Recipient;
-use crb::superagent::{ManageSubscription, Subscription};
-use derive_more::{From, Into};
+use crb::superagent::{Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription};
+use derive_more::{Deref, DerefMut, From, Into};
 use futures::stream::StreamExt;
 use libp2p::PeerId;
 use libp2p::{
@@ -22,6 +24,25 @@ use std::{
 };
 use tokio::select;
 use typed_slab::TypedSlab;
+
+#[derive(Deref, DerefMut, From)]
+pub struct ConnectorLink {
+    address: Address<Connector>,
+}
+
+impl ConnectorLink {
+    pub fn open_connection(
+        &self,
+        peer_id: PeerId,
+        recipient: impl ToRecipient<protocol::Response>,
+    ) -> Fetcher<StateEntry<OpenConnection>> {
+        let msg = OpenConnection {
+            peer_id,
+            recipient: recipient.to_recipient(),
+        };
+        self.address.subscribe(msg)
+    }
+}
 
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
