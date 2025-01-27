@@ -1,5 +1,5 @@
 use crate::protocol;
-use crate::tracers::PeerTracer;
+use crate::tracers::peer::PeerTracer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{

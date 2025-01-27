@@ -1,6 +1,6 @@
 use crate::connector::Connector;
 use crate::publisher::{RecorderLink, TracerInfo, UniRecorder};
-use crate::tracers::Tree;
+use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};

@@ -7304,6 +7304,7 @@ dependencies = [
  "log",
  "serde",
  "tokio",
+ "tokio-stream",
  "typed-slab",
  "ui9",
  "ui9-codec",

@@ -2,7 +2,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, Standalone};
 use crb::superagent::{Supervisor, SupervisorSession};
-use ui9_dui::tracers::PeerListener;
+use ui9_dui::tracers::peer::PeerListener;
 
 pub struct App {
     peers: PeerListener,
