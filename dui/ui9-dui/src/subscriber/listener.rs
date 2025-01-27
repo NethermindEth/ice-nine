@@ -1,7 +1,7 @@
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
-use super::{Act, Ported};
+use super::{Act, PlayerSetup, Ported};
 use crate::flow::Flow;
 use crb::agent::{RunAgent, StopRecipient};
 use crb::core::watch;
@@ -18,15 +18,19 @@ pub struct Listener<F: Flow> {
 impl<F: Flow> Listener<F> {
     pub fn new(peer_id: Option<PeerId>, fqn: Fqn) -> Self {
         let (tx, rx) = watch::channel(Ported::Loading);
+        let setup = PlayerSetup {
+            fqn: fqn,
+            state: tx,
+        };
         let player = {
             if let Some(peer_id) = peer_id {
-                let player = RemotePlayer::new(peer_id, fqn.clone(), tx);
+                let player = RemotePlayer::new(peer_id, setup);
                 let runtime = RunAgent::new(player);
                 let player = runtime.address().to_stop_address().to_stop_recipient();
                 HubClient::add_player(runtime);
                 player
             } else {
-                let player = LocalPlayer::new(fqn.clone(), tx);
+                let player = LocalPlayer::new(setup);
                 let runtime = RunAgent::new(player);
                 let player = runtime.address().to_stop_address().to_stop_recipient();
                 HubClient::add_player(runtime);

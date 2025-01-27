@@ -1,4 +1,4 @@
-use super::{Act, Ported};
+use super::{Act, PlayerSetup, Ported};
 use crate::connector::OpenConnection;
 use crate::hub::Hub;
 use crate::protocol;
@@ -13,17 +13,15 @@ use ui9::names::Fqn;
 
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
-    fqn: Fqn,
-    state: watch::Sender<Ported<F>>,
+    setup: PlayerSetup<F>,
     connection: Slot<StateEntry<OpenConnection>>,
 }
 
 impl<F: Flow> RemotePlayer<F> {
-    pub fn new(peer_id: PeerId, fqn: Fqn, state: watch::Sender<Ported<F>>) -> Self {
+    pub fn new(peer_id: PeerId, setup: PlayerSetup<F>) -> Self {
         Self {
             peer_id,
-            fqn,
-            state,
+            setup,
             connection: Slot::empty(),
         }
     }
@@ -58,7 +56,7 @@ struct Subscribe;
 impl<F: Flow> Duty<Subscribe> for RemotePlayer<F> {
     async fn handle(&mut self, _: Subscribe, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let conn = self.connection.get_mut()?;
-        let fqn = self.fqn.clone();
+        let fqn = self.setup.fqn.clone();
         let req = protocol::Request::Subscribe(fqn);
         conn.state.send(req)?;
         Ok(Next::events())
