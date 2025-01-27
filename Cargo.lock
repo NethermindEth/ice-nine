@@ -3287,6 +3287,7 @@ dependencies = [
  "egui",
  "env_logger",
  "tokio",
+ "ui9-dui",
 ]
 
 [[package]]

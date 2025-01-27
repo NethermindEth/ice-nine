@@ -3,6 +3,7 @@ use crb::agent::{RunAgent, Task};
 use crb::runtime::InteractiveRuntime;
 use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
+use ui9_dui::Hub;
 
 fn main() -> Result<()> {
     env_logger::try_init()?;
@@ -10,7 +11,8 @@ fn main() -> Result<()> {
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();
     let handle = std::thread::spawn(|| {
-        second_main(runtime);
+        let fut = second_main(runtime);
+        Runtime::new().unwrap().block_on(fut);
     });
     AppUi::entrypoint(addr);
     handle
@@ -19,6 +21,9 @@ fn main() -> Result<()> {
     std::process::exit(0);
 }
 
-fn second_main(runtime: RunAgent<App>) {
-    Runtime::new().unwrap().block_on(runtime.run());
+async fn second_main(runtime: RunAgent<App>) -> Result<()> {
+    Hub::activate().await?;
+    runtime.await;
+    Hub::deactivate().await?;
+    Ok(())
 }

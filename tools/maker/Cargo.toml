@@ -14,3 +14,4 @@ eframe.workspace = true
 egui.workspace = true
 env_logger.workspace = true
 tokio.workspace = true
+ui9-dui.workspace = true
