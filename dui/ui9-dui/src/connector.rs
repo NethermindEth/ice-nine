@@ -307,7 +307,11 @@ struct ForwardRequest {
 
 #[async_trait]
 impl OnEvent<ForwardRequest> for Connector {
-    async fn handle(&mut self, _event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
+        let swarm = self.swarm.get_mut()?.behaviour_mut();
+        let _req_id = swarm
+            .request_response
+            .send_request(&event.peer_id, event.request);
         Ok(())
     }
 }
