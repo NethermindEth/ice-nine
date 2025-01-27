@@ -15,7 +15,7 @@ pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
     fqn: Fqn,
     state: watch::Sender<Ported<F>>,
-    entry: Slot<StateEntry<OpenConnection>>,
+    connection: Slot<StateEntry<OpenConnection>>,
 }
 
 impl<F: Flow> RemotePlayer<F> {
@@ -24,7 +24,7 @@ impl<F: Flow> RemotePlayer<F> {
             peer_id,
             fqn,
             state,
-            entry: Slot::empty(),
+            connection: Slot::empty(),
         }
     }
 }
@@ -44,11 +44,25 @@ impl<F: Flow> Duty<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let hub = Hub::link()?;
         let connection = hub.connector.open_connection(self.peer_id, &ctx).await?;
+        self.connection.fill(connection)?;
 
-        Ok(Next::events())
+        Ok(Next::duty(Subscribe))
     }
 
     // TODO: Fallback to reconnect
+}
+
+struct Subscribe;
+
+#[async_trait]
+impl<F: Flow> Duty<Subscribe> for RemotePlayer<F> {
+    async fn handle(&mut self, _: Subscribe, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let conn = self.connection.get_mut()?;
+        let fqn = self.fqn.clone();
+        let req = protocol::Request::Subscribe(fqn);
+        conn.state.send(req)?;
+        Ok(Next::events())
+    }
 }
 
 #[async_trait]

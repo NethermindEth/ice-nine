@@ -6,7 +6,7 @@ use crb::agent::{
     Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToRecipient,
 };
 use crb::core::{Slot, Unique};
-use crb::send::Recipient;
+use crb::send::{Recipient, Sender};
 use crb::superagent::{Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription};
 use derive_more::{Deref, DerefMut, From, Into};
 use futures::stream::StreamExt;
@@ -246,11 +246,6 @@ impl OnEvent<protocol::Event> for Connector {
     }
 }
 
-pub struct OpenConnection {
-    peer_id: PeerId,
-    recipient: Recipient<protocol::Response>,
-}
-
 pub struct Connection {
     sub: Unique<OpenConnection>,
 }
@@ -262,6 +257,22 @@ pub struct ConnectionSender {
     peer_id: PeerId,
     id: ConnectionId,
     recipient: Recipient<ForwardRequest>,
+}
+
+impl ConnectionSender {
+    pub fn send(&self, request: protocol::Request) -> Result<()> {
+        let request = ForwardRequest {
+            peer_id: self.peer_id,
+            id: self.id,
+            request,
+        };
+        self.recipient.send(request)
+    }
+}
+
+pub struct OpenConnection {
+    peer_id: PeerId,
+    recipient: Recipient<protocol::Response>,
 }
 
 impl Subscription for OpenConnection {
