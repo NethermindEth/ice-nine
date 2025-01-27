@@ -4,7 +4,7 @@ use super::remote_player::RemotePlayer;
 use super::{Act, PlayerSetup, Ported};
 use crate::flow::Flow;
 use crb::agent::{RunAgent, StopRecipient};
-use crb::core::watch;
+use crb::core::{mpsc, watch};
 use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use libp2p::PeerId;
@@ -13,14 +13,22 @@ use ui9::names::Fqn;
 pub struct Listener<F: Flow> {
     player: StopRecipient<Act<F>>,
     state: watch::Receiver<Ported<F>>,
+    events: Option<mpsc::UnboundedReceiver<F::Event>>,
 }
 
 impl<F: Flow> Listener<F> {
-    pub fn new(peer_id: Option<PeerId>, fqn: Fqn) -> Self {
-        let (tx, rx) = watch::channel(Ported::Loading);
+    pub fn new(peer_id: Option<PeerId>, fqn: Fqn, with_events: bool) -> Self {
+        let (state_tx, state_rx) = watch::channel(Ported::Loading);
+        let (events_tx, events_rx) = if with_events {
+            let (tx, rx) = mpsc::unbounded_channel();
+            (Some(tx), Some(rx))
+        } else {
+            (None, None)
+        };
         let setup = PlayerSetup {
             fqn: fqn,
-            state: tx,
+            state: state_tx,
+            events: events_tx,
         };
         let player = {
             if let Some(peer_id) = peer_id {
@@ -37,7 +45,11 @@ impl<F: Flow> Listener<F> {
                 player
             }
         };
-        Self { player, state: rx }
+        Self {
+            player,
+            state: state_rx,
+            events: events_rx,
+        }
     }
 
     pub fn action(&self, action: F::Action) {
