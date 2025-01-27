@@ -5,7 +5,7 @@ use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Equip, Next, Standalone, ToAddress};
-use crb::superagent::{PingExt, Supervisor, SupervisorSession};
+use crb::superagent::{PingExt, Stacker, Supervisor, SupervisorSession};
 use std::sync::OnceLock;
 
 static HUB: OnceLock<HubLink> = OnceLock::new();
@@ -63,17 +63,19 @@ struct Initialize;
 #[async_trait]
 impl Duty<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let mut stacker = Stacker::new();
+
         let connector = Connector::new();
-        let connector = ctx.schedule(connector, ());
+        let connector = stacker.schedule(connector, ());
 
         let server = HubServer::new(connector.clone());
-        let server = ctx.schedule(server, ());
+        let server = stacker.schedule(server, ());
 
         let client = HubClient::new(connector.clone());
-        let client = ctx.schedule(client, ());
+        let client = stacker.schedule(client, ());
 
         let relay = Relay::new(connector.clone());
-        let relay = ctx.schedule(relay, ());
+        let relay = stacker.schedule(relay, ());
 
         let link = HubLink {
             hub: ctx.to_address(),
@@ -85,7 +87,7 @@ impl Duty<Initialize> for Hub {
             .map_err(|_| anyhow!("Hub is already activated"))?;
 
         // Spawning the connector after the `Hub` is set, because it has peers tracer
-        ctx.spawn_scheduled();
+        stacker.spawn_scheduled(ctx);
 
         Ok(Next::events())
     }
