@@ -2,6 +2,7 @@ mod client;
 mod listener;
 mod local_player;
 mod remote_player;
+mod watcher;
 
 pub use client::{HubClient, HubClientLink};
 pub use listener::Listener;
