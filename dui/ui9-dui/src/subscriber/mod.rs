@@ -20,9 +20,9 @@ pub enum Ported<F> {
 
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
-    pub state: watch::Sender<Ported<F>>,
+    pub state_tx: watch::Sender<Ported<F>>,
     /// An optional channel for sending all events
-    pub events: Option<mpsc::UnboundedSender<F::Event>>,
+    pub event_tx: mpsc::UnboundedSender<F::Event>,
 }
 
 pub struct Act<F: Flow> {

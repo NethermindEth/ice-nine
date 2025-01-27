@@ -12,23 +12,18 @@ use ui9::names::Fqn;
 
 pub struct Listener<F: Flow> {
     player: StopRecipient<Act<F>>,
-    state: watch::Receiver<Ported<F>>,
-    events: Option<mpsc::UnboundedReceiver<F::Event>>,
+    state_rx: watch::Receiver<Ported<F>>,
+    event_rx: Option<mpsc::UnboundedReceiver<F::Event>>,
 }
 
 impl<F: Flow> Listener<F> {
     pub fn new(peer_id: Option<PeerId>, fqn: Fqn, with_events: bool) -> Self {
         let (state_tx, state_rx) = watch::channel(Ported::Loading);
-        let (events_tx, events_rx) = if with_events {
-            let (tx, rx) = mpsc::unbounded_channel();
-            (Some(tx), Some(rx))
-        } else {
-            (None, None)
-        };
+        let (event_tx, event_rx) = mpsc::unbounded_channel();
         let setup = PlayerSetup {
             fqn: fqn,
-            state: state_tx,
-            events: events_tx,
+            state_tx,
+            event_tx,
         };
         let player = {
             if let Some(peer_id) = peer_id {
@@ -47,8 +42,8 @@ impl<F: Flow> Listener<F> {
         };
         Self {
             player,
-            state: state_rx,
-            events: events_rx,
+            state_rx,
+            event_rx: with_events.then(|| event_rx),
         }
     }
 
@@ -58,6 +53,6 @@ impl<F: Flow> Listener<F> {
     }
 
     pub fn state(&self) -> watch::Ref<Ported<F>> {
-        self.state.borrow()
+        self.state_rx.borrow()
     }
 }
