@@ -4,8 +4,10 @@ pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, Next};
-use crb::superagent::{Interaction, OnRequest, OnResponse, Output, Responder};
+use crb::agent::{Address, Agent, Context, Next};
+use crb::superagent::{
+    Interaction, OnRequest, OnResponse, Output, Responder, Supervisor, SupervisorSession,
+};
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
@@ -37,8 +39,12 @@ impl ReasoningRouter {
     }
 }
 
+impl Supervisor for ReasoningRouter {
+    type GroupBy = ();
+}
+
 impl Agent for ReasoningRouter {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::events()
@@ -71,10 +77,7 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
         let req_id = self.requests.insert(lookup.interplay.responder);
         let tools = self.tools();
         let request = lookup.interplay.request.with_tools(tools);
-        model
-            .chat(request)
-            .forwardable()
-            .forward_to(address, req_id);
+        ctx.assign(model.chat(request), (), req_id);
         Ok(())
     }
 }

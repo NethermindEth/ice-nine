@@ -109,11 +109,8 @@ impl OnEvent<Message> for TelegramParticle {
 
             let request = ChatRequest::user(&text);
             let address = ctx.address().clone();
-            self.substance
-                .router
-                .chat(request)
-                .forwardable()
-                .forward_to(address, chat_id);
+            let task = self.substance.router.chat(request);
+            ctx.assign(task, (), chat_id);
         }
         Ok(())
     }

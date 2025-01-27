@@ -36,6 +36,7 @@ struct Initialize;
 impl Duty<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.interval.enable(&ctx);
+        // self.peer_listener.subscribe(ctx);
         Ok(Next::events())
     }
 }

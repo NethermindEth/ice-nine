@@ -47,6 +47,12 @@ impl<F: Flow> Listener<F> {
         }
     }
 
+    /*
+    pub fn events(&mut self) -> Drainer<F::Event> {
+        todo!()
+    }
+    */
+
     pub fn ignore_events(&mut self) {
         self.event_rx.take();
     }

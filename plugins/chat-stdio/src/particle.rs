@@ -89,11 +89,8 @@ impl StdioParticle {
     async fn user_prompt(&mut self, ctx: &mut Context<Self>) -> Result<()> {
         self.stdout.write_all(b"User: ").await?;
         self.stdout.flush().await?;
-        self.drainer
-            .get()?
-            .interact(ReadLine)
-            .forwardable()
-            .forward_to(ctx, ());
+        let task = self.drainer.get()?.interact(ReadLine);
+        ctx.assign(task, (), ());
         Ok(())
     }
 
