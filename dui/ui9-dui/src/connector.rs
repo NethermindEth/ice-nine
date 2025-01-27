@@ -187,7 +187,7 @@ impl Connector {
                 self.peer_tracer.del_peer(peer_id);
             }
             other => {
-                println!("Not handeled p2p event: {other:?}");
+                log::warn!("Not handeled p2p event: {other:?}");
             }
         }
         Ok(())
@@ -241,7 +241,22 @@ impl OnEvent<gossipsub::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<protocol::Event> for Connector {
-    async fn handle(&mut self, _event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
+        use libp2p::request_response::Message;
+        use protocol::Event;
+        match event {
+            Event::Message { message, .. } => match message {
+                Message::Request { request, .. } => {
+                    log::warn!("Not handeled request event: {request:?}");
+                }
+                Message::Response { response, .. } => {
+                    log::warn!("Not handeled response event: {response:?}");
+                }
+            },
+            other => {
+                log::warn!("Not handeled request_reponse event: {other:?}");
+            }
+        }
         Ok(())
     }
 }
