@@ -1,5 +1,6 @@
 use super::recorder::{Recorder, Update};
 use super::server::HubServer;
+use super::RecorderSetup;
 use crate::flow::Flow;
 use crb::agent::{RunAgent, StopAddress};
 use crb::core::mpsc;
@@ -16,13 +17,14 @@ pub struct TracerInfo {
 pub struct Tracer<F: Flow> {
     // TODO: Consider using StopRecipient
     recorder: StopAddress<Recorder<F>>,
-    actions: Option<mpsc::UnboundedReceiver<F::Action>>,
+    action_rx: Option<mpsc::UnboundedReceiver<F::Action>>,
 }
 
 impl<F: Flow> Tracer<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
-        let (tx, rx) = mpsc::unbounded_channel();
-        let recorder = Recorder::new(state, tx);
+        let (action_tx, action_rx) = mpsc::unbounded_channel();
+        let setup = RecorderSetup { state, action_tx };
+        let recorder = Recorder::new(setup);
         let runtime = RunAgent::new(recorder);
         let address = runtime.address();
         let info = TracerInfo {
@@ -31,12 +33,12 @@ impl<F: Flow> Tracer<F> {
         HubServer::add_recorder(fqn, info, runtime);
         Self {
             recorder: address.to_stop_address(),
-            actions: Some(rx),
+            action_rx: Some(action_rx),
         }
     }
 
     pub fn ignore_actions(&mut self) {
-        self.actions.take();
+        self.action_rx.take();
     }
 
     pub fn event(&self, event: F::Event) {

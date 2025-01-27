@@ -18,7 +18,7 @@ impl PeerListener {
     pub fn new(peer: Option<PeerId>) -> Self {
         let fqn = Fqn::root(PEERS);
         Self {
-            listener: Listener::new(peer, fqn, true),
+            listener: Listener::new(peer, fqn),
         }
     }
 }

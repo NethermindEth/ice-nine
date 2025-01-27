@@ -17,7 +17,7 @@ pub struct Listener<F: Flow> {
 }
 
 impl<F: Flow> Listener<F> {
-    pub fn new(peer_id: Option<PeerId>, fqn: Fqn, with_events: bool) -> Self {
+    pub fn new(peer_id: Option<PeerId>, fqn: Fqn) -> Self {
         let (state_tx, state_rx) = watch::channel(Ported::Loading);
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let setup = PlayerSetup {
@@ -43,8 +43,12 @@ impl<F: Flow> Listener<F> {
         Self {
             player,
             state_rx,
-            event_rx: with_events.then(|| event_rx),
+            event_rx: Some(event_rx),
         }
+    }
+
+    pub fn ignore_events(&mut self) {
+        self.event_rx.take();
     }
 
     pub fn action(&self, action: F::Action) {
