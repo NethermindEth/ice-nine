@@ -1,15 +1,18 @@
+use crate::protocol::UiEvent;
 use crate::App;
 use crb::agent::ToAddress;
+use crb::core::mpsc;
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
 use std::time::Duration;
 
 pub struct AppUi {
     state_changed: bool,
+    events_rx: mpsc::UnboundedReceiver<UiEvent>,
 }
 
 impl AppUi {
-    pub fn entrypoint(app: impl ToAddress<App>) {
+    pub fn entrypoint(app: impl ToAddress<App>, rx: mpsc::UnboundedReceiver<UiEvent>) {
         let addr = app.to_address();
         let native_options = NativeOptions {
             viewport: ViewportBuilder::default()
@@ -20,14 +23,15 @@ impl AppUi {
         let _result = run_native(
             "UI9 Dashboard",
             native_options,
-            Box::new(move |cc| Ok(Box::new(AppUi::new(cc)))),
+            Box::new(move |cc| Ok(Box::new(AppUi::new(cc, rx)))),
         );
         let _result = addr.interrupt();
     }
 
-    fn new(_cc: &CreationContext<'_>) -> Self {
+    fn new(_cc: &CreationContext<'_>, events_rx: mpsc::UnboundedReceiver<UiEvent>) -> Self {
         Self {
             state_changed: false,
+            events_rx,
         }
     }
 }

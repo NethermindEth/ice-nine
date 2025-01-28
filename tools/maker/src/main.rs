@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use crb::agent::RunAgent;
+use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
 use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
@@ -7,7 +8,8 @@ use ui9_dui::Hub;
 
 fn main() -> Result<()> {
     env_logger::try_init()?;
-    let app = App::new();
+    let (tx, rx) = mpsc::unbounded_channel();
+    let app = App::new(tx);
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();
     let handle = std::thread::spawn(|| -> Result<()> {
@@ -15,7 +17,7 @@ fn main() -> Result<()> {
         Runtime::new()?.block_on(fut)?;
         Ok(())
     });
-    AppUi::entrypoint(addr);
+    AppUi::entrypoint(addr, rx);
     handle
         .join()
         .map_err(|_| anyhow!("Can't get result of the thread."))??;
