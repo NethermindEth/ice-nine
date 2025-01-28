@@ -8,6 +8,27 @@ pub use tracer::{Tracer, TracerInfo};
 
 use crate::flow::Flow;
 use crb::core::mpsc;
+use derive_more::{Deref, DerefMut};
+use ui9::names::Fqn;
+
+pub trait Publisher: Flow + Default {
+    type Driver: From<Tracer<Self>>;
+}
+
+#[derive(Deref, DerefMut)]
+pub struct Pub<P: Publisher> {
+    driver: P::Driver,
+}
+
+impl<P: Publisher> Pub<P> {
+    pub fn new(fqn: Fqn) -> Self {
+        let state = P::default();
+        let tracer = Tracer::<P>::new(fqn, state);
+        Self {
+            driver: P::Driver::from(tracer),
+        }
+    }
+}
 
 pub struct RecorderSetup<F: Flow> {
     state: F,
