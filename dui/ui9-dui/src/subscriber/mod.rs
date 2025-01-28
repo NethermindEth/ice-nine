@@ -56,3 +56,27 @@ pub struct PlayerSetup<F: Flow> {
 pub struct Act<F: Flow> {
     pub action: F::Action,
 }
+
+pub struct State<F: Flow> {
+    state_rx: watch::Receiver<Ported<F>>,
+}
+
+impl<F: Flow> Clone for State<F> {
+    fn clone(&self) -> Self {
+        Self {
+            state_rx: self.state_rx.clone(),
+        }
+    }
+}
+
+impl<F: Flow> State<F> {
+    fn new(state_rx: watch::Receiver<Ported<F>>) -> Self {
+        Self { state_rx }
+    }
+}
+
+impl<F: Flow> State<F> {
+    pub fn borrow(&self) -> watch::Ref<Ported<F>> {
+        self.state_rx.borrow()
+    }
+}
