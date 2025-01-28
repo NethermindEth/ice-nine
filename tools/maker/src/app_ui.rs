@@ -42,10 +42,13 @@ impl AppUi {
 
 impl eframe::App for AppUi {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        while let Ok(event) = self.events_rx.try_recv() {}
+        while let Ok(event) = self.events_rx.try_recv() {
+            self.apply_event(event);
+        }
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Dashboard");
+            self.render(ui);
         });
 
         if self.state_changed {
@@ -63,6 +66,7 @@ impl AppUi {
         match event {
             UiEvent::SetState { peers } => {
                 self.peers = Some(peers);
+                self.state_changed = true;
             }
         }
     }
