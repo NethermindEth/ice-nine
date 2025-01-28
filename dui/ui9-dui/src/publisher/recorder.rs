@@ -3,7 +3,7 @@ use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, EventExt, OnEvent, UniAddress};
-use crb::core::{mpsc, Unique};
+use crb::core::Unique;
 use crb::send::{Recipient, Sender};
 use crb::superagent::{ManageSubscription, StateEntry, SubscribeExt, Subscription};
 use std::collections::HashSet;

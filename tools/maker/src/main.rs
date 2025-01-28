@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use crb::agent::{RunAgent, Task};
+use crb::agent::RunAgent;
 use crb::runtime::InteractiveRuntime;
 use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
@@ -10,14 +10,15 @@ fn main() -> Result<()> {
     let app = App::new();
     let runtime = RunAgent::new(app);
     let addr = runtime.address().clone();
-    let handle = std::thread::spawn(|| {
+    let handle = std::thread::spawn(|| -> Result<()> {
         let fut = second_main(runtime);
-        Runtime::new().unwrap().block_on(fut);
+        Runtime::new()?.block_on(fut)?;
+        Ok(())
     });
     AppUi::entrypoint(addr);
     handle
         .join()
-        .map_err(|_| anyhow!("Can't get result of the thread."))?;
+        .map_err(|_| anyhow!("Can't get result of the thread."))??;
     std::process::exit(0);
 }
 

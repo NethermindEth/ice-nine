@@ -1,4 +1,4 @@
-use super::{Act, PlayerSetup, Ported};
+use super::{Act, PlayerSetup};
 use crate::connector::OpenConnection;
 use crate::hub::Hub;
 use crate::protocol;
@@ -6,10 +6,9 @@ use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
-use crb::core::{watch, Slot};
+use crb::core::Slot;
 use crb::superagent::StateEntry;
 use libp2p::PeerId;
-use ui9::names::Fqn;
 
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,

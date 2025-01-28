@@ -5,9 +5,8 @@ use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
-use crb::core::{watch, Slot};
+use crb::core::Slot;
 use crb::superagent::Entry;
-use ui9::names::Fqn;
 
 pub struct LocalPlayer<F: Flow> {
     setup: PlayerSetup<F>,
