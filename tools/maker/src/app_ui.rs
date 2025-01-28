@@ -47,7 +47,6 @@ impl eframe::App for AppUi {
         }
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Dashboard");
             self.render(ui);
         });
 

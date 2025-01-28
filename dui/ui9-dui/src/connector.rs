@@ -183,11 +183,9 @@ impl Connector {
             }
             SwarmEvent::ConnectionEstablished { peer_id, .. } => {
                 log::debug!("Connection to {peer_id} has established");
-                self.peer_tracer.add_peer(peer_id);
             }
             SwarmEvent::ConnectionClosed { peer_id, .. } => {
                 log::debug!("Connection to {peer_id} has closed");
-                self.peer_tracer.del_peer(peer_id);
             }
             other => {
                 log::warn!("Not handeled p2p event: {other:?}");
@@ -207,6 +205,7 @@ impl OnEvent<mdns::Event> for Connector {
                 for (peer_id, _multiaddr) in list {
                     log::trace!("UI9 node discovered: {peer_id}");
                     swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
+                    self.peer_tracer.add_peer(peer_id);
                 }
             }
             Expired(list) => {
@@ -216,6 +215,7 @@ impl OnEvent<mdns::Event> for Connector {
                         .behaviour_mut()
                         .gossipsub
                         .remove_explicit_peer(&peer_id);
+                    self.peer_tracer.del_peer(peer_id);
                 }
             }
         }
