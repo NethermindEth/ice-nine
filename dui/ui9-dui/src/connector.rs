@@ -179,12 +179,14 @@ impl Connector {
                 }
             },
             SwarmEvent::NewListenAddr { address, .. } => {
-                println!("Local node is listening on {address}");
+                log::info!("Local node is listening on {address}");
             }
             SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+                log::debug!("Connection to {peer_id} has established");
                 self.peer_tracer.add_peer(peer_id);
             }
             SwarmEvent::ConnectionClosed { peer_id, .. } => {
+                log::debug!("Connection to {peer_id} has closed");
                 self.peer_tracer.del_peer(peer_id);
             }
             other => {
@@ -203,13 +205,13 @@ impl OnEvent<mdns::Event> for Connector {
         match event {
             Discovered(list) => {
                 for (peer_id, _multiaddr) in list {
-                    println!("UI9 node connected: {peer_id}");
+                    log::trace!("UI9 node discovered: {peer_id}");
                     swarm.behaviour_mut().gossipsub.add_explicit_peer(&peer_id);
                 }
             }
             Expired(list) => {
                 for (peer_id, _multiaddr) in list {
-                    println!("UI9 node disconnected: {peer_id}");
+                    log::trace!("UI9 node exipred: {peer_id}");
                     swarm
                         .behaviour_mut()
                         .gossipsub
@@ -231,7 +233,7 @@ impl OnEvent<gossipsub::Event> for Connector {
             message,
         } = event
         {
-            println!(
+            log::trace!(
                 "Got message: '{}' with id: {message_id} from peer: {propagation_source}",
                 String::from_utf8_lossy(&message.data),
             );

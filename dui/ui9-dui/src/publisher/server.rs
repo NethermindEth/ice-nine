@@ -66,7 +66,7 @@ impl HubServer {
 
 impl Standalone for HubServer {}
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
     Connector,
     Relay,

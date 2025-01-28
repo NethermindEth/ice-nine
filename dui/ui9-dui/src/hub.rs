@@ -46,8 +46,16 @@ impl Hub {
 
 impl Standalone for Hub {}
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Group {
+    Server,
+    Relay,
+    Client,
+    Connector,
+}
+
 impl Supervisor for Hub {
-    type GroupBy = ();
+    type GroupBy = Group;
 }
 
 impl Agent for Hub {
@@ -66,16 +74,16 @@ impl Duty<Initialize> for Hub {
         let mut stacker = Stacker::new();
 
         let connector = Connector::new();
-        let connector = stacker.schedule(connector, ());
+        let connector = stacker.schedule(connector, Group::Connector);
 
         let server = HubServer::new(connector.clone());
-        let server = stacker.schedule(server, ());
+        let server = stacker.schedule(server, Group::Server);
 
         let client = HubClient::new(connector.clone());
-        let client = stacker.schedule(client, ());
+        let client = stacker.schedule(client, Group::Client);
 
         let relay = Relay::new(connector.clone());
-        let relay = stacker.schedule(relay, ());
+        let relay = stacker.schedule(relay, Group::Relay);
 
         let link = HubLink {
             hub: ctx.to_address(),

@@ -54,7 +54,6 @@ struct Tick;
 impl OnEvent<Tick> for Relay {
     async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<()> {
         let state = self.peer_listener.state();
-        println!("PEERS: {:?}", state.borrow());
         Ok(())
     }
 }
@@ -62,7 +61,7 @@ impl OnEvent<Tick> for Relay {
 #[async_trait]
 impl OnItem<PeerEvent> for Relay {
     async fn on_item(&mut self, event: PeerEvent, _: (), _ctx: &mut Context<Self>) -> Result<()> {
-        println!("PEERS UPDATE: {:?}", event);
+        log::trace!("Peers list has updated: {:?}", event);
         Ok(())
     }
 }
