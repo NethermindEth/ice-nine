@@ -1,5 +1,6 @@
 use crate::connector::Connector;
-use crate::tracers::peer::{PeerEvent, PeerListener};
+use crate::tracers::peer::{Peer, PeerEvent};
+use crate::Sub;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
@@ -8,7 +9,7 @@ use crb::superagent::{Interval, OnItem, Supervisor, SupervisorSession};
 /// A hub server that keep information about remote components.
 pub struct Relay {
     connector: Address<Connector>,
-    peer_listener: PeerListener,
+    peer_listener: Sub<Peer>,
     interval: Interval<Tick>,
 }
 
@@ -16,7 +17,7 @@ impl Relay {
     pub fn new(connector: Address<Connector>) -> Self {
         Self {
             connector,
-            peer_listener: PeerListener::new(None),
+            peer_listener: Sub::unified(),
             interval: Interval::default(),
         }
     }

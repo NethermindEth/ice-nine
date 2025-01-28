@@ -8,7 +8,7 @@ pub use client::{HubClient, HubClientLink};
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
 
-use crate::flow::Flow;
+use crate::flow::{Flow, Unified};
 use crb::core::{mpsc, watch};
 use derive_more::{Deref, DerefMut};
 use libp2p::PeerId;
@@ -30,6 +30,13 @@ impl<P: Subscriber> Sub<P> {
         Self {
             driver: P::Driver::from(tracer),
         }
+    }
+
+    pub fn unified() -> Self
+    where
+        P: Unified,
+    {
+        Self::new(None, P::fqn())
     }
 }
 

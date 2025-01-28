@@ -1,5 +1,6 @@
 use crate::protocol;
-use crate::tracers::peer::PeerTracer;
+use crate::tracers::peer::Peer;
+use crate::Pub;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
@@ -46,7 +47,7 @@ impl ConnectorLink {
 
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
-    peer_tracer: PeerTracer,
+    peer_tracer: Pub<Peer>,
 
     connections: TypedSlab<ConnectionId, Connection>,
     connection_ids: HashMap<Unique<OpenConnection>, ConnectionId>,
@@ -56,7 +57,7 @@ impl Connector {
     pub fn new() -> Self {
         Self {
             swarm: Slot::empty(),
-            peer_tracer: PeerTracer::new(),
+            peer_tracer: Pub::unified(),
             connections: TypedSlab::new(),
             connection_ids: HashMap::new(),
         }

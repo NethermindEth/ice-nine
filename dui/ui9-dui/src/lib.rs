@@ -10,4 +10,5 @@ pub mod tracers;
 pub use connector::Connector;
 pub use flow::Flow;
 pub use hub::Hub;
-pub use publisher::{Recorder, Tracer, TracerInfo};
+pub use publisher::{Pub, Publisher, Tracer, TracerInfo};
+pub use subscriber::{Listener, Sub, Subscriber};

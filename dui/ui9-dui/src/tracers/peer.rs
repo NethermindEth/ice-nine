@@ -1,40 +1,32 @@
-use crate::flow::Flow;
+use crate::flow::{Flow, Unified};
 use crate::publisher::Tracer;
 use crate::subscriber::Listener;
-use derive_more::{Deref, DerefMut};
+use crate::{Publisher, Subscriber};
+use derive_more::{Deref, DerefMut, From, Into};
 use libp2p::PeerId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use ui9::names::Fqn;
 
-static PEERS: &str = "@peers";
-
-#[derive(Deref, DerefMut)]
-pub struct PeerListener {
-    listener: Listener<PeerState>,
+#[derive(Deref, DerefMut, From, Into)]
+pub struct PeerSub {
+    listener: Listener<Peer>,
 }
 
-impl PeerListener {
-    pub fn new(peer: Option<PeerId>) -> Self {
-        let fqn = Fqn::root(PEERS);
-        Self {
-            listener: Listener::new(peer, fqn),
-        }
-    }
+impl Subscriber for Peer {
+    type Driver = PeerSub;
 }
 
-pub struct PeerTracer {
-    tracer: Tracer<PeerState>,
+#[derive(Deref, DerefMut, From, Into)]
+pub struct PeerPub {
+    tracer: Tracer<Peer>,
 }
 
-impl PeerTracer {
-    pub fn new() -> Self {
-        let fqn = Fqn::root(PEERS);
-        let state = PeerState::default();
-        let tracer = Tracer::new(fqn, state);
-        Self { tracer }
-    }
+impl Publisher for Peer {
+    type Driver = PeerPub;
+}
 
+impl PeerPub {
     pub fn add_peer(&mut self, peer_id: PeerId) {
         let event = PeerEvent::AddPeer { peer_id };
         self.tracer.event(event);
@@ -46,18 +38,18 @@ impl PeerTracer {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum PeerEvent {
-    AddPeer { peer_id: PeerId },
-    DelPeer { peer_id: PeerId },
+impl Unified for Peer {
+    fn fqn() -> Fqn {
+        Fqn::root("@peers")
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct PeerState {
+pub struct Peer {
     pub peers: BTreeSet<PeerId>,
 }
 
-impl Flow for PeerState {
+impl Flow for Peer {
     type Event = PeerEvent;
     type Action = ();
 
@@ -71,4 +63,10 @@ impl Flow for PeerState {
             }
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PeerEvent {
+    AddPeer { peer_id: PeerId },
+    DelPeer { peer_id: PeerId },
 }

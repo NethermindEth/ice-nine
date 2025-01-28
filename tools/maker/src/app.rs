@@ -2,16 +2,17 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, Standalone};
 use crb::superagent::{Supervisor, SupervisorSession};
-use ui9_dui::tracers::peer::PeerListener;
+use ui9_dui::tracers::peer::Peer;
+use ui9_dui::Sub;
 
 pub struct App {
-    peers: PeerListener,
+    peers: Sub<Peer>,
 }
 
 impl App {
     pub fn new() -> Self {
         Self {
-            peers: PeerListener::new(None),
+            peers: Sub::unified(),
         }
     }
 }
