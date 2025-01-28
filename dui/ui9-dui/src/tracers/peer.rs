@@ -1,9 +1,10 @@
+pub use libp2p::PeerId;
+
 use crate::flow::{Flow, Unified};
 use crate::publisher::Tracer;
 use crate::subscriber::Listener;
 use crate::{Publisher, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
-use libp2p::PeerId;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use ui9::names::Fqn;

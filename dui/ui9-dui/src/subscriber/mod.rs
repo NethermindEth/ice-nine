@@ -46,6 +46,16 @@ pub enum Ported<F> {
     Loaded(F),
 }
 
+impl<F> Ported<F> {
+    pub fn loaded(&self) -> Option<&F> {
+        if let Self::Loaded(state) = self {
+            Some(state)
+        } else {
+            None
+        }
+    }
+}
+
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
     pub state_tx: watch::Sender<Ported<F>>,
