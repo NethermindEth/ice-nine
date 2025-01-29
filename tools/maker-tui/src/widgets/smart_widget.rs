@@ -1,9 +1,28 @@
 use ratatui::prelude::{Alignment, Buffer, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
+use std::borrow::Cow;
+
+pub struct Reason {
+    reason: Cow<'static, str>,
+}
+
+impl From<&'static str> for Reason {
+    fn from(s: &'static str) -> Self {
+        Self {
+            reason: Cow::Borrowed(s),
+        }
+    }
+}
+
+impl AsRef<str> for Reason {
+    fn as_ref(&self) -> &str {
+        self.reason.as_ref()
+    }
+}
 
 pub trait Component {
-    fn render(&self, area: Rect, buf: &mut Buffer) -> Option<()>;
+    fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason>;
 }
 
 pub struct SmartWidget<'a, C: Component> {
@@ -41,8 +60,8 @@ impl<'a, C: Component> SmartWidget<'a, C> {
 
 impl<'a, C: Component> Widget for SmartWidget<'a, C> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if self.widget.render(area, buf).is_none() {
-            self.render_loading(area, buf, "...");
+        if let Err(err) = self.widget.render(area, buf) {
+            self.render_loading(area, buf, err.as_ref());
         }
     }
 }
