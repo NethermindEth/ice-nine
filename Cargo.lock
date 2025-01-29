@@ -3353,6 +3353,7 @@ dependencies = [
  "async-trait",
  "crb",
  "crossterm",
+ "env_logger",
  "ratatui",
  "tokio",
  "ui9-app",

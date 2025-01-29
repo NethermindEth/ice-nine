@@ -10,6 +10,7 @@ anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
 crossterm = "0.28.1"
+env_logger.workspace = true
 ratatui = "0.29.0"
 tokio.workspace = true
 ui9-app.workspace = true
