@@ -41,13 +41,6 @@ impl<'a, C: Component> SmartWidget<'a, C> {
 
 impl<'a, C: Component> SmartWidget<'a, C> {
     fn render_loading(&self, area: Rect, buf: &mut Buffer, spinner: &str) {
-        let title = self.widget.title().unwrap_or("");
-        // Create a block with borders
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .title(title)
-            .style(Style::default().fg(Color::White));
-
         // Create a paragraph with the spinner animation
         let loading_text = Paragraph::new(spinner)
             .style(
@@ -55,8 +48,7 @@ impl<'a, C: Component> SmartWidget<'a, C> {
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             )
-            .alignment(Alignment::Center)
-            .block(block);
+            .alignment(Alignment::Center);
 
         // Render the widget onto the buffer
         loading_text.render(area, buf);
@@ -65,8 +57,17 @@ impl<'a, C: Component> SmartWidget<'a, C> {
 
 impl<'a, C: Component> Widget for SmartWidget<'a, C> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if let Err(err) = self.widget.render(area, buf) {
-            self.render_loading(area, buf, err.as_ref());
+        let title = self.widget.title().unwrap_or("");
+        // Create a block with borders
+        let block = Block::default()
+            .borders(Borders::ALL)
+            .title(title)
+            .style(Style::default().fg(Color::White));
+        let block_inner = block.inner(area);
+        block.render(area, buf);
+
+        if let Err(err) = self.widget.render(block_inner, buf) {
+            self.render_loading(block_inner, buf, err.as_ref());
         }
     }
 }
