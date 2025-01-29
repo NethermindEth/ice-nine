@@ -4,13 +4,14 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, DoSync, Duty, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{OnItem, Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
-use ui9_app::AppLink;
+use ui9_app::{AppLink, UiEvent};
 
 pub struct AppTui {
     terminal: Slot<DefaultTerminal>,
+    link: AppLink,
     state: AppState,
 }
 
@@ -18,6 +19,7 @@ impl AppTui {
     pub fn new(link: AppLink) -> Self {
         Self {
             terminal: Slot::empty(),
+            link,
             state: AppState::new(),
         }
     }
@@ -31,19 +33,23 @@ impl Agent for AppTui {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Configure)
+        Next::duty(Initialize)
     }
 }
 
-struct Configure;
+struct Initialize;
 
 #[async_trait]
-impl Duty<Configure> for AppTui {
-    async fn handle(&mut self, _: Configure, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+impl Duty<Initialize> for AppTui {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let terminal = ratatui::try_init()?;
         self.terminal.fill(terminal)?;
         let drainer = EventsDrainer::new(&ctx);
         ctx.spawn_agent(drainer, ());
+
+        let ui_events = self.link.drainer()?;
+        ctx.assign(ui_events, (), ());
+
         Ok(Next::do_sync(Render))
     }
 }
@@ -62,6 +68,20 @@ impl OnEvent<Event> for AppTui {
             _ => Next::do_sync(Render),
         };
         ctx.do_next(next_state);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnItem<UiEvent> for AppTui {
+    async fn on_item(&mut self, event: UiEvent, _: (), ctx: &mut Context<Self>) -> Result<()> {
+        match event {
+            UiEvent::SetState { peers } => {
+                self.state.peers.set_state(peers);
+                let next_state = Next::do_sync(Render);
+                ctx.do_next(next_state);
+            }
+        }
         Ok(())
     }
 }

@@ -2,15 +2,28 @@ use crate::protocol::UiEvent;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, RunAgent, Standalone};
-use crb::core::mpsc;
+use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use ui9_dui::tracers::peer::Peer;
+use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
 pub struct AppLink {
     pub address: Address<App>,
-    pub events_rx: mpsc::UnboundedReceiver<UiEvent>,
+    pub events_rx: Slot<mpsc::UnboundedReceiver<UiEvent>>,
+}
+
+impl AppLink {
+    pub fn try_recv(&mut self) -> Result<UiEvent> {
+        let event = self.events_rx.get_mut()?.try_recv()?;
+        Ok(event)
+    }
+
+    pub fn drainer(&mut self) -> Result<Drainer<UiEvent>> {
+        let rx = self.events_rx.take()?;
+        Ok(to_drainer(rx))
+    }
 }
 
 pub struct App {
@@ -28,7 +41,7 @@ impl App {
         let runtime = RunAgent::new(agent);
         let link = AppLink {
             address: runtime.address().clone(),
-            events_rx,
+            events_rx: Slot::filled(events_rx),
         };
         (runtime, link)
     }

@@ -10,12 +10,23 @@ use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::Peer;
 
 pub struct PeerList {
-    peers: State<Peer>,
+    peers: Option<State<Peer>>,
+}
+
+impl PeerList {
+    pub fn new() -> Self {
+        Self { peers: None }
+    }
+
+    pub fn set_state(&mut self, state: State<Peer>) {
+        self.peers = Some(state);
+    }
 }
 
 impl Component for PeerList {
     fn render(&self, area: Rect, buf: &mut Buffer) -> Option<()> {
-        let peers = self.peers.borrow();
+        let state = self.peers.as_ref()?;
+        let peers = state.borrow();
         let peers_state = peers.loaded()?;
         // Convert peers to ListItems
         let items: Vec<ListItem> = peers_state

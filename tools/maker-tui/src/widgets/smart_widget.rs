@@ -11,6 +11,12 @@ pub struct SmartWidget<'a, C: Component> {
 }
 
 impl<'a, C: Component> SmartWidget<'a, C> {
+    pub fn new(widget: &'a C) -> Self {
+        Self { widget }
+    }
+}
+
+impl<'a, C: Component> SmartWidget<'a, C> {
     fn render_loading(&self, area: Rect, buf: &mut Buffer, spinner: &str) {
         // Create a block with borders
         let block = Block::default()

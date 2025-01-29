@@ -1,17 +1,25 @@
+use crate::widgets::{PeerList, SmartWidget};
 use ratatui::prelude::{Constraint, Direction, Layout};
 use ratatui::widgets::{Block, Borders, List, Paragraph};
 use ratatui::Frame;
 
-pub struct AppState {}
+pub struct AppState {
+    pub peers: PeerList,
+}
 
 impl AppState {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            peers: PeerList::new(),
+        }
     }
 
     pub fn render(&self, f: &mut Frame<'_>) {
+        self.render_dashboard(f);
+        /*
         let mut text = String::from("UI9 Dashboard");
         f.render_widget(text, f.area());
+        */
     }
 
     pub fn render_dashboard(&self, f: &mut Frame<'_>) {
@@ -27,12 +35,7 @@ impl AppState {
         f.render_widget(left_text, chunks[0]);
 
         // Right column: List of peers
-        /*
-        let right_block = Block::default()
-            .borders(Borders::ALL)
-            .title("Peers");
-        let list = List::new(items.clone()).block(right_block);
-        f.render_widget(list, chunks[1]);
-        */
+        let widget = SmartWidget::new(&self.peers);
+        f.render_widget(widget, chunks[1]);
     }
 }
