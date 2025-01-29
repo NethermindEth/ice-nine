@@ -4,8 +4,8 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, RunAgent, Standalone};
 use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
-use crb::superagent::{Drainer, Supervisor, SupervisorSession};
-use ui9_dui::tracers::peer::Peer;
+use crb::superagent::{Drainer, OnItem, Supervisor, SupervisorSession};
+use ui9_dui::tracers::peer::{Peer, PeerEvent};
 use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
@@ -65,10 +65,22 @@ struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for App {
-    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let events = self.peers.events()?;
+        ctx.assign(events, (), ());
+
         let peers = self.peers.state().clone();
         let event = UiEvent::SetState { peers };
         self.events_tx.send(event)?;
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnItem<PeerEvent> for App {
+    async fn on_item(&mut self, event: PeerEvent, _: (), ctx: &mut Context<Self>) -> Result<()> {
+        let event = UiEvent::StateChanged;
+        self.events_tx.send(event)?;
+        Ok(())
     }
 }

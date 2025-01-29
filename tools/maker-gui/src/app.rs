@@ -67,6 +67,9 @@ impl AppGui {
                 self.peers = Some(peers);
                 self.state_changed = true;
             }
+            UiEvent::StateChanged => {
+                self.state_changed = true;
+            }
         }
     }
 

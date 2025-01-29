@@ -24,10 +24,17 @@ impl PeerList {
 }
 
 impl Component for PeerList {
+    fn title(&self) -> Option<&str> {
+        Some("Peers")
+    }
+
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         let state = self.peers.as_ref().ok_or("Connecting to a hub...")?;
         let peers = state.borrow();
         let peers_state = peers.loaded().ok_or("Loading peers list...")?;
+        if peers_state.peers.is_empty() {
+            return Err("No peers connected yet".into());
+        }
         // Convert peers to ListItems
         let items: Vec<ListItem> = peers_state
             .peers

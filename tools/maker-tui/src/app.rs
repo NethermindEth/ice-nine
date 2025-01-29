@@ -78,10 +78,11 @@ impl OnItem<UiEvent> for AppTui {
         match event {
             UiEvent::SetState { peers } => {
                 self.state.peers.set_state(peers);
-                let next_state = Next::do_sync(Render);
-                ctx.do_next(next_state);
             }
+            UiEvent::StateChanged => {}
         }
+        let next_state = Next::do_sync(Render);
+        ctx.do_next(next_state);
         Ok(())
     }
 }

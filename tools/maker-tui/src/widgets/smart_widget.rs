@@ -22,6 +22,10 @@ impl AsRef<str> for Reason {
 }
 
 pub trait Component {
+    fn title(&self) -> Option<&str> {
+        None
+    }
+
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason>;
 }
 
@@ -37,14 +41,15 @@ impl<'a, C: Component> SmartWidget<'a, C> {
 
 impl<'a, C: Component> SmartWidget<'a, C> {
     fn render_loading(&self, area: Rect, buf: &mut Buffer, spinner: &str) {
+        let title = self.widget.title().unwrap_or("");
         // Create a block with borders
         let block = Block::default()
             .borders(Borders::ALL)
-            .title("Loading")
-            .style(Style::default().fg(Color::Yellow));
+            .title(title)
+            .style(Style::default().fg(Color::White));
 
         // Create a paragraph with the spinner animation
-        let loading_text = Paragraph::new(format!("Loading {}", spinner))
+        let loading_text = Paragraph::new(spinner)
             .style(
                 Style::default()
                     .fg(Color::Cyan)
