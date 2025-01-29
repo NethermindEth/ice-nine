@@ -6,6 +6,7 @@ pub mod publisher;
 pub mod relay;
 pub mod subscriber;
 pub mod tracers;
+pub mod utils;
 
 pub use connector::Connector;
 pub use flow::Flow;

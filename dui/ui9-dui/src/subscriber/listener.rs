@@ -3,6 +3,7 @@ use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
 use super::{Act, PlayerSetup, Ported, State};
 use crate::flow::Flow;
+use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};
 use crb::core::{mpsc, watch};
@@ -10,7 +11,6 @@ use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use crb::superagent::Drainer;
 use libp2p::PeerId;
-use tokio_stream::wrappers::UnboundedReceiverStream;
 use ui9::names::Fqn;
 
 pub struct Listener<F: Flow> {
@@ -51,12 +51,10 @@ impl<F: Flow> Listener<F> {
     }
 
     pub fn events(&mut self) -> Result<Drainer<F::Event>> {
-        let event_rx = self
-            .event_rx
+        self.event_rx
             .take()
-            .ok_or_else(|| anyhow!("Events stream (drainer) has taken already."))?;
-        let stream = UnboundedReceiverStream::new(event_rx);
-        Ok(Drainer::new(stream))
+            .map(to_drainer)
+            .ok_or_else(|| anyhow!("Events stream (drainer) has taken already."))
     }
 
     pub fn ignore_events(&mut self) {

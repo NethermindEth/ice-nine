@@ -7,6 +7,7 @@ use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
+use ui9_app::AppLink;
 
 pub struct AppTui {
     terminal: Slot<DefaultTerminal>,
@@ -14,7 +15,7 @@ pub struct AppTui {
 }
 
 impl AppTui {
-    pub fn new() -> Self {
+    pub fn new(link: AppLink) -> Self {
         Self {
             terminal: Slot::empty(),
             state: AppState::new(),
