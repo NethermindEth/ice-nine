@@ -4,6 +4,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoSync, Duty, ManagedContext, Next, OnEvent, RunAgent};
 use crb::core::Slot;
+use crb::runtime::InterruptionLevel;
 use crb::superagent::{OnItem, Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
@@ -48,7 +49,7 @@ impl Duty<Initialize> for AppTui {
         // TODO: Use a drainer from CRB
         let drainer = EventsDrainer::new(&ctx);
         let mut runtime = RunAgent::new(drainer);
-        runtime.level = 3.into();
+        runtime.level = InterruptionLevel::ABORT;
         ctx.spawn_runtime(runtime, ());
 
         let ui_events = self.link.drainer()?;
