@@ -1,5 +1,5 @@
 [package]
-name = "ice9-maker"
+name = "ice9-maker-tui"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,11 +8,7 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-clap.workspace = true
 crb.workspace = true
-eframe.workspace = true
-egui.workspace = true
-env_logger.workspace = true
+crossterm = "0.28.1"
+ratatui = "0.29.0"
 tokio.workspace = true
-ui9-app.workspace = true
-ui9-dui.workspace = true

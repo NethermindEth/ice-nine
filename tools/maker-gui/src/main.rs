@@ -3,7 +3,7 @@ use crb::agent::RunAgent;
 use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
 use tokio::runtime::Runtime;
-use ice9_maker::AppUi;
+use ice9_maker_gui::AppGui;
 use ui9_app::App;
 use ui9_dui::Hub;
 
@@ -18,7 +18,7 @@ fn main() -> Result<()> {
         Runtime::new()?.block_on(fut)?;
         Ok(())
     });
-    AppUi::entrypoint(addr, rx);
+    AppGui::entrypoint(addr, rx);
     handle
         .join()
         .map_err(|_| anyhow!("Can't get result of the thread."))??;

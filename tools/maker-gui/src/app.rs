@@ -8,13 +8,13 @@ use ui9_app::protocol::UiEvent;
 use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::{Peer, PeerId};
 
-pub struct AppUi {
+pub struct AppGui {
     state_changed: bool,
     events_rx: mpsc::UnboundedReceiver<UiEvent>,
     peers: Option<State<Peer>>,
 }
 
-impl AppUi {
+impl AppGui {
     pub fn entrypoint(app: impl ToAddress<App>, rx: mpsc::UnboundedReceiver<UiEvent>) {
         let addr = app.to_address();
         let native_options = NativeOptions {
@@ -26,7 +26,7 @@ impl AppUi {
         let _result = run_native(
             "UI9 Dashboard",
             native_options,
-            Box::new(move |cc| Ok(Box::new(AppUi::new(cc, rx)))),
+            Box::new(move |cc| Ok(Box::new(AppGui::new(cc, rx)))),
         );
         let _result = addr.interrupt();
     }
@@ -40,7 +40,7 @@ impl AppUi {
     }
 }
 
-impl eframe::App for AppUi {
+impl eframe::App for AppGui {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         while let Ok(event) = self.events_rx.try_recv() {
             self.apply_event(event);
@@ -60,7 +60,7 @@ impl eframe::App for AppUi {
     }
 }
 
-impl AppUi {
+impl AppGui {
     fn apply_event(&mut self, event: UiEvent) {
         match event {
             UiEvent::SetState { peers } => {
