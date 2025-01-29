@@ -2,6 +2,7 @@ use crate::app::AppTui;
 use anyhow::Result;
 use crb::agent::{Address, Agent, AgentSession, DoSync, Next, ToAddress};
 use crossterm::event;
+use std::time::Duration;
 
 pub struct EventsDrainer {
     app: Address<AppTui>,
@@ -25,8 +26,10 @@ impl Agent for EventsDrainer {
 
 impl DoSync for EventsDrainer {
     fn repeat(&mut self, _: &mut ()) -> Result<Option<Next<Self>>> {
-        let event = event::read()?;
-        self.app.event(event)?;
+        if event::poll(Duration::from_millis(1_000))? {
+            let event = event::read()?;
+            self.app.event(event)?;
+        }
         Ok(None)
     }
 }

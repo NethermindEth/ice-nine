@@ -48,10 +48,10 @@ impl Standalone for Hub {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
-    Server,
     Relay,
     Client,
     Connector,
+    Server,
 }
 
 impl Supervisor for Hub {
