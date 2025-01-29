@@ -1,6 +1,6 @@
 use crate::widgets::{PeerList, SmartWidget};
 use ratatui::prelude::{Constraint, Direction, Layout};
-use ratatui::widgets::{Block, Borders, List, Paragraph};
+use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Frame;
 
 pub struct AppState {

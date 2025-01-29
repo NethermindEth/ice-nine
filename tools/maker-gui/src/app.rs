@@ -1,12 +1,10 @@
-use crb::agent::ToAddress;
-use crb::core::mpsc;
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
 use std::time::Duration;
 use ui9_app::protocol::UiEvent;
-use ui9_app::{App, AppLink};
+use ui9_app::AppLink;
 use ui9_dui::subscriber::State;
-use ui9_dui::tracers::peer::{Peer, PeerId};
+use ui9_dui::tracers::peer::Peer;
 
 pub struct AppGui {
     state_changed: bool,

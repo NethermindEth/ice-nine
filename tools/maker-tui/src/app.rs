@@ -2,7 +2,7 @@ use crate::events::EventsDrainer;
 use crate::state::AppState;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoSync, Duty, ManagedContext, Next, OnEvent, RunAgent};
+use crb::agent::{Agent, Context, DoSync, Duty, Next, OnEvent, RunAgent};
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
 use crb::superagent::{OnItem, Supervisor, SupervisorSession};
