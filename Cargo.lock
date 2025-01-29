@@ -3355,6 +3355,8 @@ dependencies = [
  "crossterm",
  "ratatui",
  "tokio",
+ "ui9-app",
+ "ui9-dui",
 ]
 
 [[package]]
