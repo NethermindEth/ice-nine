@@ -1,4 +1,4 @@
-pub use libp2p::PeerId;
+pub use libp2p::{swarm, PeerId};
 
 use crate::flow::{Flow, Unified};
 use crate::publisher::Tracer;
@@ -6,7 +6,8 @@ use crate::subscriber::Listener;
 use crate::{Publisher, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
+use std::num::ParseIntError;
 use ui9::names::Fqn;
 
 #[derive(Deref, DerefMut, From, Into)]
@@ -45,9 +46,27 @@ impl Unified for Peer {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct ConnectionId(u64);
+
+// Crying about that 😭
+// libp2p doesn't implement serde and doesn't allow to get a raw value.
+impl TryFrom<swarm::ConnectionId> for ConnectionId {
+    type Error = ParseIntError;
+
+    fn try_from(id: swarm::ConnectionId) -> Result<Self, Self::Error> {
+        id.to_string().parse().map(ConnectionId)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PeerRecord {
+    pub connections: BTreeSet<ConnectionId>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Peer {
-    pub peers: BTreeSet<PeerId>,
+    pub peers: BTreeMap<PeerId, PeerRecord>,
 }
 
 impl Flow for Peer {
@@ -57,10 +76,28 @@ impl Flow for Peer {
     fn apply(&mut self, event: Self::Event) {
         match event {
             PeerEvent::AddPeer { peer_id } => {
-                self.peers.insert(peer_id);
+                self.peers.entry(peer_id).or_default();
+            }
+            PeerEvent::AddConnection {
+                peer_id,
+                connection,
+            } => {
+                self.peers
+                    .entry(peer_id)
+                    .or_default()
+                    .connections
+                    .insert(connection);
             }
             PeerEvent::DelPeer { peer_id } => {
                 self.peers.remove(&peer_id);
+            }
+            PeerEvent::DelConnection {
+                peer_id,
+                connection,
+            } => {
+                if let Some(record) = self.peers.get_mut(&peer_id) {
+                    record.connections.remove(&connection);
+                }
             }
         }
     }
@@ -68,6 +105,18 @@ impl Flow for Peer {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PeerEvent {
-    AddPeer { peer_id: PeerId },
-    DelPeer { peer_id: PeerId },
+    AddPeer {
+        peer_id: PeerId,
+    },
+    AddConnection {
+        peer_id: PeerId,
+        connection: ConnectionId,
+    },
+    DelPeer {
+        peer_id: PeerId,
+    },
+    DelConnection {
+        peer_id: PeerId,
+        connection: ConnectionId,
+    },
 }

@@ -88,10 +88,10 @@ impl AppGui {
 
         // Create a scrollable area for the peers list
         egui::ScrollArea::vertical().show(ui, |ui| {
-            for peer in peers.peers.iter() {
+            for (peer_id, _) in peers.peers.iter() {
                 ui.group(|ui| {
                     ui.horizontal(|ui| {
-                        ui.strong(peer.to_string());
+                        ui.strong(peer_id.to_string());
                         /*
                         ui.label(format!("Status: {}", peer.status));
                         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
