@@ -1,11 +1,17 @@
 use crate::protocol::UiEvent;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, Standalone};
+use crb::agent::{Address, Agent, Context, Duty, Next, RunAgent, Standalone};
 use crb::core::mpsc;
+use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Supervisor, SupervisorSession};
 use ui9_dui::tracers::peer::Peer;
 use ui9_dui::Sub;
+
+pub struct AppLink {
+    pub address: Address<App>,
+    pub events_rx: mpsc::UnboundedReceiver<UiEvent>,
+}
 
 pub struct App {
     peers: Sub<Peer>,
@@ -13,11 +19,18 @@ pub struct App {
 }
 
 impl App {
-    pub fn new(events_tx: mpsc::UnboundedSender<UiEvent>) -> Self {
-        Self {
+    pub fn new() -> (RunAgent<Self>, AppLink) {
+        let (events_tx, events_rx) = mpsc::unbounded_channel();
+        let agent = Self {
             peers: Sub::unified(),
             events_tx,
-        }
+        };
+        let runtime = RunAgent::new(agent);
+        let link = AppLink {
+            address: runtime.address().clone(),
+            events_rx,
+        };
+        (runtime, link)
     }
 }
 

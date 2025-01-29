@@ -1,11 +1,10 @@
 use ratatui::Frame;
 
-pub struct AppState {
-}
+pub struct AppState {}
 
 impl AppState {
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 
     pub fn render(&self, frame: &mut Frame<'_>) {

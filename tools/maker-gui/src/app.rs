@@ -3,8 +3,8 @@ use crb::core::mpsc;
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
 use std::time::Duration;
-use ui9_app::App;
 use ui9_app::protocol::UiEvent;
+use ui9_app::{App, AppLink};
 use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::{Peer, PeerId};
 
@@ -15,20 +15,20 @@ pub struct AppGui {
 }
 
 impl AppGui {
-    pub fn entrypoint(app: impl ToAddress<App>, rx: mpsc::UnboundedReceiver<UiEvent>) {
-        let addr = app.to_address();
+    pub fn entrypoint(link: AppLink) {
         let native_options = NativeOptions {
             viewport: ViewportBuilder::default()
                 .with_inner_size([400.0, 300.0])
                 .with_min_inner_size([300.0, 220.0]),
             ..Default::default()
         };
+        let rx = link.events_rx;
         let _result = run_native(
             "UI9 Dashboard",
             native_options,
             Box::new(move |cc| Ok(Box::new(AppGui::new(cc, rx)))),
         );
-        let _result = addr.interrupt();
+        let _result = link.address.interrupt();
     }
 
     fn new(_cc: &CreationContext<'_>, events_rx: mpsc::UnboundedReceiver<UiEvent>) -> Self {
