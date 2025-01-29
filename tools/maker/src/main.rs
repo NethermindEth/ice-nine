@@ -2,8 +2,9 @@ use anyhow::{anyhow, Result};
 use crb::agent::RunAgent;
 use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
-use ice9_maker::{App, AppUi};
 use tokio::runtime::Runtime;
+use ice9_maker::AppUi;
+use ui9_app::App;
 use ui9_dui::Hub;
 
 fn main() -> Result<()> {

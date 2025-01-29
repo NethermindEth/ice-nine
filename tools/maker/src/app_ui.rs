@@ -1,10 +1,10 @@
-use crate::protocol::UiEvent;
-use crate::App;
 use crb::agent::ToAddress;
 use crb::core::mpsc;
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
 use std::time::Duration;
+use ui9_app::App;
+use ui9_app::protocol::UiEvent;
 use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::{Peer, PeerId};
 

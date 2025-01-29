@@ -1,6 +1,6 @@
 [package]
 name = "ui9-codec"
-description = "uiio codecs for ice9"
+description = "Ice9 Codecs"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

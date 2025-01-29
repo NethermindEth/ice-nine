@@ -3287,6 +3287,7 @@ dependencies = [
  "egui",
  "env_logger",
  "tokio",
+ "ui9-app",
  "ui9-dui",
 ]
 
@@ -7275,6 +7276,16 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.11",
+]
+
+[[package]]
+name = "ui9-app"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "ui9-dui",
 ]
 
 [[package]]
