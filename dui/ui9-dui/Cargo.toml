@@ -11,8 +11,8 @@ async-trait.workspace = true
 crb.workspace = true
 derive_more.workspace = true
 futures.workspace = true
-libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "serde", "tcp", "tokio", "request-response", "quic", "yamux"] }
-libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
+libp2p.workspace = true
+# libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
 log.workspace = true
 serde.workspace = true
 tokio.workspace = true
@@ -20,3 +20,4 @@ tokio-stream.workspace = true
 typed-slab.workspace = true
 ui9.workspace = true
 ui9-codec.workspace = true
+ui9-request-response = { path = "../ui9-request-response", features = ["cbor", "json"] }

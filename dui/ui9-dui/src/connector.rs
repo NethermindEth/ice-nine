@@ -16,7 +16,6 @@ use futures::stream::StreamExt;
 use libp2p::PeerId;
 use libp2p::{
     gossipsub, mdns, noise,
-    request_response::{self, ProtocolSupport},
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux, StreamProtocol, Swarm,
 };
@@ -27,6 +26,7 @@ use std::{
 };
 use tokio::select;
 use typed_slab::TypedSlab;
+use ui9_request_response::{self as request_response, ProtocolSupport};
 
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
@@ -53,8 +53,16 @@ struct Outgoing {
     session_ids: HashMap<Unique<OpenSession>, SessionId>,
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
+struct SessionKey {
+    peer_id: PeerId,
+    session_id: SessionId,
+}
+
 #[derive(Default)]
-struct Incoming {}
+struct Incoming {
+    relays: HashMap<SessionKey, Address<Relay>>,
+}
 
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
@@ -259,11 +267,15 @@ impl OnEvent<gossipsub::Event> for Connector {
 #[async_trait]
 impl OnEvent<protocol::Event> for Connector {
     async fn handle(&mut self, event: protocol::Event, ctx: &mut Context<Self>) -> Result<()> {
-        use libp2p::request_response::Message;
         use protocol::Event;
+        use ui9_request_response::Message;
         match event {
             Event::Message { message, .. } => match message {
-                Message::Request { request, .. } => {
+                Message::Request {
+                    request,
+                    request_id,
+                    ..
+                } => {
                     let session_id = request.session_id;
                     log::warn!("Not handeled request event: {request:?}");
                     match request.value {
@@ -293,7 +305,7 @@ pub struct Session {
 
 pub struct ConnectionSender {
     peer_id: PeerId,
-    id: SessionId,
+    session_id: SessionId,
     recipient: Recipient<ForwardRequest>,
 }
 
@@ -301,7 +313,7 @@ impl ConnectionSender {
     pub fn send(&self, request: Request) -> Result<()> {
         let request = ForwardRequest {
             peer_id: self.peer_id,
-            id: self.id,
+            session_id: self.session_id,
             request,
         };
         self.recipient.send(request)
@@ -325,13 +337,13 @@ impl ManageSubscription<OpenSession> for Connector {
         ctx: &mut Context<Self>,
     ) -> Result<ConnectionSender> {
         let connection = Session { sub: sub.clone() };
-        let id = self.outgoing.sessions.insert(connection);
+        let session_id = self.outgoing.sessions.insert(connection);
         let connection = ConnectionSender {
             peer_id: sub.peer_id.clone(),
-            id,
+            session_id,
             recipient: ctx.recipient(),
         };
-        self.outgoing.session_ids.insert(sub, id);
+        self.outgoing.session_ids.insert(sub, session_id);
         Ok(connection)
     }
 
@@ -350,7 +362,7 @@ impl ManageSubscription<OpenSession> for Connector {
 
 struct ForwardRequest {
     peer_id: PeerId,
-    id: SessionId,
+    session_id: SessionId,
     request: Request,
 }
 
@@ -359,7 +371,7 @@ impl OnEvent<ForwardRequest> for Connector {
     async fn handle(&mut self, event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
         let swarm = self.swarm.get_mut()?.behaviour_mut();
         let envelope = Envelope {
-            session_id: event.id,
+            session_id: event.session_id,
             value: event.request,
         };
         let _req_id = swarm
