@@ -1,4 +1,4 @@
-use super::{Act, PlayerSetup, State, SubEvent};
+use super::{Act, PlayerState, State, SubEvent};
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
@@ -9,17 +9,17 @@ use crb::core::{watch, Slot};
 use crb::superagent::Entry;
 
 pub struct LocalPlayer<F: Flow> {
-    setup: PlayerSetup<F>,
+    state: PlayerState<F>,
     recorder: Slot<RecorderLink>,
     entry: Slot<Entry<EventFlow>>,
-    // TODO: Consider to move to PlayerSetup
+    // TODO: Consider to move to PlayerState
     state_tx: Option<watch::Sender<F>>,
 }
 
 impl<F: Flow> LocalPlayer<F> {
-    pub fn new(setup: PlayerSetup<F>) -> Self {
+    pub fn new(state: PlayerState<F>) -> Self {
         Self {
-            setup,
+            state,
             recorder: Slot::empty(),
             entry: Slot::empty(),
             state_tx: None,
@@ -42,14 +42,14 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Subscribing to events stream
         let hub = Hub::link()?;
-        let fqn = self.setup.fqn.clone();
+        let fqn = self.state.fqn.clone();
         let mut recorder = hub.server.discover(fqn).await?;
         let recipient = ctx.recipient();
         let state_entry = recorder.subscribe(recipient).await?;
 
         // Assign the initial state
         let unpacked_state = F::unpack_state(&state_entry.state)?;
-        self.setup.allocate_state(unpacked_state);
+        self.state.allocate_state(unpacked_state);
 
         // Store subscription handle and a link to forward actions
         self.recorder.fill(recorder)?;
@@ -64,7 +64,7 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
 impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
         let event = F::unpack_event(&event)?;
-        self.setup.apply_event(event);
+        self.state.apply_event(event);
         Ok(())
     }
 }

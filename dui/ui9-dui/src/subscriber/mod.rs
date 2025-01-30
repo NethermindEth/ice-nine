@@ -63,14 +63,14 @@ impl<F: Flow> State<F> {
     }
 }
 
-pub struct PlayerSetup<F: Flow> {
+pub struct PlayerState<F: Flow> {
     pub fqn: Fqn,
     state_tx: Option<watch::Sender<F>>,
     /// An optional channel for sending all events
     event_tx: mpsc::UnboundedSender<SubEvent<F>>,
 }
 
-impl<F: Flow> PlayerSetup<F> {
+impl<F: Flow> PlayerState<F> {
     pub fn allocate_state(&mut self, new_state: F) {
         let (state_tx, state_rx) = watch::channel(new_state);
         self.state_tx = Some(state_tx);

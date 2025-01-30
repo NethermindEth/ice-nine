@@ -1,7 +1,7 @@
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
-use super::{Act, PlayerSetup, SubEvent};
+use super::{Act, PlayerState, SubEvent};
 use crate::flow::Flow;
 use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
@@ -21,20 +21,20 @@ pub struct Listener<F: Flow> {
 impl<F: Flow> Listener<F> {
     pub fn new(peer_id: Option<PeerId>, fqn: Fqn) -> Self {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
-        let setup = PlayerSetup {
+        let state = PlayerState {
             fqn,
             state_tx: None,
             event_tx,
         };
         let player = {
             if let Some(peer_id) = peer_id {
-                let player = RemotePlayer::new(peer_id, setup);
+                let player = RemotePlayer::new(peer_id, state);
                 let runtime = RunAgent::new(player);
                 let player = runtime.address().to_stop_address().to_stop_recipient();
                 HubClient::add_player(runtime);
                 player
             } else {
-                let player = LocalPlayer::new(setup);
+                let player = LocalPlayer::new(state);
                 let runtime = RunAgent::new(player);
                 let player = runtime.address().to_stop_address().to_stop_recipient();
                 HubClient::add_player(runtime);
