@@ -1,21 +1,30 @@
-use crate::flow::Flow;
-use crate::publisher::{Tracer, TracerInfo};
+use crate::flow::{Flow, Unified};
+use crate::publisher::{Publisher, Tracer, TracerInfo};
+use crate::subscriber::{Listener, Subscriber};
+use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use ui9::names::Fqn;
 
-pub struct Tree {
-    tracer: Tracer<TreeState>,
+#[derive(Deref, DerefMut, From, Into)]
+pub struct TreeSub {
+    listener: Listener<Tree>,
 }
 
-impl Tree {
-    pub fn new() -> Self {
-        let fqn = Fqn::root("@tree");
-        let state = TreeState::default();
-        let tracer = Tracer::new(fqn, state);
-        Self { tracer }
-    }
+impl Subscriber for Tree {
+    type Driver = TreeSub;
+}
 
+#[derive(Deref, DerefMut, From, Into)]
+pub struct TreePub {
+    tracer: Tracer<Tree>,
+}
+
+impl Publisher for Tree {
+    type Driver = TreePub;
+}
+
+impl TreePub {
     pub fn add(&mut self, fqn: Fqn, info: TracerInfo) {
         let event = TreeEvent::AddFlow { fqn, info };
         self.tracer.event(event);
@@ -27,6 +36,12 @@ impl Tree {
     }
 }
 
+impl Unified for Tree {
+    fn fqn() -> Fqn {
+        Fqn::root("@tree")
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize)]
 pub enum TreeEvent {
     AddFlow { fqn: Fqn, info: TracerInfo },
@@ -34,11 +49,11 @@ pub enum TreeEvent {
 }
 
 #[derive(Clone, Serialize, Deserialize, Default)]
-pub struct TreeState {
+pub struct Tree {
     pub root: Level,
 }
 
-impl Flow for TreeState {
+impl Flow for Tree {
     type Event = TreeEvent;
     type Action = ();
 

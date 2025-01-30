@@ -1,9 +1,8 @@
 pub use libp2p::{swarm, PeerId};
 
 use crate::flow::{Flow, Unified};
-use crate::publisher::Tracer;
-use crate::subscriber::Listener;
-use crate::{Publisher, Subscriber};
+use crate::publisher::{Publisher, Tracer};
+use crate::subscriber::{Listener, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
@@ -42,7 +41,7 @@ impl PeerPub {
 
 impl Unified for Peer {
     fn fqn() -> Fqn {
-        Fqn::root("@peers")
+        Fqn::root("@peer")
     }
 }
 

@@ -1,10 +1,9 @@
 use crate::connector::Connector;
-use crate::publisher::{RecorderLink, TracerInfo, UniRecorder};
+use crate::publisher::{Pub, RecorderLink, TracerInfo, UniRecorder};
 use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent, Standalone};
-use crb::core::Slot;
+use crb::agent::{Address, Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone};
 use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
 use crb::superagent::{
     EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
@@ -47,7 +46,7 @@ impl HubServer {
 
 pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
-    tree: Slot<Tree>,
+    tree: Option<Pub<Tree>>,
     connector: Address<Connector>,
     recorders: HashMap<Fqn, RecorderLink>,
     relations: HashMap<Relation<Self>, Fqn>,
@@ -56,7 +55,7 @@ pub struct HubServer {
 impl HubServer {
     pub fn new(connector: Address<Connector>) -> Self {
         Self {
-            tree: Slot::empty(),
+            tree: None,
             connector,
             recorders: HashMap::new(),
             relations: HashMap::new(),
@@ -78,7 +77,7 @@ impl Supervisor for HubServer {
     fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {
         if let Some(fqn) = self.relations.remove(rel) {
             self.recorders.remove(&fqn);
-            if let Ok(tree) = self.tree.get_mut() {
+            if let Some(tree) = self.tree.as_mut() {
                 tree.del(fqn);
             }
         }
@@ -91,6 +90,11 @@ impl Agent for HubServer {
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)
     }
+
+    fn interrupt(&mut self, ctx: &mut Context<Self>) {
+        self.tree.take();
+        ctx.shutdown();
+    }
 }
 
 struct Initialize;
@@ -100,7 +104,7 @@ impl Duty<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         log::debug!("HubServer starting...");
         PUB_BRIDGE.subscribe(&ctx);
-        self.tree.fill(Tree::new())?;
+        self.tree = Some(Pub::unified());
         log::debug!("HubServer active");
 
         Ok(Next::events())
@@ -122,7 +126,9 @@ impl OnEvent<Delegate> for HubServer {
             let rel = ctx.spawn_trackable(delegate.runtime, Group::Relay);
             self.relations.insert(rel, fqn.clone());
             self.recorders.insert(fqn.clone(), delegate.link);
-            self.tree.get_mut()?.add(fqn, delegate.tracer_info);
+            if let Some(tree) = self.tree.as_mut() {
+                tree.add(fqn, delegate.tracer_info);
+            }
             Ok(())
         } else {
             Err(anyhow!("Recorder {fqn} already registered"))
