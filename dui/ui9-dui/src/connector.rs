@@ -1,4 +1,4 @@
-use crate::protocol;
+use crate::protocol::{self, Envelope, Request, Response, SessionId};
 use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
@@ -9,7 +9,7 @@ use crb::agent::{
 use crb::core::{Slot, Unique};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription};
-use derive_more::{Deref, DerefMut, From, Into};
+use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
 use libp2p::PeerId;
 use libp2p::{
@@ -32,12 +32,12 @@ pub struct ConnectorLink {
 }
 
 impl ConnectorLink {
-    pub fn open_connection(
+    pub fn open_session(
         &self,
         peer_id: PeerId,
-        recipient: impl ToRecipient<protocol::Response>,
-    ) -> Fetcher<StateEntry<OpenConnection>> {
-        let msg = OpenConnection {
+        recipient: impl ToRecipient<Response>,
+    ) -> Fetcher<StateEntry<OpenSession>> {
+        let msg = OpenSession {
             peer_id,
             recipient: recipient.to_recipient(),
         };
@@ -49,8 +49,8 @@ pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
     peer_tracer: Pub<Peer>,
 
-    connections: TypedSlab<ConnectionId, Connection>,
-    connection_ids: HashMap<Unique<OpenConnection>, ConnectionId>,
+    sessions: TypedSlab<SessionId, Session>,
+    session_ids: HashMap<Unique<OpenSession>, SessionId>,
 }
 
 impl Connector {
@@ -58,8 +58,8 @@ impl Connector {
         Self {
             swarm: Slot::empty(),
             peer_tracer: Pub::unified(),
-            connections: TypedSlab::new(),
-            connection_ids: HashMap::new(),
+            sessions: TypedSlab::new(),
+            session_ids: HashMap::new(),
         }
     }
 }
@@ -68,7 +68,7 @@ impl Connector {
 struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
     mdns: mdns::tokio::Behaviour,
-    request_response: request_response::cbor::Behaviour<protocol::Request, protocol::Response>,
+    request_response: request_response::cbor::Behaviour<Envelope<Request>, Envelope<Response>>,
 }
 
 #[async_trait]
@@ -250,7 +250,13 @@ impl OnEvent<protocol::Event> for Connector {
         match event {
             Event::Message { message, .. } => match message {
                 Message::Request { request, .. } => {
+                    let session_id = request.session_id;
                     log::warn!("Not handeled request event: {request:?}");
+                    match request.value {
+                        Request::Subscribe(fqn) => {}
+                        Request::Action(action) => {}
+                        Request::Unsubscribe => {}
+                    }
                 }
                 Message::Response { response, .. } => {
                     log::warn!("Not handeled response event: {response:?}");
@@ -264,21 +270,18 @@ impl OnEvent<protocol::Event> for Connector {
     }
 }
 
-pub struct Connection {
-    sub: Unique<OpenConnection>,
+pub struct Session {
+    sub: Unique<OpenSession>,
 }
-
-#[derive(From, Into, Clone, Copy)]
-struct ConnectionId(usize);
 
 pub struct ConnectionSender {
     peer_id: PeerId,
-    id: ConnectionId,
+    id: SessionId,
     recipient: Recipient<ForwardRequest>,
 }
 
 impl ConnectionSender {
-    pub fn send(&self, request: protocol::Request) -> Result<()> {
+    pub fn send(&self, request: Request) -> Result<()> {
         let request = ForwardRequest {
             peer_id: self.peer_id,
             id: self.id,
@@ -288,41 +291,41 @@ impl ConnectionSender {
     }
 }
 
-pub struct OpenConnection {
+pub struct OpenSession {
     peer_id: PeerId,
-    recipient: Recipient<protocol::Response>,
+    recipient: Recipient<Response>,
 }
 
-impl Subscription for OpenConnection {
+impl Subscription for OpenSession {
     type State = ConnectionSender;
 }
 
 #[async_trait]
-impl ManageSubscription<OpenConnection> for Connector {
+impl ManageSubscription<OpenSession> for Connector {
     async fn subscribe(
         &mut self,
-        sub: Unique<OpenConnection>,
+        sub: Unique<OpenSession>,
         ctx: &mut Context<Self>,
     ) -> Result<ConnectionSender> {
-        let connection = Connection { sub: sub.clone() };
-        let id = self.connections.insert(connection);
+        let connection = Session { sub: sub.clone() };
+        let id = self.sessions.insert(connection);
         let connection = ConnectionSender {
             peer_id: sub.peer_id.clone(),
             id,
             recipient: ctx.recipient(),
         };
-        self.connection_ids.insert(sub, id);
+        self.session_ids.insert(sub, id);
         Ok(connection)
     }
 
     async fn unsubscribe(
         &mut self,
-        sub: Unique<OpenConnection>,
+        sub: Unique<OpenSession>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let id = self.connection_ids.remove(&sub);
+        let id = self.session_ids.remove(&sub);
         if let Some(id) = id {
-            self.connections.remove(id);
+            self.sessions.remove(id);
         }
         Ok(())
     }
@@ -330,17 +333,21 @@ impl ManageSubscription<OpenConnection> for Connector {
 
 struct ForwardRequest {
     peer_id: PeerId,
-    id: ConnectionId,
-    request: protocol::Request,
+    id: SessionId,
+    request: Request,
 }
 
 #[async_trait]
 impl OnEvent<ForwardRequest> for Connector {
     async fn handle(&mut self, event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
         let swarm = self.swarm.get_mut()?.behaviour_mut();
+        let envelope = Envelope {
+            session_id: event.id,
+            value: event.request,
+        };
         let _req_id = swarm
             .request_response
-            .send_request(&event.peer_id, event.request);
+            .send_request(&event.peer_id, envelope);
         Ok(())
     }
 }

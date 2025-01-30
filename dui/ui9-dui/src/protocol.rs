@@ -1,13 +1,20 @@
 use crate::flow::{PackedAction, PackedEvent, PackedState};
+use derive_more::{From, Into};
 use libp2p::request_response;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 
-pub type Event = request_response::Event<Request, Response>;
+pub type Event = request_response::Event<Envelope<Request>, Envelope<Response>>;
 
+#[derive(
+    Debug, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
+)]
+pub struct SessionId(usize);
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Envelope<T> {
-    seq_id: u32,
-    value: T,
+    pub session_id: SessionId,
+    pub value: T,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

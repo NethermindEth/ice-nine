@@ -1,5 +1,5 @@
 use super::{Act, PlayerState};
-use crate::connector::OpenConnection;
+use crate::connector::OpenSession;
 use crate::hub::Hub;
 use crate::protocol;
 use crate::Flow;
@@ -13,7 +13,7 @@ use libp2p::PeerId;
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
     state: PlayerState<F>,
-    connection: Slot<StateEntry<OpenConnection>>,
+    session: Slot<StateEntry<OpenSession>>,
 }
 
 impl<F: Flow> RemotePlayer<F> {
@@ -21,7 +21,7 @@ impl<F: Flow> RemotePlayer<F> {
         Self {
             peer_id,
             state,
-            connection: Slot::empty(),
+            session: Slot::empty(),
         }
     }
 }
@@ -40,8 +40,8 @@ struct Initialize;
 impl<F: Flow> Duty<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let hub = Hub::link()?;
-        let connection = hub.connector.open_connection(self.peer_id, &ctx).await?;
-        self.connection.fill(connection)?;
+        let session = hub.connector.open_session(self.peer_id, &ctx).await?;
+        self.session.fill(session)?;
 
         Ok(Next::duty(Subscribe))
     }
@@ -54,7 +54,7 @@ struct Subscribe;
 #[async_trait]
 impl<F: Flow> Duty<Subscribe> for RemotePlayer<F> {
     async fn handle(&mut self, _: Subscribe, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let conn = self.connection.get_mut()?;
+        let conn = self.session.get_mut()?;
         let fqn = self.state.fqn.clone();
         let req = protocol::Request::Subscribe(fqn);
         conn.state.send(req)?;
