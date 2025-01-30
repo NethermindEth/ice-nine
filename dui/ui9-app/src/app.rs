@@ -69,10 +69,6 @@ impl Duty<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let events = self.peers.events()?;
         ctx.assign(events, (), ());
-
-        let peers = self.peers.state().clone();
-        let event = UiEvent::SetState { peers };
-        self.events_tx.send(event)?;
         Ok(Next::events())
     }
 }
@@ -85,8 +81,17 @@ impl OnItem<SubEvent<Peer>> for App {
         _: (),
         ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let event = UiEvent::StateChanged;
-        self.events_tx.send(event)?;
+        match event {
+            SubEvent::State(peers) => {
+                let event = UiEvent::SetState { peers };
+                self.events_tx.send(event)?;
+            }
+            SubEvent::Event(_) => {
+                let event = UiEvent::StateChanged;
+                self.events_tx.send(event)?;
+            }
+            SubEvent::Lost => {}
+        }
         Ok(())
     }
 }

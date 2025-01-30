@@ -57,16 +57,8 @@ impl<F: Flow> Listener<F> {
             .ok_or_else(|| anyhow!("Events stream (drainer) has taken already."))
     }
 
-    pub fn ignore_events(&mut self) {
-        self.event_rx.take();
-    }
-
     pub fn action(&self, action: F::Action) {
         let msg = Act { action };
         self.player.send(msg).ok();
-    }
-
-    pub fn state(&self) -> &PortedState<F> {
-        &self.state
     }
 }

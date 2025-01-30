@@ -3,13 +3,13 @@ use egui::ViewportBuilder;
 use std::time::Duration;
 use ui9_app::protocol::UiEvent;
 use ui9_app::AppLink;
-use ui9_dui::subscriber::PortedState;
+use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::Peer;
 
 pub struct AppGui {
     state_changed: bool,
     link: AppLink,
-    peers: Option<PortedState<Peer>>,
+    peers: Option<State<Peer>>,
 }
 
 impl AppGui {
@@ -83,7 +83,6 @@ impl AppGui {
 
     fn render_dashboard(&self, ui: &mut egui::Ui) -> Option<()> {
         let peers = self.peers.as_ref()?.borrow();
-        let peers = peers.loaded()?;
         ui.heading("Connected Peers");
         ui.add_space(20.0);
 

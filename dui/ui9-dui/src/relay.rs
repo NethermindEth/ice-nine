@@ -59,7 +59,7 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for Relay {
     async fn handle(&mut self, _: Tick, _ctx: &mut Context<Self>) -> Result<()> {
-        let state = self.peer_listener.state();
+        // let state = self.peer_listener.state();
         Ok(())
     }
 }

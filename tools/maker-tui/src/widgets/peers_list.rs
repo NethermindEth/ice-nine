@@ -6,11 +6,11 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_dui::subscriber::PortedState;
+use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::Peer;
 
 pub struct PeerList {
-    peers: Option<PortedState<Peer>>,
+    peers: Option<State<Peer>>,
 }
 
 impl PeerList {
@@ -18,7 +18,7 @@ impl PeerList {
         Self { peers: None }
     }
 
-    pub fn set_state(&mut self, state: PortedState<Peer>) {
+    pub fn set_state(&mut self, state: State<Peer>) {
         self.peers = Some(state);
     }
 }
@@ -30,8 +30,7 @@ impl Component for PeerList {
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         let state = self.peers.as_ref().ok_or("Connecting to a hub...")?;
-        let peers = state.borrow();
-        let peers_state = peers.loaded().ok_or("Loading peers list...")?;
+        let peers_state = state.borrow();
         if peers_state.peers.is_empty() {
             return Err("No peers connected yet".into());
         }
