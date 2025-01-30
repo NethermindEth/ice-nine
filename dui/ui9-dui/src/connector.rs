@@ -1,14 +1,16 @@
 use crate::protocol::{self, Envelope, Request, Response, SessionId};
+use crate::subscriber::Relay;
 use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{
-    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToRecipient,
-};
+use crb::agent::{Address, Agent, Context, Duty, ManagedContext, Next, OnEvent, ToRecipient};
 use crb::core::{Slot, Unique};
 use crb::send::{Recipient, Sender};
-use crb::superagent::{Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription};
+use crb::superagent::{
+    Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription, Supervisor,
+    SupervisorSession,
+};
 use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
 use libp2p::PeerId;
@@ -45,12 +47,20 @@ impl ConnectorLink {
     }
 }
 
+#[derive(Default)]
+struct Outgoing {
+    sessions: TypedSlab<SessionId, Session>,
+    session_ids: HashMap<Unique<OpenSession>, SessionId>,
+}
+
+#[derive(Default)]
+struct Incoming {}
+
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
     peer_tracer: Pub<Peer>,
-
-    sessions: TypedSlab<SessionId, Session>,
-    session_ids: HashMap<Unique<OpenSession>, SessionId>,
+    outgoing: Outgoing,
+    incoming: Incoming,
 }
 
 impl Connector {
@@ -58,8 +68,8 @@ impl Connector {
         Self {
             swarm: Slot::empty(),
             peer_tracer: Pub::unified(),
-            sessions: TypedSlab::new(),
-            session_ids: HashMap::new(),
+            outgoing: Outgoing::default(),
+            incoming: Incoming::default(),
         }
     }
 }
@@ -71,9 +81,13 @@ struct Ui9Behaviour {
     request_response: request_response::cbor::Behaviour<Envelope<Request>, Envelope<Response>>,
 }
 
+impl Supervisor for Connector {
+    type GroupBy = ();
+}
+
 #[async_trait]
 impl Agent for Connector {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)
@@ -244,7 +258,7 @@ impl OnEvent<gossipsub::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<protocol::Event> for Connector {
-    async fn handle(&mut self, event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: protocol::Event, ctx: &mut Context<Self>) -> Result<()> {
         use libp2p::request_response::Message;
         use protocol::Event;
         match event {
@@ -253,7 +267,10 @@ impl OnEvent<protocol::Event> for Connector {
                     let session_id = request.session_id;
                     log::warn!("Not handeled request event: {request:?}");
                     match request.value {
-                        Request::Subscribe(fqn) => {}
+                        Request::Subscribe(fqn) => {
+                            let relay = Relay::new(fqn);
+                            let addr = ctx.spawn_agent(relay, ());
+                        }
                         Request::Action(action) => {}
                         Request::Unsubscribe => {}
                     }
@@ -308,13 +325,13 @@ impl ManageSubscription<OpenSession> for Connector {
         ctx: &mut Context<Self>,
     ) -> Result<ConnectionSender> {
         let connection = Session { sub: sub.clone() };
-        let id = self.sessions.insert(connection);
+        let id = self.outgoing.sessions.insert(connection);
         let connection = ConnectionSender {
             peer_id: sub.peer_id.clone(),
             id,
             recipient: ctx.recipient(),
         };
-        self.session_ids.insert(sub, id);
+        self.outgoing.session_ids.insert(sub, id);
         Ok(connection)
     }
 
@@ -323,9 +340,9 @@ impl ManageSubscription<OpenSession> for Connector {
         sub: Unique<OpenSession>,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let id = self.session_ids.remove(&sub);
+        let id = self.outgoing.session_ids.remove(&sub);
         if let Some(id) = id {
-            self.sessions.remove(id);
+            self.outgoing.sessions.remove(id);
         }
         Ok(())
     }

@@ -1,6 +1,6 @@
 use crate::connector::{Connector, ConnectorLink};
 use crate::publisher::{HubServer, HubServerLink};
-use crate::relay::Relay;
+// use crate::relay::Relay;
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -48,7 +48,7 @@ impl Standalone for Hub {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
-    Relay,
+    // Relay,
     Client,
     Connector,
     Server,
@@ -82,8 +82,10 @@ impl Duty<Initialize> for Hub {
         let client = HubClient::new(connector.clone());
         let client = stacker.schedule(client, Group::Client);
 
+        /*
         let relay = Relay::new(connector.clone());
         let relay = stacker.schedule(relay, Group::Relay);
+        */
 
         let link = HubLink {
             hub: ctx.to_address(),

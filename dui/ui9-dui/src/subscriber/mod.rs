@@ -1,11 +1,13 @@
 mod client;
 mod listener;
 mod local_player;
+mod relay;
 mod remote_player;
 
 pub use client::{HubClient, HubClientLink};
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
+pub use relay::Relay;
 
 use crate::flow::{Flow, Unified};
 use crb::core::{mpsc, watch};
