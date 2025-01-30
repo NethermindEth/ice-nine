@@ -26,7 +26,7 @@ use std::{
 };
 use tokio::select;
 use typed_slab::TypedSlab;
-use ui9_request_response::{self as request_response, ProtocolSupport};
+use ui9_request_response::{self as request_response, ProtocolSupport, ResponseChannel};
 
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
@@ -59,9 +59,14 @@ struct SessionKey {
     session_id: SessionId,
 }
 
+struct SessionRecord {
+    relay: Address<Relay>,
+    channel: ResponseChannel<Envelope<Response>>,
+}
+
 #[derive(Default)]
 struct Incoming {
-    relays: HashMap<SessionKey, Address<Relay>>,
+    relays: HashMap<SessionKey, SessionRecord>,
 }
 
 pub struct Connector {
@@ -271,7 +276,12 @@ impl OnEvent<protocol::Event> for Connector {
         use ui9_request_response::Message;
         match event {
             Event::Message { message, .. } => match message {
-                Message::Request { request, peer, .. } => {
+                Message::Request {
+                    request,
+                    peer,
+                    channel,
+                    ..
+                } => {
                     let session_key = SessionKey {
                         peer_id: peer,
                         session_id: request.session_id,
@@ -281,7 +291,11 @@ impl OnEvent<protocol::Event> for Connector {
                         Request::Subscribe(fqn) => {
                             let relay = Relay::new(fqn);
                             let (addr, _) = ctx.spawn_agent(relay, ());
-                            self.incoming.relays.insert(session_key, addr);
+                            let record = SessionRecord {
+                                relay: addr,
+                                channel,
+                            };
+                            self.incoming.relays.insert(session_key, record);
                         }
                         Request::Action(action) => {}
                         Request::Unsubscribe => {}
@@ -377,6 +391,30 @@ impl OnEvent<ForwardRequest> for Connector {
         let _req_id = swarm
             .request_response
             .send_request(&event.peer_id, envelope);
+        Ok(())
+    }
+}
+
+struct ForwardResponse {
+    session_key: SessionKey,
+    response: Response,
+}
+
+#[async_trait]
+impl OnEvent<ForwardResponse> for Connector {
+    async fn handle(&mut self, event: ForwardResponse, _ctx: &mut Context<Self>) -> Result<()> {
+        let swarm = self.swarm.get_mut()?.behaviour_mut();
+        let session_id = event.session_key.session_id;
+        let envelope = Envelope {
+            session_id,
+            value: event.response,
+        };
+        // TODO: Send an envelope
+        /*
+        swarm
+            .request_response
+            .send_response(&event.peer_id, envelope);
+        */
         Ok(())
     }
 }

@@ -6,7 +6,7 @@ use crate::flow::Flow;
 use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};
-use crb::core::{mpsc, watch};
+use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use crb::superagent::Drainer;
