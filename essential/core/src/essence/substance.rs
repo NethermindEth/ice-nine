@@ -9,11 +9,11 @@ use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
-use derive_more::{Deref, DerefMut, From};
+use derive_more::{Deref, DerefMut, From, Into};
 use std::any::type_name;
 use std::marker::PhantomData;
 
-#[derive(Deref, DerefMut, From, Clone)]
+#[derive(Deref, DerefMut, From, Into, Clone)]
 pub struct SubstanceLink {
     address: Address<Substance>,
 }
@@ -26,6 +26,10 @@ impl SubstanceLink {
 
     pub async fn be_particle(&self) -> Result<SubstanceLinks> {
         self.address.interact(BeParticle).await.map_err(Error::from)
+    }
+
+    pub fn into_address(self) -> Address<Substance> {
+        self.address
     }
 }
 

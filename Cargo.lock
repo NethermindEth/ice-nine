@@ -1302,7 +1302,7 @@ dependencies = [
 [[package]]
 name = "crb"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "crb-agent",
  "crb-core",
@@ -1315,7 +1315,7 @@ dependencies = [
 [[package]]
 name = "crb-agent"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1331,7 +1331,7 @@ dependencies = [
 [[package]]
 name = "crb-core"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
  "derive_more 1.0.0",
@@ -1350,7 +1350,7 @@ dependencies = [
 [[package]]
 name = "crb-pipeline"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1366,7 +1366,7 @@ dependencies = [
 [[package]]
 name = "crb-runtime"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1379,7 +1379,7 @@ dependencies = [
 [[package]]
 name = "crb-send"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
 ]
@@ -1387,7 +1387,7 @@ dependencies = [
 [[package]]
 name = "crb-superagent"
 version = "0.0.27"
-source = "git+https://github.com/runtime-blocks/crb#06e80cd83fa18a9bc5e23d2e255e15b31cda2054"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1400,6 +1400,18 @@ dependencies = [
  "log",
  "thiserror 2.0.11",
  "typed-slab",
+]
+
+[[package]]
+name = "crb-system"
+version = "0.0.27"
+source = "git+https://github.com/runtime-blocks/crb#047fa8293c6dceb4ee1f94f408eb95ebec9fb2d2"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb-agent",
+ "crb-runtime",
+ "tokio",
 ]
 
 [[package]]
@@ -1651,7 +1663,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1145d32e826a7748b69ee8fc62d3e6355ff7f1051df53141e7048162fc90481b"
 dependencies = [
  "data-encoding",
- "syn 2.0.96",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -3852,7 +3864,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -7309,6 +7321,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "crb",
+ "crb-system",
  "env_logger",
  "ice-nine-plugin-chat-stdio",
  "ice-nine-plugin-chat-telegram",

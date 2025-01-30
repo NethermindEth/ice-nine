@@ -1,4 +1,5 @@
 use anyhow::Result;
+use crb_system::Main;
 use ice9_core::Substance;
 use ice_nine_plugin_chat_telegram::TelegramParticle;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
@@ -15,7 +16,7 @@ async fn main() -> Result<()> {
     substance.add_particle::<TelegramParticle>()?;
     // Stdio is not compatible with tracing and will be replaced with DUI
     // substance.add_particle::<StdioParticle>()?;
-    substance.join().await?;
+    substance.into_address().join_or_signal().await?;
     Hub::deactivate().await?;
     Ok(())
 }
