@@ -1,4 +1,4 @@
-use super::{Act, PlayerSetup, Ported};
+use super::{Act, PlayerSetup, Ported, SubEvent};
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
@@ -68,6 +68,7 @@ impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
             }
         });
         if !self.setup.event_tx.is_closed() {
+            let event = SubEvent::Event(event);
             self.setup.event_tx.send(event)?;
         }
         Ok(())

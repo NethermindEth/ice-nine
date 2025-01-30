@@ -1,4 +1,5 @@
 use crate::connector::Connector;
+use crate::subscriber::SubEvent;
 use crate::tracers::peer::{Peer, PeerEvent};
 use crate::tracers::tree::Tree;
 use crate::Sub;
@@ -64,8 +65,13 @@ impl OnEvent<Tick> for Relay {
 }
 
 #[async_trait]
-impl OnItem<PeerEvent> for Relay {
-    async fn on_item(&mut self, event: PeerEvent, _: (), _ctx: &mut Context<Self>) -> Result<()> {
+impl OnItem<SubEvent<Peer>> for Relay {
+    async fn on_item(
+        &mut self,
+        event: SubEvent<Peer>,
+        _: (),
+        _ctx: &mut Context<Self>,
+    ) -> Result<()> {
         log::trace!("Peers list has updated: {:?}", event);
         Ok(())
     }

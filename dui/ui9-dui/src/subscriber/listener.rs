@@ -1,7 +1,7 @@
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
-use super::{Act, PlayerSetup, Ported, PortedState};
+use super::{Act, PlayerSetup, Ported, PortedState, SubEvent};
 use crate::flow::Flow;
 use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
@@ -16,7 +16,7 @@ use ui9::names::Fqn;
 pub struct Listener<F: Flow> {
     player: StopRecipient<Act<F>>,
     state: PortedState<F>,
-    event_rx: Option<mpsc::UnboundedReceiver<F::Event>>,
+    event_rx: Option<mpsc::UnboundedReceiver<SubEvent<F>>>,
 }
 
 impl<F: Flow> Listener<F> {
@@ -50,7 +50,7 @@ impl<F: Flow> Listener<F> {
         }
     }
 
-    pub fn events(&mut self) -> Result<Drainer<F::Event>> {
+    pub fn events(&mut self) -> Result<Drainer<SubEvent<F>>> {
         self.event_rx
             .take()
             .map(to_drainer)

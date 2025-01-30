@@ -56,10 +56,12 @@ impl<F> Ported<F> {
     }
 }
 
-/*
+#[derive(Debug)]
 pub enum SubEvent<F: Flow> {
+    // State(State<F>),
+    Event(F::Event),
+    Lost,
 }
-*/
 
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
@@ -67,7 +69,7 @@ pub struct PlayerSetup<F: Flow> {
     // Remove this channel.
     pub state_tx: watch::Sender<Ported<F>>,
     /// An optional channel for sending all events
-    pub event_tx: mpsc::UnboundedSender<F::Event>,
+    pub event_tx: mpsc::UnboundedSender<SubEvent<F>>,
 }
 
 pub struct Act<F: Flow> {
