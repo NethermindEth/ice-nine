@@ -58,9 +58,26 @@ impl<F> Ported<F> {
 
 #[derive(Debug)]
 pub enum SubEvent<F: Flow> {
-    // State(State<F>),
+    State(State<F>),
     Event(F::Event),
     Lost,
+}
+
+#[derive(Debug)]
+pub struct State<F: Flow> {
+    state_rx: watch::Receiver<F>,
+}
+
+impl<F: Flow> State<F> {
+    fn new(state_rx: watch::Receiver<F>) -> Self {
+        Self { state_rx }
+    }
+}
+
+impl<F: Flow> State<F> {
+    pub fn borrow(&self) -> watch::Ref<F> {
+        self.state_rx.borrow()
+    }
 }
 
 pub struct PlayerSetup<F: Flow> {
