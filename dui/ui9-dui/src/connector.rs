@@ -271,17 +271,17 @@ impl OnEvent<protocol::Event> for Connector {
         use ui9_request_response::Message;
         match event {
             Event::Message { message, .. } => match message {
-                Message::Request {
-                    request,
-                    request_id,
-                    ..
-                } => {
-                    let session_id = request.session_id;
+                Message::Request { request, peer, .. } => {
+                    let session_key = SessionKey {
+                        peer_id: peer,
+                        session_id: request.session_id,
+                    };
                     log::warn!("Not handeled request event: {request:?}");
                     match request.value {
                         Request::Subscribe(fqn) => {
                             let relay = Relay::new(fqn);
-                            let addr = ctx.spawn_agent(relay, ());
+                            let (addr, _) = ctx.spawn_agent(relay, ());
+                            self.incoming.relays.insert(session_key, addr);
                         }
                         Request::Action(action) => {}
                         Request::Unsubscribe => {}
