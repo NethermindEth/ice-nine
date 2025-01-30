@@ -49,10 +49,7 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
 
         // Assign the initial state
         let unpacked_state = F::unpack_state(&state_entry.state)?;
-        let (state_tx, state_rx) = watch::channel(unpacked_state);
-        let state = State::new(state_rx);
-        let event = SubEvent::State(state);
-        self.setup.send(event);
+        self.setup.allocate_state(unpacked_state);
 
         // Store subscription handle and a link to forward actions
         self.recorder.fill(recorder)?;
@@ -67,13 +64,7 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
 impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
         let event = F::unpack_event(&event)?;
-        if let Some(state_tx) = self.state_tx.as_mut() {
-            state_tx.send_modify(|state| {
-                state.apply(event.clone());
-            });
-            let event = SubEvent::Event(event);
-            self.setup.send(event);
-        }
+        self.setup.apply_event(event);
         Ok(())
     }
 }

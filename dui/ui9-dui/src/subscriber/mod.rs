@@ -82,15 +82,35 @@ impl<F: Flow> State<F> {
 
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
+    state_tx: Option<watch::Sender<F>>,
     /// An optional channel for sending all events
-    pub event_tx: mpsc::UnboundedSender<SubEvent<F>>,
+    event_tx: mpsc::UnboundedSender<SubEvent<F>>,
 }
 
 impl<F: Flow> PlayerSetup<F> {
-    // TODO: Methods assign state, etc
-    // Don't create a watch channel manually
+    pub fn allocate_state(&mut self, new_state: F) {
+        let (state_tx, state_rx) = watch::channel(new_state);
+        self.state_tx = Some(state_tx);
+        let state = State::new(state_rx);
+        let event = SubEvent::State(state);
+        self.send(event);
+    }
 
-    pub fn send(&self, event: SubEvent<F>) {
+    pub fn apply_event(&mut self, event: F::Event) {
+        if let Some(state_tx) = self.state_tx.as_mut() {
+            state_tx.send_modify(|state| {
+                state.apply(event.clone());
+            });
+            self.send(SubEvent::Event(event));
+        }
+    }
+
+    pub fn deallocate_state(&mut self) {
+        self.state_tx.take();
+        self.send(SubEvent::Lost);
+    }
+
+    fn send(&self, event: SubEvent<F>) {
         if !self.event_tx.is_closed() {
             // TODO: Logging
             self.event_tx.send(event).ok();
@@ -100,28 +120,4 @@ impl<F: Flow> PlayerSetup<F> {
 
 pub struct Act<F: Flow> {
     pub action: F::Action,
-}
-
-pub struct PortedState<F: Flow> {
-    state_rx: watch::Receiver<Ported<F>>,
-}
-
-impl<F: Flow> Clone for PortedState<F> {
-    fn clone(&self) -> Self {
-        Self {
-            state_rx: self.state_rx.clone(),
-        }
-    }
-}
-
-impl<F: Flow> PortedState<F> {
-    fn new(state_rx: watch::Receiver<Ported<F>>) -> Self {
-        Self { state_rx }
-    }
-}
-
-impl<F: Flow> PortedState<F> {
-    pub fn borrow(&self) -> watch::Ref<Ported<F>> {
-        self.state_rx.borrow()
-    }
 }
