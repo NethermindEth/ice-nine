@@ -3,13 +3,13 @@ use egui::ViewportBuilder;
 use std::time::Duration;
 use ui9_app::protocol::UiEvent;
 use ui9_app::AppLink;
-use ui9_dui::subscriber::State;
+use ui9_dui::subscriber::PortedState;
 use ui9_dui::tracers::peer::Peer;
 
 pub struct AppGui {
     state_changed: bool,
     link: AppLink,
-    peers: Option<State<Peer>>,
+    peers: Option<PortedState<Peer>>,
 }
 
 impl AppGui {

@@ -1,7 +1,7 @@
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
-use super::{Act, PlayerSetup, Ported, State};
+use super::{Act, PlayerSetup, Ported, PortedState};
 use crate::flow::Flow;
 use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
@@ -15,7 +15,7 @@ use ui9::names::Fqn;
 
 pub struct Listener<F: Flow> {
     player: StopRecipient<Act<F>>,
-    state: State<F>,
+    state: PortedState<F>,
     event_rx: Option<mpsc::UnboundedReceiver<F::Event>>,
 }
 
@@ -45,7 +45,7 @@ impl<F: Flow> Listener<F> {
         };
         Self {
             player,
-            state: State::new(state_rx),
+            state: PortedState::new(state_rx),
             event_rx: Some(event_rx),
         }
     }
@@ -66,7 +66,7 @@ impl<F: Flow> Listener<F> {
         self.player.send(msg).ok();
     }
 
-    pub fn state(&self) -> &State<F> {
+    pub fn state(&self) -> &PortedState<F> {
         &self.state
     }
 }

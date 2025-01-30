@@ -1,15 +1,19 @@
 use crate::connector::Connector;
 use crate::tracers::peer::{Peer, PeerEvent};
+use crate::tracers::tree::Tree;
 use crate::Sub;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
 use crb::superagent::{Interval, OnItem, Supervisor, SupervisorSession};
+use libp2p::PeerId;
+use std::collections::HashMap;
 
 /// A hub server that keep information about remote components.
 pub struct Relay {
     connector: Address<Connector>,
     peer_listener: Sub<Peer>,
+    trees: HashMap<PeerId, Sub<Tree>>,
     interval: Interval<Tick>,
 }
 
@@ -18,6 +22,7 @@ impl Relay {
         Self {
             connector,
             peer_listener: Sub::unified(),
+            trees: HashMap::new(),
             interval: Interval::default(),
         }
     }

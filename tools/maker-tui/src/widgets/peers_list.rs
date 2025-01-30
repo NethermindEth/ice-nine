@@ -6,11 +6,11 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_dui::subscriber::State;
+use ui9_dui::subscriber::PortedState;
 use ui9_dui::tracers::peer::Peer;
 
 pub struct PeerList {
-    peers: Option<State<Peer>>,
+    peers: Option<PortedState<Peer>>,
 }
 
 impl PeerList {
@@ -18,7 +18,7 @@ impl PeerList {
         Self { peers: None }
     }
 
-    pub fn set_state(&mut self, state: State<Peer>) {
+    pub fn set_state(&mut self, state: PortedState<Peer>) {
         self.peers = Some(state);
     }
 }

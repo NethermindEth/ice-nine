@@ -1,9 +1,9 @@
-use ui9_dui::subscriber::State;
+use ui9_dui::subscriber::PortedState;
 use ui9_dui::tracers::peer::Peer;
 
 /// Ad event sent from `App` to `Ui`
 pub enum UiEvent {
-    SetState { peers: State<Peer> },
+    SetState { peers: PortedState<Peer> },
     StateChanged,
 }
 

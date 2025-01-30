@@ -56,8 +56,15 @@ impl<F> Ported<F> {
     }
 }
 
+/*
+pub enum SubEvent<F: Flow> {
+}
+*/
+
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
+    // TODO: Send a new channel for an every connection
+    // Remove this channel.
     pub state_tx: watch::Sender<Ported<F>>,
     /// An optional channel for sending all events
     pub event_tx: mpsc::UnboundedSender<F::Event>,
@@ -67,11 +74,11 @@ pub struct Act<F: Flow> {
     pub action: F::Action,
 }
 
-pub struct State<F: Flow> {
+pub struct PortedState<F: Flow> {
     state_rx: watch::Receiver<Ported<F>>,
 }
 
-impl<F: Flow> Clone for State<F> {
+impl<F: Flow> Clone for PortedState<F> {
     fn clone(&self) -> Self {
         Self {
             state_rx: self.state_rx.clone(),
@@ -79,13 +86,13 @@ impl<F: Flow> Clone for State<F> {
     }
 }
 
-impl<F: Flow> State<F> {
+impl<F: Flow> PortedState<F> {
     fn new(state_rx: watch::Receiver<Ported<F>>) -> Self {
         Self { state_rx }
     }
 }
 
-impl<F: Flow> State<F> {
+impl<F: Flow> PortedState<F> {
     pub fn borrow(&self) -> watch::Ref<Ported<F>> {
         self.state_rx.borrow()
     }
