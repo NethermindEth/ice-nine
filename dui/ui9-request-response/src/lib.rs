@@ -102,6 +102,7 @@ use crate::handler::OutboundMessage;
 pub enum Message<TRequest, TResponse, TChannelResponse = TResponse> {
     /// A request message.
     Request {
+        peer: PeerId,
         /// The ID of this request.
         request_id: InboundRequestId,
         /// The request message.
@@ -866,6 +867,7 @@ where
 
                     let channel = ResponseChannel { sender };
                     let message = Message::Request {
+                        peer,
                         request_id,
                         request,
                         channel,
