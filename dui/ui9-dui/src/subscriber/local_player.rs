@@ -1,17 +1,19 @@
-use super::{Act, PlayerSetup, Ported, SubEvent};
+use super::{Act, PlayerSetup, Ported, State, SubEvent};
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
-use crb::core::Slot;
+use crb::core::{watch, Slot};
 use crb::superagent::Entry;
 
 pub struct LocalPlayer<F: Flow> {
     setup: PlayerSetup<F>,
     recorder: Slot<RecorderLink>,
     entry: Slot<Entry<EventFlow>>,
+    // TODO: Consider to move to PlayerSetup
+    state_tx: Option<watch::Sender<F>>,
 }
 
 impl<F: Flow> LocalPlayer<F> {
@@ -20,6 +22,7 @@ impl<F: Flow> LocalPlayer<F> {
             setup,
             recorder: Slot::empty(),
             entry: Slot::empty(),
+            state_tx: None,
         }
     }
 }
@@ -46,8 +49,10 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
 
         // Assign the initial state
         let unpacked_state = F::unpack_state(&state_entry.state)?;
-        let state = Ported::Loaded(unpacked_state);
-        self.setup.state_tx.send(state)?;
+        let (state_tx, state_rx) = watch::channel(unpacked_state);
+        let state = State::new(state_rx);
+        let event = SubEvent::State(state);
+        self.setup.send(event);
 
         // Store subscription handle and a link to forward actions
         self.recorder.fill(recorder)?;
@@ -62,14 +67,12 @@ impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
 impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
         let event = F::unpack_event(&event)?;
-        self.setup.state_tx.send_modify(|ported| {
-            if let Ported::Loaded(state) = ported {
+        if let Some(state_tx) = self.state_tx.as_mut() {
+            state_tx.send_modify(|state| {
                 state.apply(event.clone());
-            }
-        });
-        if !self.setup.event_tx.is_closed() {
+            });
             let event = SubEvent::Event(event);
-            self.setup.event_tx.send(event)?;
+            self.setup.send(event);
         }
         Ok(())
     }

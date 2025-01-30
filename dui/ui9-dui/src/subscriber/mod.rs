@@ -82,11 +82,20 @@ impl<F: Flow> State<F> {
 
 pub struct PlayerSetup<F: Flow> {
     pub fqn: Fqn,
-    // TODO: Send a new channel for an every connection
-    // Remove this channel.
-    pub state_tx: watch::Sender<Ported<F>>,
     /// An optional channel for sending all events
     pub event_tx: mpsc::UnboundedSender<SubEvent<F>>,
+}
+
+impl<F: Flow> PlayerSetup<F> {
+    // TODO: Methods assign state, etc
+    // Don't create a watch channel manually
+
+    pub fn send(&self, event: SubEvent<F>) {
+        if !self.event_tx.is_closed() {
+            // TODO: Logging
+            self.event_tx.send(event).ok();
+        }
+    }
 }
 
 pub struct Act<F: Flow> {
