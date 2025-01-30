@@ -1,7 +1,7 @@
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
-use super::{Act, PlayerSetup, Ported, SubEvent};
+use super::{Act, PlayerSetup, SubEvent};
 use crate::flow::Flow;
 use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};

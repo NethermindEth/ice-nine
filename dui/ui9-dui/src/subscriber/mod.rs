@@ -2,7 +2,6 @@ mod client;
 mod listener;
 mod local_player;
 mod remote_player;
-mod watcher;
 
 pub use client::{HubClient, HubClientLink};
 pub use listener::Listener;
@@ -37,22 +36,6 @@ impl<P: Subscriber> Sub<P> {
         P: Unified,
     {
         Self::new(None, P::fqn())
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum Ported<F> {
-    Loading,
-    Loaded(F),
-}
-
-impl<F> Ported<F> {
-    pub fn loaded(&self) -> Option<&F> {
-        if let Self::Loaded(state) = self {
-            Some(state)
-        } else {
-            None
-        }
     }
 }
 
