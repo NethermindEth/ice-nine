@@ -6,18 +6,21 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::Entry;
+use libp2p::Stream;
 use ui9::names::Fqn;
 
 pub struct Relay {
     fqn: Fqn,
     entry: Slot<Entry<EventFlow>>,
+    stream: Stream,
 }
 
 impl Relay {
-    pub fn new(fqn: Fqn) -> Self {
+    pub fn new(fqn: Fqn, stream: Stream) -> Self {
         Self {
             fqn,
             entry: Slot::empty(),
+            stream,
         }
     }
 }

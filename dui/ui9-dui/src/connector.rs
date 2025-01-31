@@ -1,4 +1,5 @@
 use crate::protocol::{self, Envelope, Request, Response, SessionId};
+use crate::router::Router;
 use crate::subscriber::Relay;
 use crate::tracers::peer::Peer;
 use crate::Pub;
@@ -130,7 +131,7 @@ pub struct Initialize;
 
 #[async_trait]
 impl Duty<Initialize> for Connector {
-    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut swarm = libp2p::SwarmBuilder::with_new_identity()
             .with_tokio()
             .with_tcp(
@@ -187,6 +188,10 @@ impl Duty<Initialize> for Connector {
         swarm.listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse()?)?;
         swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
 
+        let control = swarm.behaviour_mut().stream.new_control();
+        let router = Router::new(control);
+        ctx.spawn_agent(router, ());
+
         self.swarm.fill(swarm)?;
         Ok(Next::events())
     }
@@ -209,7 +214,9 @@ impl Connector {
                 Ui9BehaviourEvent::RequestResponse(event) => {
                     OnEvent::handle(self, event, ctx).await?;
                 }
-                Ui9BehaviourEvent::Stream(()) => {}
+                Ui9BehaviourEvent::Stream(()) => {
+                    log::info!("Start streaming");
+                }
             },
             SwarmEvent::NewListenAddr { address, .. } => {
                 log::info!("Local node is listening on {address}");
@@ -295,6 +302,7 @@ impl OnEvent<protocol::Event> for Connector {
                     log::warn!("Not handeled request event: {request:?}");
                     match request.value {
                         Request::Subscribe(fqn) => {
+                            /*
                             let relay = Relay::new(fqn);
                             let (addr, _) = ctx.spawn_agent(relay, ());
                             let record = SessionRecord {
@@ -302,6 +310,7 @@ impl OnEvent<protocol::Event> for Connector {
                                 channel,
                             };
                             self.incoming.relays.insert(session_key, record);
+                            */
                         }
                         Request::Action(action) => {}
                         Request::Unsubscribe => {}
