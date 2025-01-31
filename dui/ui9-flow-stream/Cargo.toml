@@ -1,0 +1,16 @@
+[package]
+name = "ui9-flow-stream"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+libp2p.workspace = true
+
+[dev-dependencies]
+anyhow.workspace = true
+libp2p-swarm-test = "0.5.0"
+tokio = { workspace = true, features = ["full"] }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }

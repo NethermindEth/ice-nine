@@ -7598,6 +7598,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ui9-flow-stream"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "libp2p",
+ "libp2p-swarm-test",
+ "tokio",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "ui9-request-response"
 version = "0.0.1"
 dependencies = [
