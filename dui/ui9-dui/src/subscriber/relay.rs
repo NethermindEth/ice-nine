@@ -1,34 +1,42 @@
 use crate::flex::FlexCodec;
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
-use crate::protocol::Message;
-use crate::publisher::EventFlow;
-use anyhow::{Error, Result};
+use crate::protocol::{Message, Request, Response};
+use crate::publisher::{EventFlow, RecorderLink};
+use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Drainer, Entry, OnItem, Supervisor, SupervisorSession};
-use futures::{AsyncReadExt, Sink, StreamExt};
+use futures::{AsyncReadExt, Sink, SinkExt, StreamExt};
 use libp2p::Stream;
+use std::pin::Pin;
 use tokio::io;
 use tokio_util::codec::{Framed, LengthDelimitedCodec};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 use ui9::names::Fqn;
 
 pub struct Relay {
+    // State 1
+    stream: Slot<Stream>,
+
+    // State 2
+    writer: Slot<Pin<Box<dyn Sink<Message, Error = Error> + Send>>>,
+
+    // State 3
     fqn: Option<Fqn>,
     entry: Slot<Entry<EventFlow>>,
-    stream: Slot<Stream>,
-    writer: Slot<Box<dyn Sink<Message, Error = Error> + Send>>,
+    recorder: Slot<RecorderLink>,
 }
 
 impl Relay {
     pub fn new(stream: Stream) -> Self {
         Self {
-            fqn: None,
-            entry: Slot::empty(),
             stream: Slot::filled(stream),
             writer: Slot::empty(),
+            fqn: None,
+            entry: Slot::empty(),
+            recorder: Slot::empty(),
         }
     }
 }
@@ -41,14 +49,14 @@ impl Agent for Relay {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Relay {
+impl DoAsync<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
         let stream = stream.compat();
@@ -57,7 +65,7 @@ impl Duty<Initialize> for Relay {
         let (writer, reader) = framed.split();
         let drainer = Drainer::new(reader);
         ctx.assign(drainer, (), ());
-        self.writer.fill(Box::new(writer))?;
+        self.writer.fill(Box::pin(writer))?;
         Ok(Next::events())
     }
 }
@@ -68,40 +76,56 @@ impl OnItem<Result<Message>> for Relay {
         &mut self,
         event: Result<Message>,
         _: (),
-        _ctx: &mut Context<Self>,
+        ctx: &mut Context<Self>,
     ) -> Result<()> {
         let event = event?;
-        Ok(())
+        match event {
+            Message::Request(request) => {
+                match request {
+                    Request::Subscribe(fqn) => {
+                        if self.entry.is_filled() {
+                            return Err(anyhow!("Trying to subscribe twice"));
+                        }
+                        // Subscribing to events stream
+                        let hub = Hub::link()?;
+                        let mut recorder = hub.server.discover(fqn).await?;
+                        let recipient = ctx.recipient();
+                        let state_entry = recorder.subscribe(recipient).await?;
+                        let state = state_entry.state;
+                        self.send(state.into()).await?;
+                        self.entry.fill(state_entry.entry)?;
+                        self.recorder.fill(recorder)?;
+                    }
+                    Request::Action(action) => {
+                        let recorder = self.recorder.get_mut()?;
+                        recorder.act(action)?;
+                    }
+                    Request::Unsubscribe => {
+                        // TODO: Drop the stream
+                    }
+                }
+                Ok(())
+            }
+            Message::Response(_response) => {
+                Err(anyhow!("Response is not expected for relay stream"))
+            }
+        }
     }
 }
 
-/*
-struct Initialize;
-
-#[async_trait]
-impl Duty<Initialize> for Relay {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        // Subscribing to events stream
-        let hub = Hub::link()?;
-        let fqn = self.fqn.clone();
-        let mut recorder = hub.server.discover(fqn).await?;
-        let recipient = ctx.recipient();
-        let state_entry = recorder.subscribe(recipient).await?;
-
-        // TODO: Forward the state
-
-        self.entry.fill(state_entry.entry)?;
-        Ok(Next::events())
+impl Relay {
+    async fn send(&mut self, response: Response) -> Result<()> {
+        let writer = self.writer.get_mut()?;
+        let message = Message::from(response);
+        writer.send(message).await?;
+        Ok(())
     }
-
-    // TODO: Try restart later if failed
 }
 
 #[async_trait]
 impl OnEvent<PackedEvent> for Relay {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
-        // TODO: Forward the event
+        self.send(event.into()).await?;
         Ok(())
     }
 }
-*/

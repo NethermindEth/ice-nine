@@ -16,20 +16,20 @@ pub struct Envelope<T> {
     pub value: T,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
 pub enum Request {
     Subscribe(Fqn),
     Action(PackedAction),
     Unsubscribe,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
 pub enum Response {
     State(PackedState),
     Event(PackedEvent),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
 pub enum Message {
     Request(Request),
     Response(Response),
