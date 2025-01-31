@@ -19,6 +19,7 @@ use libp2p::{
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux, StreamProtocol, Swarm,
 };
+use libp2p_stream as stream;
 use std::{
     collections::hash_map::{DefaultHasher, HashMap},
     hash::{Hash, Hasher},
@@ -92,6 +93,7 @@ struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
     mdns: mdns::tokio::Behaviour,
     request_response: request_response::cbor::Behaviour<Envelope<Request>, Envelope<Response>>,
+    stream: stream::Behaviour,
 }
 
 impl Supervisor for Connector {
@@ -168,10 +170,13 @@ impl Duty<Initialize> for Connector {
                     request_response::Config::default(),
                 );
 
+                let stream = stream::Behaviour::new();
+
                 Ok(Ui9Behaviour {
                     gossipsub,
                     mdns,
                     request_response,
+                    stream,
                 })
             })?
             .build();
@@ -204,6 +209,7 @@ impl Connector {
                 Ui9BehaviourEvent::RequestResponse(event) => {
                     OnEvent::handle(self, event, ctx).await?;
                 }
+                Ui9BehaviourEvent::Stream(()) => {}
             },
             SwarmEvent::NewListenAddr { address, .. } => {
                 log::info!("Local node is listening on {address}");

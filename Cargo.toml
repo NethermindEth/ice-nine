@@ -35,6 +35,7 @@ futures = "0.3.31"
 ice9-core = { version = "0.0.1", path = "essential/core" }
 ice9-std = { version = "0.0.1", path = "essential/std" }
 libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "serde", "tcp", "tokio", "quic", "yamux"] }
+libp2p-stream = "0.3.0-alpha"
 futures-bounded = "0.2.4"
 log = "0.4.25"
 serde = "1.0.217"

@@ -12,6 +12,7 @@ crb.workspace = true
 derive_more.workspace = true
 futures.workspace = true
 libp2p.workspace = true
+libp2p-stream.workspace = true
 # libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
 log.workspace = true
 serde.workspace = true
