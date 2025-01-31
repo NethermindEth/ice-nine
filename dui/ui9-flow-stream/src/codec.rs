@@ -9,4 +9,6 @@ where T: Debug + AsRef<str> + Clone + Send {}
 
 pub trait Codec: Send + 'static {
     type Protocol: Protocol;
+    type Request;
+    type Response;
 }

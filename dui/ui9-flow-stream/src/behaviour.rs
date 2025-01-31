@@ -14,6 +14,13 @@ use libp2p::swarm::{
     THandlerInEvent,
     THandlerOutEvent,
 };
+use derive_more::Display;
+
+#[derive(Debug, Display, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct OutboundRequestId(u64);
+
+#[derive(Debug, Display, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct InboundRequestId(u64);
 
 pub struct Behaviour<TCodec> {
     codec: TCodec,
@@ -27,6 +34,22 @@ impl<TCodec> Behaviour<TCodec> {
         Self {
             codec: TCodec::default(),
         }
+    }
+}
+
+impl<TCodec> Behaviour<TCodec>
+where
+    TCodec: Codec,
+{
+    pub fn send_request(&mut self, peer: &PeerId, request: TCodec::Request) -> OutboundRequestId {
+        todo!()
+    }
+
+    pub fn send_response(
+        &mut self,
+        rs: TCodec::Response,
+    ) -> Result<(), TCodec::Response> {
+        todo!()
     }
 }
 

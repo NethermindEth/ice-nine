@@ -5,6 +5,7 @@ use smallvec::SmallVec;
 use libp2p::swarm::Stream;
 use libp2p::core::upgrade::{InboundUpgrade, OutboundUpgrade, UpgradeInfo};
 
+#[derive(Debug)]
 pub enum Event<TReq, TRes> {
     Request {
         request: TReq,
