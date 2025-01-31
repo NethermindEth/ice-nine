@@ -1,13 +1,14 @@
 use crate::flex::FlexCodec;
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
+use crate::protocol::Message;
 use crate::publisher::EventFlow;
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Drainer, Entry, Supervisor, SupervisorSession};
-use futures::{AsyncReadExt, StreamExt};
+use crb::superagent::{Drainer, Entry, OnItem, Supervisor, SupervisorSession};
+use futures::{AsyncReadExt, Sink, StreamExt};
 use libp2p::Stream;
 use tokio::io;
 use tokio_util::codec::{Framed, LengthDelimitedCodec};
@@ -18,6 +19,7 @@ pub struct Relay {
     fqn: Option<Fqn>,
     entry: Slot<Entry<EventFlow>>,
     stream: Slot<Stream>,
+    writer: Slot<Box<dyn Sink<Message, Error = Error> + Send>>,
 }
 
 impl Relay {
@@ -26,6 +28,7 @@ impl Relay {
             fqn: None,
             entry: Slot::empty(),
             stream: Slot::filled(stream),
+            writer: Slot::empty(),
         }
     }
 }
@@ -49,17 +52,26 @@ impl Duty<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
         let stream = stream.compat();
-        let codec = FlexCodec::<()>::new();
+        let codec = FlexCodec::<Message>::new();
         let framed = Framed::new(stream, codec);
         let (writer, reader) = framed.split();
         let drainer = Drainer::new(reader);
-        // ctx.assign(drainer, (), ());
-
-        // let (mut reader, mut writer) = stream.split();
-        /*
-         */
-        // let (reader, writer) = io::split(stream);
+        ctx.assign(drainer, (), ());
+        self.writer.fill(Box::new(writer))?;
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnItem<Result<Message>> for Relay {
+    async fn on_item(
+        &mut self,
+        event: Result<Message>,
+        _: (),
+        _ctx: &mut Context<Self>,
+    ) -> Result<()> {
+        let event = event?;
+        Ok(())
     }
 }
 

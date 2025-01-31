@@ -28,3 +28,9 @@ pub enum Response {
     State(PackedState),
     Event(PackedEvent),
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Message {
+    Request(Request),
+    Response(Response),
+}
