@@ -1,8 +1,8 @@
-mod cbor;
 mod behaviour;
+mod cbor;
 mod codec;
 mod handler;
 mod protocol;
 
-pub use cbor::Cbor;
 pub use behaviour::Behaviour;
+pub use cbor::Cbor;

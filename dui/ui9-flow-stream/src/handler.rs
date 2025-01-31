@@ -1,10 +1,10 @@
-use crate::protocol::ProtocolSet;
 use crate::codec::Codec;
-use std::task::{Context, Poll};
+use crate::protocol::ProtocolSet;
 use libp2p::swarm::{
-    handler::{ConnectionHandler, ConnectionHandlerEvent, ConnectionEvent},
+    handler::{ConnectionEvent, ConnectionHandler, ConnectionHandlerEvent},
     SubstreamProtocol,
 };
+use std::task::{Context, Poll};
 
 pub struct Handler<TCodec>
 where

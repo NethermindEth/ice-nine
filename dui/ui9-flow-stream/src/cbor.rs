@@ -1,6 +1,6 @@
-use std::marker::PhantomData;
 use crate::codec::Codec;
 use libp2p::StreamProtocol;
+use std::marker::PhantomData;
 
 pub struct Cbor<TReq, TResp> {
     phantom: PhantomData<(TReq, TResp)>,

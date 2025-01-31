@@ -1,18 +1,14 @@
 use crate::codec::Protocol;
-use std::convert::Infallible;
 use futures::future::{ready, Ready};
-use smallvec::SmallVec;
-use libp2p::swarm::Stream;
 use libp2p::core::upgrade::{InboundUpgrade, OutboundUpgrade, UpgradeInfo};
+use libp2p::swarm::Stream;
+use smallvec::SmallVec;
+use std::convert::Infallible;
 
 #[derive(Debug)]
 pub enum Event<TReq, TRes> {
-    Request {
-        request: TReq,
-    },
-    Response {
-        response: TRes,
-    },
+    Request { request: TReq },
+    Response { response: TRes },
 }
 
 #[derive(Debug, Clone)]

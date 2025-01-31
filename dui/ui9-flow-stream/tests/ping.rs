@@ -1,8 +1,8 @@
 use anyhow::Result;
-use tracing_subscriber::EnvFilter;
 use libp2p::identity::PeerId;
 use libp2p::swarm::Swarm;
 use libp2p_swarm_test::SwarmExt;
+use tracing_subscriber::EnvFilter;
 use ui9_flow_stream::{Behaviour, Cbor};
 
 #[tokio::test]
@@ -14,13 +14,9 @@ async fn ping_flow() -> Result<()> {
 
     let offline_peer = PeerId::random();
 
-    let mut swarm1 = Swarm::new_ephemeral(|_| {
-        Behaviour::<Cbor<(), ()>>::new()
-    });
+    let mut swarm1 = Swarm::new_ephemeral(|_| Behaviour::<Cbor<(), ()>>::new());
 
-    let request_id1 = swarm1
-        .behaviour_mut()
-        .send_request(&offline_peer, ());
+    let request_id1 = swarm1.behaviour_mut().send_request(&offline_peer, ());
 
     Ok(())
 }

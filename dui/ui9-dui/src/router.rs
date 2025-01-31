@@ -37,7 +37,6 @@ impl Duty<Initialize> for Router {
         let streams = self.control.accept(PROTOCOL.clone())?;
         let drainer = Drainer::new(streams);
         ctx.assign(drainer, (), ());
-        // TODO: Subscribe to streams
         Ok(Next::events())
     }
 }

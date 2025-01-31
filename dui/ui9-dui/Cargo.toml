@@ -11,6 +11,7 @@ async-trait.workspace = true
 crb.workspace = true
 derive_more.workspace = true
 futures.workspace = true
+# futures-util = { version = "0.3.31", features = ["io"] }
 libp2p.workspace = true
 libp2p-stream.workspace = true
 # libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
@@ -18,6 +19,7 @@ log.workspace = true
 serde.workspace = true
 tokio.workspace = true
 tokio-stream.workspace = true
+tokio-util = { version = "0.7.13", features = ["codec", "compat"] }
 typed-slab.workspace = true
 ui9.workspace = true
 ui9-codec.workspace = true

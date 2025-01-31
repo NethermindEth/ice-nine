@@ -3,36 +3,66 @@ use crate::hub::Hub;
 use crate::publisher::EventFlow;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, Context, Duty, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::Entry;
+use crb::superagent::{Drainer, Entry, Supervisor, SupervisorSession};
+use futures::{AsyncReadExt, StreamExt};
 use libp2p::Stream;
+use tokio::io;
+use tokio_util::codec::{Framed, LengthDelimitedCodec};
+use tokio_util::compat::FuturesAsyncReadCompatExt;
 use ui9::names::Fqn;
 
 pub struct Relay {
-    fqn: Fqn,
+    fqn: Option<Fqn>,
     entry: Slot<Entry<EventFlow>>,
-    stream: Stream,
+    stream: Slot<Stream>,
 }
 
 impl Relay {
-    pub fn new(fqn: Fqn, stream: Stream) -> Self {
+    pub fn new(stream: Stream) -> Self {
         Self {
-            fqn,
+            fqn: None,
             entry: Slot::empty(),
-            stream,
+            stream: Slot::filled(stream),
         }
     }
 }
 
+impl Supervisor for Relay {
+    type GroupBy = ();
+}
+
 impl Agent for Relay {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::duty(Initialize)
     }
 }
 
+struct Initialize;
+
+#[async_trait]
+impl Duty<Initialize> for Relay {
+    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let stream = self.stream.take()?;
+        let stream = stream.compat();
+        let codec = LengthDelimitedCodec::new();
+        let framed = Framed::new(stream, codec);
+        let (writer, reader) = framed.split();
+        let drainer = Drainer::new(reader);
+        // ctx.assign(drainer, (), ());
+
+        // let (mut reader, mut writer) = stream.split();
+        /*
+         */
+        // let (reader, writer) = io::split(stream);
+        Ok(Next::events())
+    }
+}
+
+/*
 struct Initialize;
 
 #[async_trait]
@@ -61,3 +91,4 @@ impl OnEvent<PackedEvent> for Relay {
         Ok(())
     }
 }
+*/

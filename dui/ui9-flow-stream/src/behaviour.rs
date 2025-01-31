@@ -1,20 +1,14 @@
+use crate::codec::Codec;
 use crate::handler::Handler;
 use crate::protocol::Event;
-use crate::codec::Codec;
-use std::task::{Context, Poll};
-use libp2p::{PeerId, Multiaddr};
-use libp2p::core::{Endpoint, transport::PortUse};
-use libp2p::swarm::{
-    behaviour::FromSwarm,
-    NetworkBehaviour,
-    ConnectionDenied,
-    ConnectionId,
-    THandler,
-    ToSwarm,
-    THandlerInEvent,
-    THandlerOutEvent,
-};
 use derive_more::Display;
+use libp2p::core::{transport::PortUse, Endpoint};
+use libp2p::swarm::{
+    behaviour::FromSwarm, ConnectionDenied, ConnectionId, NetworkBehaviour, THandler,
+    THandlerInEvent, THandlerOutEvent, ToSwarm,
+};
+use libp2p::{Multiaddr, PeerId};
+use std::task::{Context, Poll};
 
 #[derive(Debug, Display, Copy, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct OutboundRequestId(u64);
@@ -45,10 +39,7 @@ where
         todo!()
     }
 
-    pub fn send_response(
-        &mut self,
-        rs: TCodec::Response,
-    ) -> Result<(), TCodec::Response> {
+    pub fn send_response(&mut self, rs: TCodec::Response) -> Result<(), TCodec::Response> {
         todo!()
     }
 }
@@ -91,8 +82,7 @@ where
         todo!()
     }
 
-    fn on_swarm_event(&mut self, event: FromSwarm) {
-    }
+    fn on_swarm_event(&mut self, event: FromSwarm) {}
 
     fn on_connection_handler_event(
         &mut self,
