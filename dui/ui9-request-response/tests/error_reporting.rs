@@ -4,15 +4,15 @@ use anyhow::{bail, Result};
 use async_std::task::sleep;
 use async_trait::async_trait;
 use futures::prelude::*;
-use libp2p_identity::PeerId;
-use libp2p_request_response as request_response;
-use libp2p_request_response::ProtocolSupport;
-use libp2p_swarm::{StreamProtocol, Swarm};
+use libp2p::identity::PeerId;
+use libp2p::swarm::{StreamProtocol, Swarm};
 use libp2p_swarm_test::SwarmExt;
 use request_response::{
     Codec, InboundFailure, InboundRequestId, OutboundFailure, OutboundRequestId, ResponseChannel,
 };
 use tracing_subscriber::EnvFilter;
+use ui9_request_response as request_response;
+use ui9_request_response::ProtocolSupport;
 
 #[async_std::test]
 async fn report_outbound_failure_on_read_response() {
@@ -565,6 +565,7 @@ async fn wait_request(
                         request_id,
                         request,
                         channel,
+                        ..
                     },
                 ..
             }) => {

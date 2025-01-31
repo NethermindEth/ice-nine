@@ -1,12 +1,12 @@
 use std::iter;
 
-use libp2p_core::ConnectedPoint;
-use libp2p_request_response as request_response;
-use libp2p_request_response::ProtocolSupport;
-use libp2p_swarm::{StreamProtocol, Swarm, SwarmEvent};
+use libp2p::core::ConnectedPoint;
+use libp2p::swarm::{StreamProtocol, Swarm, SwarmEvent};
 use libp2p_swarm_test::SwarmExt;
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::EnvFilter;
+use ui9_request_response as request_response;
+use ui9_request_response::ProtocolSupport;
 
 #[async_std::test]
 #[cfg(feature = "cbor")]
