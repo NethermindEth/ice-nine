@@ -1,3 +1,4 @@
+use crate::flex::FlexCodec;
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
 use crate::publisher::EventFlow;
@@ -48,7 +49,7 @@ impl Duty<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
         let stream = stream.compat();
-        let codec = LengthDelimitedCodec::new();
+        let codec = FlexCodec::<()>::new();
         let framed = Framed::new(stream, codec);
         let (writer, reader) = framed.split();
         let drainer = Drainer::new(reader);

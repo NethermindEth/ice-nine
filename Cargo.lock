@@ -7598,8 +7598,10 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
+ "bytes",
  "crb",
  "derive_more 1.0.0",
+ "flexbuffers",
  "futures",
  "libp2p",
  "libp2p-stream",
