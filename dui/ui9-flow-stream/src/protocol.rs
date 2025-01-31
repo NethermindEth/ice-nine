@@ -14,7 +14,7 @@ pub enum Event<TReq, TRes> {
     },
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ProtocolSet<P> {
     protocols: SmallVec<[P; 2]>,
 }

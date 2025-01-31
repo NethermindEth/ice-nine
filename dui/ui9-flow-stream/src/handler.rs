@@ -10,6 +10,7 @@ pub struct Handler<TCodec>
 where
     TCodec: Codec,
 {
+    protocol_set: ProtocolSet<TCodec::Protocol>,
     codec: TCodec,
 }
 
@@ -24,14 +25,16 @@ where
     type OutboundOpenInfo = ();
     type InboundOpenInfo = ();
 
+    /// Incoming connections protocol check
     fn listen_protocol(&self) -> SubstreamProtocol<Self::InboundProtocol> {
-        todo!()
+        SubstreamProtocol::new(self.protocol_set.clone(), ())
     }
 
-    fn on_behaviour_event(&mut self, request: Self::FromBehaviour) {
-        todo!()
+    fn connection_keep_alive(&self) -> bool {
+        true
     }
 
+    /// Outgoing connections polling
     fn poll(
         &mut self,
         cx: &mut Context<'_>,
@@ -43,6 +46,10 @@ where
         &mut self,
         event: ConnectionEvent<Self::InboundProtocol, Self::OutboundProtocol>,
     ) {
+        log::trace!("Handler::on_connection_event: {event:?}");
+    }
+
+    fn on_behaviour_event(&mut self, request: Self::FromBehaviour) {
         todo!()
     }
 }

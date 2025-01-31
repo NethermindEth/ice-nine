@@ -7605,6 +7605,7 @@ dependencies = [
  "futures",
  "libp2p",
  "libp2p-swarm-test",
+ "log",
  "smallvec",
  "tokio",
  "tracing-subscriber",
