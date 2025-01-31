@@ -7602,8 +7602,10 @@ name = "ui9-flow-stream"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "futures",
  "libp2p",
  "libp2p-swarm-test",
+ "smallvec",
  "tokio",
  "tracing-subscriber",
 ]
