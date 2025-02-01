@@ -1,4 +1,3 @@
-use crate::connector::Connector;
 use crate::publisher::{Pub, RecorderLink, TracerInfo, UniRecorder};
 use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
@@ -47,16 +46,14 @@ impl HubServer {
 pub struct HubServer {
     /// `Tree` needs `HubServer` itself (uses `Tracer`), so it will be initialized after actor activation
     tree: Option<Pub<Tree>>,
-    connector: Address<Connector>,
     recorders: HashMap<Fqn, RecorderLink>,
     relations: HashMap<Relation<Self>, Fqn>,
 }
 
 impl HubServer {
-    pub fn new(connector: Address<Connector>) -> Self {
+    pub fn new() -> Self {
         Self {
             tree: None,
-            connector,
             recorders: HashMap::new(),
             relations: HashMap::new(),
         }

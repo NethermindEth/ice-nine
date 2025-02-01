@@ -48,7 +48,6 @@ impl Standalone for Hub {}
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
-    // Relay,
     Client,
     Connector,
     Server,
@@ -73,19 +72,14 @@ impl DoAsync<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut stacker = Stacker::new();
 
-        let connector = Connector::new();
-        let connector = stacker.schedule(connector, Group::Connector);
-
-        let server = HubServer::new(connector.clone());
+        let server = HubServer::new();
         let server = stacker.schedule(server, Group::Server);
 
-        let client = HubClient::new(connector.clone());
+        let client = HubClient::new();
         let client = stacker.schedule(client, Group::Client);
 
-        /*
-        let relay = Relay::new(connector.clone());
-        let relay = stacker.schedule(relay, Group::Relay);
-        */
+        let connector = Connector::new();
+        let connector = stacker.schedule(connector, Group::Connector);
 
         let link = HubLink {
             hub: ctx.to_address(),

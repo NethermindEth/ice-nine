@@ -1,4 +1,3 @@
-use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
@@ -24,12 +23,11 @@ impl HubClient {
 }
 
 pub struct HubClient {
-    connector: Address<Connector>,
 }
 
 impl HubClient {
-    pub fn new(connector: Address<Connector>) -> Self {
-        Self { connector }
+    pub fn new() -> Self {
+        Self { }
     }
 }
 
