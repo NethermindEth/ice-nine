@@ -20,11 +20,11 @@ rust-version = "1.84.0"
 
 [workspace.dependencies]
 anyhow = "1.0.95"
-async-trait = "0.1.85"
+async-trait = "0.1.86"
 console-subscriber = "0.4.1"
 clap = { version = "4.5.27", features = ["derive"] }
-crb = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
-crb-system = { version = "0.0.27", git = "https://github.com/runtime-blocks/crb" }
+crb = { version = "0.0.28", git = "https://github.com/runtime-blocks/crb" }
+crb-system = { version = "0.0.28", git = "https://github.com/runtime-blocks/crb" }
 derive_more = { version = "1.0.0", features = ["full"] }
 dotenvy = "0.15.7"
 eframe = "0.30.0"
