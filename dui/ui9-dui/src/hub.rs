@@ -1,4 +1,3 @@
-use crate::relay::{Connector, ConnectorLink};
 use crate::publisher::{HubServer, HubServerLink};
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
@@ -13,7 +12,6 @@ pub struct HubLink {
     pub hub: Address<Hub>,
     pub server: HubServerLink,
     pub client: HubClientLink,
-    pub connector: ConnectorLink,
 }
 
 pub struct Hub {}
@@ -24,7 +22,7 @@ impl Hub {
     }
 
     pub async fn activate() -> Result<()> {
-        let hub = Hub::new();
+        let hub = Self::new();
         hub.spawn().ping().await?;
         Ok(())
     }
@@ -77,14 +75,10 @@ impl DoAsync<Initialize> for Hub {
         let client = HubClient::new();
         let client = stacker.schedule(client, Group::Client);
 
-        let connector = Connector::new();
-        let connector = stacker.schedule(connector, Group::Connector);
-
         let link = HubLink {
             hub: ctx.to_address(),
             server: server.equip(),
             client: client.equip(),
-            connector: connector.equip(),
         };
         HUB.set(link)
             .map_err(|_| anyhow!("Hub is already activated"))?;

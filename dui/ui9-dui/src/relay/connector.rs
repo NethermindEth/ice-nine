@@ -1,11 +1,11 @@
 use super::router::Router;
 use crate::tracers::peer::Peer;
 use crate::Pub;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, Standalone};
 use crb::core::Slot;
-use crb::superagent::{Fetcher, InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
+use crb::superagent::{Fetcher, InteractExt, OnRequest, Request, Supervisor, SupervisorSession, PingExt};
 use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
 use libp2p::{
@@ -22,15 +22,20 @@ use std::{
 use tokio::select;
 use libp2p_request_response::{self as request_response, ProtocolSupport};
 
+use std::sync::OnceLock;
+
+// TODO: Swam Connector/Router roles: Router has to spawn a Connector
+static CONNECTOR: OnceLock<ConnectorLink> = OnceLock::new();
+
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
-    address: Address<Connector>,
+    connector: Address<Connector>,
 }
 
 impl ConnectorLink {
     pub fn get_control(&self) -> Fetcher<stream::Control> {
         let msg = GetControl;
-        self.address.interact(msg)
+        self.connector.interact(msg)
     }
 }
 
@@ -40,6 +45,25 @@ pub struct Connector {
 }
 
 impl Connector {
+    pub fn link() -> Result<&'static ConnectorLink> {
+        CONNECTOR.get().ok_or_else(|| anyhow!("Connector is not assigned"))
+    }
+
+    pub async fn activate() -> Result<()> {
+        let connector = Self::new();
+        connector.spawn().ping().await?;
+        Ok(())
+    }
+
+    pub async fn deactivate() -> Result<()> {
+        if let Some(link) = CONNECTOR.get() {
+            let mut connector = link.connector.clone();
+            connector.interrupt()?;
+            connector.join().await?;
+        }
+        Ok(())
+    }
+
     pub fn new() -> Self {
         Self {
             swarm: Slot::empty(),
@@ -54,6 +78,10 @@ struct Ui9Behaviour {
     mdns: mdns::tokio::Behaviour,
     request_response: request_response::cbor::Behaviour<(), ()>,
     stream: stream::Behaviour,
+}
+
+// TODO: Remove that!
+impl Standalone for Connector {
 }
 
 impl Supervisor for Connector {
