@@ -1,9 +1,10 @@
 mod connector;
-pub mod flex;
+mod flex;
 mod router;
 mod relay_player;
 mod remote_player;
 mod drainer;
+mod protocol;
 
 pub use connector::{Connector, ConnectorLink};
 pub use remote_player::RemotePlayer;

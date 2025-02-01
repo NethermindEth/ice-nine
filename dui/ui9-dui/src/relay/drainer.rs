@@ -1,6 +1,6 @@
 use crb::superagent::Drainer;
 use super::flex::FlexCodec;
-use crate::protocol::Ui9Message;
+use super::protocol::Ui9Message;
 use anyhow::{Error, Result};
 use futures::Sink;
 use futures::StreamExt;

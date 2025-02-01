@@ -1,7 +1,7 @@
 use crate::subscriber::{Act, PlayerState};
 use super::drainer::{from_stream, MessageSink};
 use crate::hub::Hub;
-use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
+use super::protocol::{Ui9Message, Ui9Request, Ui9Response};
 use crate::relay::PROTOCOL;
 use crate::Flow;
 use anyhow::{anyhow, Result};

@@ -1,7 +1,7 @@
 use super::drainer::{from_stream, MessageSink};
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
-use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
+use super::protocol::{Ui9Message, Ui9Request, Ui9Response};
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
