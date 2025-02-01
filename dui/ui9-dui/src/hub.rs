@@ -1,6 +1,5 @@
-use crate::connector::{Connector, ConnectorLink};
+use crate::relay::{Connector, ConnectorLink};
 use crate::publisher::{HubServer, HubServerLink};
-// use crate::relay::Relay;
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;

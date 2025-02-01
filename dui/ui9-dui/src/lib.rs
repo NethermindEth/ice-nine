@@ -1,4 +1,3 @@
-pub mod connector;
 pub mod flex;
 pub mod flow;
 pub mod hub;
@@ -8,7 +7,6 @@ pub mod relay;
 pub mod subscriber;
 pub mod tracers;
 
-pub use connector::Connector;
 pub use flow::Flow;
 pub use hub::Hub;
 pub use publisher::{Pub, Publisher, Tracer, TracerInfo};

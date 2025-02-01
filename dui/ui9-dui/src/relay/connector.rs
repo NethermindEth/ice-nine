@@ -1,4 +1,4 @@
-use crate::relay::router::Router;
+use super::router::Router;
 use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
