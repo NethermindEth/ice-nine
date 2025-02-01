@@ -21,7 +21,7 @@ use std::{
     time::Duration,
 };
 use tokio::select;
-use ui9_request_response::{self as request_response, ProtocolSupport};
+use libp2p_request_response::{self as request_response, ProtocolSupport};
 
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
@@ -247,7 +247,7 @@ impl OnEvent<gossipsub::Event> for Connector {
 impl OnEvent<protocol::Event> for Connector {
     async fn handle(&mut self, event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
         use protocol::Event;
-        use ui9_request_response::Message;
+        use request_response::Message;
         match event {
             Event::Message { message, .. } => match message {
                 Message::Request { request, .. } => {

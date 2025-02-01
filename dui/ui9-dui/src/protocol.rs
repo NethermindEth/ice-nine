@@ -3,7 +3,7 @@ use derive_more::{From, Into};
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 
-pub type Event = ui9_request_response::Event<Envelope<Ui9Request>, Envelope<Ui9Response>>;
+pub type Event = libp2p_request_response::Event<Envelope<Ui9Request>, Envelope<Ui9Response>>;
 
 #[derive(
     Debug, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
