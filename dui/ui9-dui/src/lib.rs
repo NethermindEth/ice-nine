@@ -5,7 +5,6 @@ pub mod hub;
 pub mod protocol;
 pub mod publisher;
 pub mod relay;
-pub mod router;
 pub mod subscriber;
 pub mod tracers;
 

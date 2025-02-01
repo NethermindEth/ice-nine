@@ -1,5 +1,4 @@
-use crate::protocol::{self, Envelope, Ui9Request, Ui9Response};
-use crate::router::Router;
+use crate::relay::router::Router;
 use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
@@ -53,8 +52,7 @@ impl Connector {
 struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
     mdns: mdns::tokio::Behaviour,
-    request_response:
-        request_response::cbor::Behaviour<Envelope<Ui9Request>, Envelope<Ui9Response>>,
+    request_response: request_response::cbor::Behaviour<(), ()>,
     stream: stream::Behaviour,
 }
 
@@ -244,10 +242,9 @@ impl OnEvent<gossipsub::Event> for Connector {
 }
 
 #[async_trait]
-impl OnEvent<protocol::Event> for Connector {
-    async fn handle(&mut self, event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
-        use protocol::Event;
-        use request_response::Message;
+impl OnEvent<request_response::Event<(), ()>> for Connector {
+    async fn handle(&mut self, event: request_response::Event<(), ()>, _ctx: &mut Context<Self>) -> Result<()> {
+        use request_response::{Event, Message};
         match event {
             Event::Message { message, .. } => match message {
                 Message::Request { request, .. } => {

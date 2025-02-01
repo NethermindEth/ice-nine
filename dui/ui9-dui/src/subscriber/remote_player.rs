@@ -2,7 +2,7 @@ use super::{Act, PlayerState};
 use super::drainer::{from_stream, MessageSink};
 use crate::hub::Hub;
 use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
-use crate::router::PROTOCOL;
+use crate::relay::PROTOCOL;
 use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;

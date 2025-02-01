@@ -1,12 +1,11 @@
+use super::PROTOCOL;
 use crate::subscriber::RelayPlayer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
-use libp2p::{PeerId, Stream, StreamProtocol};
+use libp2p::{PeerId, Stream};
 use libp2p_stream::Control;
-
-pub static PROTOCOL: StreamProtocol = StreamProtocol::new("/ui9-flow");
 
 pub struct Router {
     control: Control,
