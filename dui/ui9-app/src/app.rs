@@ -1,10 +1,10 @@
 use crate::protocol::UiEvent;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, RunAgent, Standalone};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Standalone};
 use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
-use crb::superagent::{Drainer, OnItem, Supervisor, SupervisorSession};
+use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use ui9_dui::subscriber::SubEvent;
 use ui9_dui::tracers::peer::{Peer, PeerEvent};
 use ui9_dui::utils::to_drainer;
@@ -74,13 +74,8 @@ impl DoAsync<Initialize> for App {
 }
 
 #[async_trait]
-impl OnItem<SubEvent<Peer>> for App {
-    async fn on_item(
-        &mut self,
-        event: SubEvent<Peer>,
-        _: (),
-        ctx: &mut Context<Self>,
-    ) -> Result<()> {
+impl OnEvent<SubEvent<Peer>> for App {
+    async fn handle(&mut self, event: SubEvent<Peer>, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(peers) => {
                 let event = UiEvent::SetState { peers };

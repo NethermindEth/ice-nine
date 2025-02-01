@@ -1,7 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next};
-use crb::superagent::{Drainer, OnItem, Supervisor, SupervisorSession};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use libp2p::{PeerId, Stream, StreamProtocol};
 use libp2p_stream::Control;
 
@@ -42,13 +42,8 @@ impl DoAsync<Initialize> for Router {
 }
 
 #[async_trait]
-impl OnItem<(PeerId, Stream)> for Router {
-    async fn on_item(
-        &mut self,
-        event: (PeerId, Stream),
-        _: (),
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
+impl OnEvent<(PeerId, Stream)> for Router {
+    async fn handle(&mut self, event: (PeerId, Stream), _ctx: &mut Context<Self>) -> Result<()> {
         // TODO: Spawn a relay here
         Ok(())
     }

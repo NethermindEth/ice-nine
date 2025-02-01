@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, DoSync, Next, OnEvent, RunAgent};
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
-use crb::superagent::{OnItem, Supervisor, SupervisorSession};
+use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
 use ui9_app::{AppLink, UiEvent};
@@ -78,8 +78,8 @@ impl OnEvent<Event> for AppTui {
 }
 
 #[async_trait]
-impl OnItem<UiEvent> for AppTui {
-    async fn on_item(&mut self, event: UiEvent, _: (), ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<UiEvent> for AppTui {
+    async fn handle(&mut self, event: UiEvent, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             UiEvent::SetState { peers } => {
                 self.state.peers.set_state(peers);

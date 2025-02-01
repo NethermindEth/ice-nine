@@ -7,7 +7,7 @@ use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Drainer, Entry, OnItem, Supervisor, SupervisorSession};
+use crb::superagent::{Drainer, Entry, Supervisor, SupervisorSession};
 use futures::{AsyncReadExt, Sink, SinkExt, StreamExt};
 use libp2p::Stream;
 use std::pin::Pin;
@@ -71,13 +71,8 @@ impl DoAsync<Initialize> for Relay {
 }
 
 #[async_trait]
-impl OnItem<Result<Message>> for Relay {
-    async fn on_item(
-        &mut self,
-        event: Result<Message>,
-        _: (),
-        ctx: &mut Context<Self>,
-    ) -> Result<()> {
+impl OnEvent<Result<Message>> for Relay {
+    async fn handle(&mut self, event: Result<Message>, ctx: &mut Context<Self>) -> Result<()> {
         let event = event?;
         match event {
             Message::Request(request) => {
