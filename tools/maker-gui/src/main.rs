@@ -3,7 +3,7 @@ use crb::agent::RunAgent;
 use ice9_maker_gui::AppGui;
 use tokio::runtime::Runtime;
 use ui9_app::App;
-use ui9_dui::Hub;
+use ui9_mesh::Mesh;
 
 fn main() -> Result<()> {
     env_logger::try_init()?;
@@ -21,8 +21,8 @@ fn main() -> Result<()> {
 }
 
 async fn second_main(runtime: RunAgent<App>) -> Result<()> {
-    Hub::activate().await?;
+    Mesh::activate().await?;
     runtime.await;
-    Hub::deactivate().await?;
+    Mesh::deactivate().await?;
     Ok(())
 }

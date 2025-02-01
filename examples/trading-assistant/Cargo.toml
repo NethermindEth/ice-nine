@@ -16,3 +16,4 @@ ice-nine-plugin-chat-telegram.path = "../../plugins/chat-telegram"
 ice-nine-plugin-model-openai.path = "../../plugins/model-openai"
 tokio.workspace = true
 ui9-dui.workspace = true
+ui9-mesh.workspace = true

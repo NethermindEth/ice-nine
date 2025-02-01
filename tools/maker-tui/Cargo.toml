@@ -15,3 +15,4 @@ ratatui = "0.29.0"
 tokio.workspace = true
 ui9-app.workspace = true
 ui9-dui.workspace = true
+ui9-mesh.workspace = true

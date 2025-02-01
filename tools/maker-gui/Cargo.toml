@@ -16,3 +16,4 @@ env_logger.workspace = true
 tokio.workspace = true
 ui9-app.workspace = true
 ui9-dui.workspace = true
+ui9-mesh.workspace = true

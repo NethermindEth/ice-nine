@@ -9,6 +9,7 @@ mod router;
 
 pub use connector::{Connector, ConnectorLink};
 pub use remote_player::RemotePlayer;
+pub use node::MeshNode;
 
 use libp2p::StreamProtocol;
 
