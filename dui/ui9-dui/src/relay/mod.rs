@@ -1,8 +1,10 @@
 mod connector;
 mod router;
 mod relay_player;
+mod remote_player;
 
 pub use connector::{Connector, ConnectorLink};
+pub use remote_player::RemotePlayer;
 
 use libp2p::StreamProtocol;
 

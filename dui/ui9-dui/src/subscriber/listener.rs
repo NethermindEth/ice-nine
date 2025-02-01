@@ -1,8 +1,8 @@
 use super::drainer;
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
-use super::remote_player::RemotePlayer;
 use super::{Act, PlayerState, SubEvent};
+use crate::relay::RemotePlayer;
 use crate::flow::Flow;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};

@@ -1,7 +1,6 @@
 mod client;
 mod listener;
 mod local_player;
-mod remote_player;
 pub mod drainer;
 
 pub use client::{HubClient, HubClientLink};
