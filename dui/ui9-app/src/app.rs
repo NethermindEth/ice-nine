@@ -6,7 +6,7 @@ use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use ui9_dui::subscriber::SubEvent;
-use ui9_dui::tracers::peer::{Peer, PeerEvent};
+use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
@@ -29,7 +29,7 @@ impl AppLink {
 
 pub struct App {
     peers: Sub<Peer>,
-    events_tx: mpsc::UnboundedSender<UiEvent>,
+    ui_events_tx: mpsc::UnboundedSender<UiEvent>,
 }
 
 impl App {
@@ -37,7 +37,7 @@ impl App {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
             peers: Sub::unified(),
-            events_tx,
+            ui_events_tx: events_tx,
         };
         let runtime = RunAgent::new(agent);
         let link = AppLink {
@@ -73,17 +73,32 @@ impl DoAsync<Initialize> for App {
     }
 }
 
+impl App {
+    fn subscribe_to_peer(&mut self, peer: PeerId) {
+        log::info!("Subscribing to peer's tree: {peer}");
+    }
+}
+
 #[async_trait]
 impl OnEvent<SubEvent<Peer>> for App {
     async fn handle(&mut self, event: SubEvent<Peer>, ctx: &mut Context<Self>) -> Result<()> {
         match event {
-            SubEvent::State(peers) => {
-                let event = UiEvent::SetState { peers };
-                self.events_tx.send(event)?;
+            SubEvent::State(state) => {
+                for (peer_id, _) in state.borrow().peers.iter() {
+                    self.subscribe_to_peer(*peer_id);
+                }
+                let ui_event = UiEvent::SetState { peers: state };
+                self.ui_events_tx.send(ui_event)?;
             }
-            SubEvent::Event(_) => {
-                let event = UiEvent::StateChanged;
-                self.events_tx.send(event)?;
+            SubEvent::Event(event) => {
+                match &event {
+                    PeerEvent::AddPeer { peer_id, .. } => {
+                        self.subscribe_to_peer(*peer_id);
+                    }
+                    _ => {}
+                }
+                let ui_event = UiEvent::StateChanged;
+                self.ui_events_tx.send(ui_event)?;
             }
             SubEvent::Lost => {}
         }

@@ -10,4 +10,5 @@ repository.workspace = true
 anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
+log.workspace = true
 ui9-dui.workspace = true
