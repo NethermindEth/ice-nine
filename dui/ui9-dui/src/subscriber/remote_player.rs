@@ -1,5 +1,4 @@
 use super::{Act, PlayerState};
-use crate::connector::OpenSession;
 use crate::drainer::{to_drainer, MessageSink};
 use crate::hub::Hub;
 use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
@@ -16,7 +15,6 @@ use libp2p::PeerId;
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
     state: PlayerState<F>,
-    session: Slot<StateEntry<OpenSession>>,
     writer: Slot<MessageSink>,
 }
 
@@ -25,7 +23,6 @@ impl<F: Flow> RemotePlayer<F> {
         Self {
             peer_id,
             state,
-            session: Slot::empty(),
             writer: Slot::empty(),
         }
     }

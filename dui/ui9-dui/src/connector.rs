@@ -36,51 +36,15 @@ pub struct ConnectorLink {
 }
 
 impl ConnectorLink {
-    pub fn open_session(
-        &self,
-        peer_id: PeerId,
-        recipient: impl ToRecipient<Ui9Response>,
-    ) -> Fetcher<StateEntry<OpenSession>> {
-        let msg = OpenSession {
-            peer_id,
-            recipient: recipient.to_recipient(),
-        };
-        self.address.subscribe(msg)
-    }
-
     pub fn get_control(&self) -> Fetcher<stream::Control> {
         let msg = GetControl;
         self.address.interact(msg)
     }
 }
 
-#[derive(Default)]
-struct Outgoing {
-    sessions: TypedSlab<SessionId, Session>,
-    session_ids: HashMap<Unique<OpenSession>, SessionId>,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone)]
-struct SessionKey {
-    peer_id: PeerId,
-    session_id: SessionId,
-}
-
-struct SessionRecord {
-    relay: Address<RelayPlayer>,
-    channel: ResponseChannel<Envelope<Ui9Response>>,
-}
-
-#[derive(Default)]
-struct Incoming {
-    relays: HashMap<SessionKey, SessionRecord>,
-}
-
 pub struct Connector {
     swarm: Slot<Swarm<Ui9Behaviour>>,
     peer_tracer: Pub<Peer>,
-    outgoing: Outgoing,
-    incoming: Incoming,
 }
 
 impl Connector {
@@ -88,8 +52,6 @@ impl Connector {
         Self {
             swarm: Slot::empty(),
             peer_tracer: Pub::unified(),
-            outgoing: Outgoing::default(),
-            incoming: Incoming::default(),
         }
     }
 }
@@ -326,111 +288,5 @@ impl OnRequest<GetControl> for Connector {
         let swarm = self.swarm.get_mut()?;
         let control = swarm.behaviour_mut().stream.new_control();
         Ok(control)
-    }
-}
-
-pub struct Session {
-    sub: Unique<OpenSession>,
-}
-
-pub struct ConnectionSender {
-    peer_id: PeerId,
-    session_id: SessionId,
-    recipient: Recipient<ForwardRequest>,
-}
-
-impl ConnectionSender {
-    pub fn send(&self, request: Ui9Request) -> Result<()> {
-        let request = ForwardRequest {
-            peer_id: self.peer_id,
-            session_id: self.session_id,
-            request,
-        };
-        self.recipient.send(request)
-    }
-}
-
-pub struct OpenSession {
-    peer_id: PeerId,
-    recipient: Recipient<Ui9Response>,
-}
-
-impl Subscription for OpenSession {
-    type State = ConnectionSender;
-}
-
-#[async_trait]
-impl ManageSubscription<OpenSession> for Connector {
-    async fn subscribe(
-        &mut self,
-        sub: Unique<OpenSession>,
-        ctx: &mut Context<Self>,
-    ) -> Result<ConnectionSender> {
-        let connection = Session { sub: sub.clone() };
-        let session_id = self.outgoing.sessions.insert(connection);
-        let connection = ConnectionSender {
-            peer_id: sub.peer_id.clone(),
-            session_id,
-            recipient: ctx.recipient(),
-        };
-        self.outgoing.session_ids.insert(sub, session_id);
-        Ok(connection)
-    }
-
-    async fn unsubscribe(
-        &mut self,
-        sub: Unique<OpenSession>,
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        let id = self.outgoing.session_ids.remove(&sub);
-        if let Some(id) = id {
-            self.outgoing.sessions.remove(id);
-        }
-        Ok(())
-    }
-}
-
-struct ForwardRequest {
-    peer_id: PeerId,
-    session_id: SessionId,
-    request: Ui9Request,
-}
-
-#[async_trait]
-impl OnEvent<ForwardRequest> for Connector {
-    async fn handle(&mut self, event: ForwardRequest, _ctx: &mut Context<Self>) -> Result<()> {
-        let swarm = self.swarm.get_mut()?.behaviour_mut();
-        let envelope = Envelope {
-            session_id: event.session_id,
-            value: event.request,
-        };
-        let _req_id = swarm
-            .request_response
-            .send_request(&event.peer_id, envelope);
-        Ok(())
-    }
-}
-
-struct ForwardResponse {
-    session_key: SessionKey,
-    response: Ui9Response,
-}
-
-#[async_trait]
-impl OnEvent<ForwardResponse> for Connector {
-    async fn handle(&mut self, event: ForwardResponse, _ctx: &mut Context<Self>) -> Result<()> {
-        let swarm = self.swarm.get_mut()?.behaviour_mut();
-        let session_id = event.session_key.session_id;
-        let envelope = Envelope {
-            session_id,
-            value: event.response,
-        };
-        // TODO: Send an envelope
-        /*
-        swarm
-            .request_response
-            .send_response(&event.peer_id, envelope);
-        */
-        Ok(())
     }
 }
