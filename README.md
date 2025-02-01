@@ -1,8 +1,8 @@
 <img src="https://nethermindeth.github.io/ice-nine/assets/ice-nine-logo.png" width="300px"/>
 
-# Ice-Nine
+# Nine - Nethermind Intelligent Node Environment
 
-AI agents that work everywhere.
+A flexible framework for building a distributed network of AI agents that work everywhere (STD, WASM, TEE) with a dynamic interface and hot-swappable components.
 
 [Discord](https://discord.gg/sXCEBQMkyZ)
 
