@@ -46,7 +46,6 @@ impl Standalone for Hub {}
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Group {
     Client,
-    Connector,
     Server,
 }
 

@@ -1,7 +1,7 @@
 mod client;
+pub mod drainer;
 mod listener;
 mod local_player;
-pub mod drainer;
 
 pub use client::{HubClient, HubClientLink};
 pub use listener::Listener;

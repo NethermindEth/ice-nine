@@ -1,11 +1,10 @@
-use super::router::Router;
 use crate::tracers::peer::Peer;
 use crate::Pub;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Fetcher, InteractExt, OnRequest, Request, Supervisor, SupervisorSession, PingExt};
+use crb::superagent::{Fetcher, InteractExt, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
 use libp2p::{
@@ -13,6 +12,7 @@ use libp2p::{
     swarm::{NetworkBehaviour, SwarmEvent},
     tcp, yamux, StreamProtocol, Swarm,
 };
+use libp2p_request_response::{self as request_response, ProtocolSupport};
 use libp2p_stream as stream;
 use std::{
     collections::hash_map::DefaultHasher,
@@ -20,12 +20,6 @@ use std::{
     time::Duration,
 };
 use tokio::select;
-use libp2p_request_response::{self as request_response, ProtocolSupport};
-
-use std::sync::OnceLock;
-
-// TODO: Swam Connector/Router roles: Router has to spawn a Connector
-static CONNECTOR: OnceLock<ConnectorLink> = OnceLock::new();
 
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
@@ -45,25 +39,6 @@ pub struct Connector {
 }
 
 impl Connector {
-    pub fn link() -> Result<&'static ConnectorLink> {
-        CONNECTOR.get().ok_or_else(|| anyhow!("Connector is not assigned"))
-    }
-
-    pub async fn activate() -> Result<()> {
-        let connector = Self::new();
-        connector.spawn().ping().await?;
-        Ok(())
-    }
-
-    pub async fn deactivate() -> Result<()> {
-        if let Some(link) = CONNECTOR.get() {
-            let mut connector = link.connector.clone();
-            connector.interrupt()?;
-            connector.join().await?;
-        }
-        Ok(())
-    }
-
     pub fn new() -> Self {
         Self {
             swarm: Slot::empty(),
@@ -80,17 +55,9 @@ struct Ui9Behaviour {
     stream: stream::Behaviour,
 }
 
-// TODO: Remove that!
-impl Standalone for Connector {
-}
-
-impl Supervisor for Connector {
-    type GroupBy = ();
-}
-
 #[async_trait]
 impl Agent for Connector {
-    type Context = SupervisorSession<Self>;
+    type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(Initialize)
@@ -118,7 +85,7 @@ pub struct Initialize;
 
 #[async_trait]
 impl DoAsync<Initialize> for Connector {
-    async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Initialize, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut swarm = libp2p::SwarmBuilder::with_new_identity()
             .with_tokio()
             .with_tcp(
@@ -174,10 +141,6 @@ impl DoAsync<Initialize> for Connector {
 
         swarm.listen_on("/ip4/0.0.0.0/udp/0/quic-v1".parse()?)?;
         swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?)?;
-
-        let control = swarm.behaviour_mut().stream.new_control();
-        let router = Router::new(control);
-        ctx.spawn_agent(router, ());
 
         self.swarm.fill(swarm)?;
         Ok(Next::events())
@@ -271,7 +234,11 @@ impl OnEvent<gossipsub::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<request_response::Event<(), ()>> for Connector {
-    async fn handle(&mut self, event: request_response::Event<(), ()>, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(
+        &mut self,
+        event: request_response::Event<(), ()>,
+        _ctx: &mut Context<Self>,
+    ) -> Result<()> {
         use request_response::{Event, Message};
         match event {
             Event::Message { message, .. } => match message {

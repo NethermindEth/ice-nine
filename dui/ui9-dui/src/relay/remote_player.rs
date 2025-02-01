@@ -1,7 +1,8 @@
-use crate::subscriber::{Act, PlayerState};
 use super::drainer::{from_stream, MessageSink};
+use super::node::MeshNode;
 use super::protocol::{Ui9Message, Ui9Request, Ui9Response};
-use crate::relay::{PROTOCOL, Connector};
+use super::PROTOCOL;
+use crate::subscriber::{Act, PlayerState};
 use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -44,8 +45,8 @@ struct Initialize;
 #[async_trait]
 impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let connector = Connector::link()?;
-        let mut control = connector.get_control().await?;
+        let node = MeshNode::link()?;
+        let mut control = node.connector.get_control().await?;
         let stream = control.open_stream(self.peer_id, PROTOCOL.clone()).await?;
         let (drainer, writer) = from_stream(stream);
         ctx.assign(drainer, (), ());

@@ -1,7 +1,7 @@
-use crb::superagent::Drainer;
 use super::flex::FlexCodec;
 use super::protocol::Ui9Message;
 use anyhow::{Error, Result};
+use crb::superagent::Drainer;
 use futures::Sink;
 use futures::StreamExt;
 use libp2p::Stream;

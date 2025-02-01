@@ -22,12 +22,11 @@ impl HubClient {
     }
 }
 
-pub struct HubClient {
-}
+pub struct HubClient {}
 
 impl HubClient {
     pub fn new() -> Self {
-        Self { }
+        Self {}
     }
 }
 
