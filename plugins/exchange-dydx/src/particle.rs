@@ -1,7 +1,7 @@
 use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next};
+use crb::agent::{Agent, Context, DoAsync, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use ice9_core::{
@@ -33,14 +33,14 @@ impl Agent for DyDxParticle {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for DyDxParticle {
+impl DoAsync<Initialize> for DyDxParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut bond = self.substance.bond(&ctx);
 

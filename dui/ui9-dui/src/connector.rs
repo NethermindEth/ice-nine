@@ -5,7 +5,7 @@ use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, ManagedContext, Next, OnEvent, ToRecipient};
+use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, ToRecipient};
 use crb::core::{Slot, Unique};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{
@@ -106,7 +106,7 @@ impl Agent for Connector {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 
     async fn event(&mut self, ctx: &mut Context<Self>) -> Result<()> {
@@ -130,7 +130,7 @@ impl Agent for Connector {
 pub struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Connector {
+impl DoAsync<Initialize> for Connector {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut swarm = libp2p::SwarmBuilder::with_new_identity()
             .with_tokio()

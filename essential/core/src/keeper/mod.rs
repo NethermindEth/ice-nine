@@ -3,7 +3,7 @@ pub mod subscription;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::{Slot, Unique};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
@@ -66,14 +66,14 @@ impl Agent for Keeper {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Keeper {
+impl DoAsync<Initialize> for Keeper {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let loader = ConfigLoader::new();
         let (addr, _) = ctx.spawn_agent(loader, ());

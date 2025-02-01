@@ -42,7 +42,7 @@ where
     type Error = Error;
 
     fn encode(&mut self, item: T, dst: &mut BytesMut) -> Result<(), Self::Error> {
-        let cbor_bytes = flexbuffers::to_vec(&*dst)?;
+        let cbor_bytes = flexbuffers::to_vec(&item)?;
         self.inner.encode(cbor_bytes.into(), dst)?;
         Ok(())
     }

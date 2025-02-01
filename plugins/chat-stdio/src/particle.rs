@@ -2,7 +2,7 @@ use crate::config::StdioConfig;
 use crate::drainer::{Line, ReadLine, StdinDrainer};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{
     Entry, FetchError, InteractExt, Interval, OnResponse, Supervisor, SupervisorSession,
@@ -42,14 +42,14 @@ impl Agent for StdioParticle {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for StdioParticle {
+impl DoAsync<Initialize> for StdioParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.thinking_interval.add_listener(&ctx);
         // TODO: Dry configs

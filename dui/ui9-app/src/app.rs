@@ -1,7 +1,7 @@
 use crate::protocol::UiEvent;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, RunAgent, Standalone};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, RunAgent, Standalone};
 use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, OnItem, Supervisor, SupervisorSession};
@@ -58,14 +58,14 @@ impl Agent for App {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for App {
+impl DoAsync<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let events = self.peers.events()?;
         ctx.assign(events, (), ());

@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Context, Duty, ManagedContext, Next, OnEvent, ToAddress,
+    Address, Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent, ToAddress,
 };
 use crb::core::Unique;
 use crb::send::{Recipient, Sender};
@@ -72,7 +72,7 @@ impl Agent for ConfigLoader {
     type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 
     fn interrupt(&mut self, ctx: &mut Context<Self>) {
@@ -157,7 +157,7 @@ impl ConfigLoader {
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for ConfigLoader {
+impl DoAsync<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Global config layer: ~/.config/ice9.toml
         let config_dir = dirs::home_dir()

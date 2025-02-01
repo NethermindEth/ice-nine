@@ -4,7 +4,7 @@ use crate::publisher::{HubServer, HubServerLink};
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Equip, Next, Standalone, ToAddress};
+use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, Standalone, ToAddress};
 use crb::superagent::{PingExt, Stacker, Supervisor, SupervisorSession};
 use std::sync::OnceLock;
 
@@ -62,14 +62,14 @@ impl Agent for Hub {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Hub {
+impl DoAsync<Initialize> for Hub {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut stacker = Stacker::new();
 

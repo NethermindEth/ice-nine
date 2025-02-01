@@ -4,7 +4,7 @@ use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::{watch, Slot};
 use crb::superagent::Entry;
 
@@ -31,14 +31,14 @@ impl<F: Flow> Agent for LocalPlayer<F> {
     type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl<F: Flow> Duty<Initialize> for LocalPlayer<F> {
+impl<F: Flow> DoAsync<Initialize> for LocalPlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         // Subscribing to events stream
         let hub = Hub::link()?;

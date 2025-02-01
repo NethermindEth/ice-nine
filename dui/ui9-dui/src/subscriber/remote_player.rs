@@ -5,7 +5,7 @@ use crate::protocol;
 use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::StateEntry;
 use libp2p::PeerId;
@@ -30,20 +30,20 @@ impl<F: Flow> Agent for RemotePlayer<F> {
     type Context = AgentSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl<F: Flow> Duty<Initialize> for RemotePlayer<F> {
+impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let hub = Hub::link()?;
         let session = hub.connector.open_session(self.peer_id, &ctx).await?;
         self.session.fill(session)?;
 
-        Ok(Next::duty(Subscribe))
+        Ok(Next::do_async(Subscribe))
     }
 
     // TODO: Fallback to reconnect
@@ -52,7 +52,7 @@ impl<F: Flow> Duty<Initialize> for RemotePlayer<F> {
 struct Subscribe;
 
 #[async_trait]
-impl<F: Flow> Duty<Subscribe> for RemotePlayer<F> {
+impl<F: Flow> DoAsync<Subscribe> for RemotePlayer<F> {
     async fn handle(&mut self, _: Subscribe, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let conn = self.session.get_mut()?;
         let fqn = self.state.fqn.clone();

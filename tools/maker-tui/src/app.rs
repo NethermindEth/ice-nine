@@ -2,7 +2,7 @@ use crate::events::EventsDrainer;
 use crate::state::AppState;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoSync, Duty, Next, OnEvent, RunAgent};
+use crb::agent::{Agent, Context, DoAsync, DoSync, Next, OnEvent, RunAgent};
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
 use crb::superagent::{OnItem, Supervisor, SupervisorSession};
@@ -34,14 +34,14 @@ impl Agent for AppTui {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for AppTui {
+impl DoAsync<Initialize> for AppTui {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let terminal = ratatui::try_init()?;
         self.terminal.fill(terminal)?;
@@ -64,7 +64,7 @@ impl OnEvent<Event> for AppTui {
     async fn handle(&mut self, event: Event, ctx: &mut Context<Self>) -> Result<()> {
         let next_state = match event {
             Event::Key(event) => match event.code {
-                KeyCode::Char('q') => Next::duty(Terminate),
+                KeyCode::Char('q') => Next::do_async(Terminate),
                 _ => {
                     // TODO: Actions
                     Next::do_sync(Render)
@@ -105,7 +105,7 @@ impl DoSync<Render> for AppTui {
 struct Terminate;
 
 #[async_trait]
-impl Duty<Terminate> for AppTui {
+impl DoAsync<Terminate> for AppTui {
     async fn handle(&mut self, _: Terminate, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         ratatui::try_restore()?;
         Ok(Next::done())

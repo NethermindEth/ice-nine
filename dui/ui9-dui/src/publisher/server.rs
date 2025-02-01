@@ -3,7 +3,7 @@ use crate::publisher::{Pub, RecorderLink, TracerInfo, UniRecorder};
 use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, ManagedContext, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, Standalone};
 use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
 use crb::superagent::{
     EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
@@ -88,7 +88,7 @@ impl Agent for HubServer {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 
     fn interrupt(&mut self, ctx: &mut Context<Self>) {
@@ -100,7 +100,7 @@ impl Agent for HubServer {
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for HubServer {
+impl DoAsync<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         log::debug!("HubServer starting...");
         PUB_BRIDGE.subscribe(&ctx);

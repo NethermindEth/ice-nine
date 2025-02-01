@@ -1,7 +1,7 @@
 use crate::connector::Connector;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
 use crb::runtime::Runtime;
 use crb::superagent::{EventBridge, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
@@ -41,14 +41,14 @@ impl Agent for HubClient {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for HubClient {
+impl DoAsync<Initialize> for HubClient {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         log::debug!("HubClient starting...");
         SUB_BRIDGE.subscribe(&ctx);

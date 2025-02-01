@@ -5,7 +5,7 @@ use crate::tracers::tree::Tree;
 use crate::Sub;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{Interval, OnItem, Supervisor, SupervisorSession};
 use libp2p::PeerId;
 use std::collections::HashMap;
@@ -37,14 +37,14 @@ impl Agent for Relay {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for Relay {
+impl DoAsync<Initialize> for Relay {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.interval.enable(&ctx);
         let events = self.peer_listener.events()?;

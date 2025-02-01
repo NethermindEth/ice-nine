@@ -6,7 +6,7 @@ use crate::space::Space;
 use crate::trace::TracerPack;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Duty, Equip, Next, OnEvent, Standalone};
+use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, OnEvent, Standalone};
 use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From, Into};
@@ -65,7 +65,7 @@ impl Agent for Substance {
 
     fn begin(&mut self) -> Next<Self> {
         self.tracer.active();
-        Next::duty(Configure)
+        Next::do_async(Configure)
     }
 
     fn end(&mut self) {
@@ -86,7 +86,7 @@ impl Supervisor for Substance {
 struct Configure;
 
 #[async_trait]
-impl Duty<Configure> for Substance {
+impl DoAsync<Configure> for Substance {
     async fn handle(&mut self, _: Configure, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let agent = Keeper::new();
         let keeper = ctx.spawn_agent(agent, Group::Services).equip();

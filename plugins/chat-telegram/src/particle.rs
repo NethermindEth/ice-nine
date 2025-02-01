@@ -3,7 +3,7 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, Duty, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
 use ice9_core::{
@@ -48,14 +48,14 @@ impl Agent for TelegramParticle {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
-        Next::duty(Initialize)
+        Next::do_async(Initialize)
     }
 }
 
 struct Initialize;
 
 #[async_trait]
-impl Duty<Initialize> for TelegramParticle {
+impl DoAsync<Initialize> for TelegramParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let mut bond = self.substance.bond(&ctx);
         let (config, entry) = bond.live_config_updates().await?;
