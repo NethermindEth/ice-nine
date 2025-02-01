@@ -1,6 +1,6 @@
 use crate::protocol::{self, Envelope, Request, Response, SessionId};
 use crate::router::Router;
-use crate::subscriber::Relay;
+use crate::subscriber::RelayPlayer;
 use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
@@ -62,7 +62,7 @@ struct SessionKey {
 }
 
 struct SessionRecord {
-    relay: Address<Relay>,
+    relay: Address<RelayPlayer>,
     channel: ResponseChannel<Envelope<Response>>,
 }
 
@@ -289,32 +289,8 @@ impl OnEvent<protocol::Event> for Connector {
         use ui9_request_response::Message;
         match event {
             Event::Message { message, .. } => match message {
-                Message::Request {
-                    request,
-                    peer,
-                    channel,
-                    ..
-                } => {
-                    let session_key = SessionKey {
-                        peer_id: peer,
-                        session_id: request.session_id,
-                    };
+                Message::Request { request, .. } => {
                     log::warn!("Not handeled request event: {request:?}");
-                    match request.value {
-                        Request::Subscribe(fqn) => {
-                            /*
-                            let relay = Relay::new(fqn);
-                            let (addr, _) = ctx.spawn_agent(relay, ());
-                            let record = SessionRecord {
-                                relay: addr,
-                                channel,
-                            };
-                            self.incoming.relays.insert(session_key, record);
-                            */
-                        }
-                        Request::Action(action) => {}
-                        Request::Unsubscribe => {}
-                    }
                 }
                 Message::Response { response, .. } => {
                     log::warn!("Not handeled response event: {response:?}");

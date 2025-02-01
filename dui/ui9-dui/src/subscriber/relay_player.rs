@@ -5,7 +5,7 @@ use crate::protocol::{Message, Request, Response};
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Drainer, Entry, Supervisor, SupervisorSession};
 use futures::{AsyncReadExt, Sink, SinkExt, StreamExt};
@@ -16,7 +16,7 @@ use tokio_util::codec::{Framed, LengthDelimitedCodec};
 use tokio_util::compat::FuturesAsyncReadCompatExt;
 use ui9::names::Fqn;
 
-pub struct Relay {
+pub struct RelayPlayer {
     // State 1
     stream: Slot<Stream>,
 
@@ -29,7 +29,7 @@ pub struct Relay {
     recorder: Slot<RecorderLink>,
 }
 
-impl Relay {
+impl RelayPlayer {
     pub fn new(stream: Stream) -> Self {
         Self {
             stream: Slot::filled(stream),
@@ -41,11 +41,11 @@ impl Relay {
     }
 }
 
-impl Supervisor for Relay {
+impl Supervisor for RelayPlayer {
     type GroupBy = ();
 }
 
-impl Agent for Relay {
+impl Agent for RelayPlayer {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
@@ -56,7 +56,7 @@ impl Agent for Relay {
 struct Initialize;
 
 #[async_trait]
-impl DoAsync<Initialize> for Relay {
+impl DoAsync<Initialize> for RelayPlayer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
         let stream = stream.compat();
@@ -71,7 +71,7 @@ impl DoAsync<Initialize> for Relay {
 }
 
 #[async_trait]
-impl OnEvent<Result<Message>> for Relay {
+impl OnEvent<Result<Message>> for RelayPlayer {
     async fn handle(&mut self, event: Result<Message>, ctx: &mut Context<Self>) -> Result<()> {
         let event = event?;
         match event {
@@ -96,7 +96,7 @@ impl OnEvent<Result<Message>> for Relay {
                         recorder.act(action)?;
                     }
                     Request::Unsubscribe => {
-                        // TODO: Drop the stream
+                        ctx.shutdown();
                     }
                 }
                 Ok(())
@@ -108,7 +108,7 @@ impl OnEvent<Result<Message>> for Relay {
     }
 }
 
-impl Relay {
+impl RelayPlayer {
     async fn send(&mut self, response: Response) -> Result<()> {
         let writer = self.writer.get_mut()?;
         let message = Message::from(response);
@@ -118,7 +118,7 @@ impl Relay {
 }
 
 #[async_trait]
-impl OnEvent<PackedEvent> for Relay {
+impl OnEvent<PackedEvent> for RelayPlayer {
     async fn handle(&mut self, event: PackedEvent, _ctx: &mut Context<Self>) -> Result<()> {
         self.send(event.into()).await?;
         Ok(())

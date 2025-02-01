@@ -1,3 +1,4 @@
+use crate::subscriber::RelayPlayer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
@@ -43,8 +44,9 @@ impl DoAsync<Initialize> for Router {
 
 #[async_trait]
 impl OnEvent<(PeerId, Stream)> for Router {
-    async fn handle(&mut self, event: (PeerId, Stream), _ctx: &mut Context<Self>) -> Result<()> {
-        // TODO: Spawn a relay here
+    async fn handle(&mut self, event: (PeerId, Stream), ctx: &mut Context<Self>) -> Result<()> {
+        let relay = RelayPlayer::new(event.1);
+        ctx.spawn_agent(relay, ());
         Ok(())
     }
 }
