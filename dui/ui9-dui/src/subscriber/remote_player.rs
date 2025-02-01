@@ -40,15 +40,18 @@ struct Initialize;
 impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let hub = Hub::link()?;
+        /*
         let session = hub.connector.open_session(self.peer_id, &ctx).await?;
         self.session.fill(session)?;
+        */
 
-        Ok(Next::do_async(Subscribe))
+        Ok(Next::events())
     }
 
     // TODO: Fallback to reconnect
 }
 
+/*
 struct Subscribe;
 
 #[async_trait]
@@ -68,6 +71,9 @@ impl<F: Flow> OnEvent<protocol::Response> for RemotePlayer<F> {
         Ok(())
     }
 }
+
+use crate::subscriber::Relay;
+*/
 
 #[async_trait]
 impl<F: Flow> OnEvent<Act<F>> for RemotePlayer<F> {

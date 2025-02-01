@@ -1,13 +1,13 @@
-use crate::flex::FlexCodec;
+use crate::drainer::{to_drainer, MessageSink};
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
 use crate::protocol::{Message, Request, Response};
 use crate::publisher::{EventFlow, RecorderLink};
-use anyhow::{anyhow, Error, Result};
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Drainer, Entry, Supervisor, SupervisorSession};
+use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use futures::{AsyncReadExt, Sink, SinkExt, StreamExt};
 use libp2p::Stream;
 use std::pin::Pin;
@@ -21,7 +21,7 @@ pub struct RelayPlayer {
     stream: Slot<Stream>,
 
     // State 2
-    writer: Slot<Pin<Box<dyn Sink<Message, Error = Error> + Send>>>,
+    writer: Slot<MessageSink>,
 
     // State 3
     fqn: Option<Fqn>,
@@ -59,13 +59,9 @@ struct Initialize;
 impl DoAsync<Initialize> for RelayPlayer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
-        let stream = stream.compat();
-        let codec = FlexCodec::<Message>::new();
-        let framed = Framed::new(stream, codec);
-        let (writer, reader) = framed.split();
-        let drainer = Drainer::new(reader);
+        let (drainer, writer) = to_drainer(stream);
         ctx.assign(drainer, (), ());
-        self.writer.fill(Box::pin(writer))?;
+        self.writer.fill(writer)?;
         Ok(Next::events())
     }
 }

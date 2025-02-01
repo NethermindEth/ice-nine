@@ -1,5 +1,5 @@
 use anyhow::Error;
-use bytes::{BufMut, BytesMut};
+use bytes::BytesMut;
 use serde::{de::DeserializeOwned, Serialize};
 use std::marker::PhantomData;
 use tokio_util::codec::{Decoder, Encoder, LengthDelimitedCodec};
