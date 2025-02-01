@@ -6,10 +6,9 @@ use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use std::collections::BTreeMap;
-use ui9_dui::subscriber::SubEvent;
+use ui9_dui::subscriber::{SubEvent, drainer};
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::tracers::tree::Tree;
-use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
 pub struct AppLink {
@@ -25,7 +24,7 @@ impl AppLink {
 
     pub fn drainer(&mut self) -> Result<Drainer<UiEvent>> {
         let rx = self.events_rx.take()?;
-        Ok(to_drainer(rx))
+        Ok(drainer::from_mpsc(rx))
     }
 }
 

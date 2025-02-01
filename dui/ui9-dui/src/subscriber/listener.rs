@@ -1,9 +1,9 @@
+use super::drainer;
 use super::client::HubClient;
 use super::local_player::LocalPlayer;
 use super::remote_player::RemotePlayer;
 use super::{Act, PlayerState, SubEvent};
 use crate::flow::Flow;
-use crate::utils::to_drainer;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};
 use crb::core::mpsc;
@@ -50,7 +50,7 @@ impl<F: Flow> Listener<F> {
     pub fn events(&mut self) -> Result<Drainer<SubEvent<F>>> {
         self.event_rx
             .take()
-            .map(to_drainer)
+            .map(drainer::from_mpsc)
             .ok_or_else(|| anyhow!("Events stream (drainer) has taken already."))
     }
 

@@ -1,4 +1,4 @@
-use crate::drainer::{to_drainer, MessageSink};
+use super::drainer::{from_stream, MessageSink};
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
 use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
@@ -55,7 +55,7 @@ struct Initialize;
 impl DoAsync<Initialize> for RelayPlayer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let stream = self.stream.take()?;
-        let (drainer, writer) = to_drainer(stream);
+        let (drainer, writer) = from_stream(stream);
         ctx.assign(drainer, (), ());
         self.writer.fill(writer)?;
         Ok(Next::events())

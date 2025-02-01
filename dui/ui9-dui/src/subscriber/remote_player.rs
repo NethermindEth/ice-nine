@@ -1,5 +1,5 @@
 use super::{Act, PlayerState};
-use crate::drainer::{to_drainer, MessageSink};
+use super::drainer::{from_stream, MessageSink};
 use crate::hub::Hub;
 use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
 use crate::router::PROTOCOL;
@@ -48,7 +48,7 @@ impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
         let hub = Hub::link()?;
         let mut control = hub.connector.get_control().await?;
         let stream = control.open_stream(self.peer_id, PROTOCOL.clone()).await?;
-        let (drainer, writer) = to_drainer(stream);
+        let (drainer, writer) = from_stream(stream);
         ctx.assign(drainer, (), ());
         self.writer.fill(writer)?;
 
