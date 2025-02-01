@@ -1,4 +1,4 @@
-use crate::subscriber::drainer::{from_stream, MessageSink};
+use super::drainer::{from_stream, MessageSink};
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
 use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};

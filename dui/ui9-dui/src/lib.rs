@@ -1,4 +1,3 @@
-pub mod flex;
 pub mod flow;
 pub mod hub;
 pub mod protocol;
