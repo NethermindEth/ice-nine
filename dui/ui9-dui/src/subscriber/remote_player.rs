@@ -8,7 +8,7 @@ use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{StateEntry, Supervisor, SupervisorSession};
+use crb::superagent::{Supervisor, SupervisorSession};
 use futures::SinkExt;
 use libp2p::PeerId;
 

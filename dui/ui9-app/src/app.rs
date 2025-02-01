@@ -8,7 +8,7 @@ use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use std::collections::BTreeMap;
 use ui9_dui::subscriber::SubEvent;
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
-use ui9_dui::tracers::tree::{Tree, TreeEvent};
+use ui9_dui::tracers::tree::Tree;
 use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
@@ -98,7 +98,7 @@ impl OnEvent<SubEvent<Peer>> for App {
         match event {
             SubEvent::State(state) => {
                 for (peer_id, _) in state.borrow().peers.iter() {
-                    self.subscribe_to_peer(*peer_id, ctx);
+                    self.subscribe_to_peer(*peer_id, ctx)?;
                 }
                 let ui_event = UiEvent::SetState { peers: state };
                 self.ui_events_tx.send(ui_event)?;
@@ -106,7 +106,7 @@ impl OnEvent<SubEvent<Peer>> for App {
             SubEvent::Event(event) => {
                 match &event {
                     PeerEvent::AddPeer { peer_id, .. } => {
-                        self.subscribe_to_peer(*peer_id, ctx);
+                        self.subscribe_to_peer(*peer_id, ctx)?;
                     }
                     _ => {}
                 }
@@ -121,7 +121,7 @@ impl OnEvent<SubEvent<Peer>> for App {
 
 #[async_trait]
 impl OnEvent<SubEvent<Tree>> for App {
-    async fn handle(&mut self, event: SubEvent<Tree>, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: SubEvent<Tree>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
                 let tree = state.borrow();

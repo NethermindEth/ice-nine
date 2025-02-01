@@ -108,7 +108,6 @@ impl OnEvent<Message> for TelegramParticle {
             client.typing(chat_id).await.ok();
 
             let request = ChatRequest::user(&text);
-            let address = ctx.address().clone();
             let task = self.substance.router.chat(request);
             ctx.assign(task, (), chat_id);
         }

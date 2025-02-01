@@ -73,7 +73,6 @@ impl OnRequest<ChatRequest> for ReasoningRouter {
             .first()
             .ok_or_else(|| anyhow!("Models are not installed"))?;
 
-        let address = ctx.address().clone();
         let req_id = self.requests.insert(lookup.interplay.responder);
         let tools = self.tools();
         let request = lookup.interplay.request.with_tools(tools);

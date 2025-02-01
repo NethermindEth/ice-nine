@@ -106,7 +106,7 @@ struct Terminate;
 
 #[async_trait]
 impl DoAsync<Terminate> for AppTui {
-    async fn handle(&mut self, _: Terminate, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Terminate, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         ratatui::try_restore()?;
         Ok(Next::done())
     }

@@ -10,7 +10,7 @@ use ui9_dui::Hub;
 async fn main() -> Result<()> {
     env_logger::try_init()?;
     Hub::activate().await?;
-    let mut substance = Substance::arise();
+    let substance = Substance::arise();
     substance.add_particle::<OpenAIParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<TelegramParticle>()?;

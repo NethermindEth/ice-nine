@@ -26,7 +26,6 @@ pub struct Sub<P: Subscriber> {
 
 impl<P: Subscriber> Sub<P> {
     pub fn new(peer: Option<PeerId>, fqn: Fqn) -> Self {
-        let state = P::default();
         let tracer = Listener::<P>::new(peer, fqn);
         Self {
             driver: P::Driver::from(tracer),

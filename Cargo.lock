@@ -7618,21 +7618,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ui9-flow-stream"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "derive_more 1.0.0",
- "futures",
- "libp2p",
- "libp2p-swarm-test",
- "log",
- "smallvec",
- "tokio",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "ui9-request-response"
 version = "0.0.1"
 dependencies = [

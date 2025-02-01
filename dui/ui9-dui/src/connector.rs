@@ -6,13 +6,9 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{
-    Fetcher, InteractExt, ManageSubscription, OnRequest, Request, StateEntry, SubscribeExt,
-    Subscription, Supervisor, SupervisorSession,
-};
+use crb::superagent::{Fetcher, InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
-use libp2p::PeerId;
 use libp2p::{
     gossipsub, mdns, noise,
     swarm::{NetworkBehaviour, SwarmEvent},
@@ -20,13 +16,12 @@ use libp2p::{
 };
 use libp2p_stream as stream;
 use std::{
-    collections::hash_map::{DefaultHasher, HashMap},
+    collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     time::Duration,
 };
 use tokio::select;
-use typed_slab::TypedSlab;
-use ui9_request_response::{self as request_response, ProtocolSupport, ResponseChannel};
+use ui9_request_response::{self as request_response, ProtocolSupport};
 
 #[derive(Deref, DerefMut, From)]
 pub struct ConnectorLink {
@@ -250,7 +245,7 @@ impl OnEvent<gossipsub::Event> for Connector {
 
 #[async_trait]
 impl OnEvent<protocol::Event> for Connector {
-    async fn handle(&mut self, event: protocol::Event, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: protocol::Event, _ctx: &mut Context<Self>) -> Result<()> {
         use protocol::Event;
         use ui9_request_response::Message;
         match event {
@@ -280,7 +275,7 @@ impl Request for GetControl {
 impl OnRequest<GetControl> for Connector {
     async fn on_request(
         &mut self,
-        req: GetControl,
+        _req: GetControl,
         _ctx: &mut Context<Self>,
     ) -> Result<stream::Control> {
         let swarm = self.swarm.get_mut()?;

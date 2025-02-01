@@ -47,7 +47,7 @@ impl Component for PeerList {
             .collect();
 
         // Create a List widget
-        let mut list = List::new(items);
+        let list = List::new(items);
 
         // Render the List widget
         list.render(area, buf);

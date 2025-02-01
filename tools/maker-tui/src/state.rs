@@ -27,7 +27,7 @@ impl AppState {
         let chunks = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([Constraint::Percentage(70), Constraint::Percentage(30)].as_ref())
-            .split(f.size());
+            .split(f.area());
 
         // Left column: Placeholder content
         let left_block = Block::default().borders(Borders::ALL).title("Left Panel");
