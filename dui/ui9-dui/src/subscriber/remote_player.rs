@@ -1,19 +1,23 @@
 use super::{Act, PlayerState};
 use crate::connector::OpenSession;
+use crate::drainer::{to_drainer, MessageSink};
 use crate::hub::Hub;
-use crate::protocol;
+use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
+use crate::router::PROTOCOL;
 use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::StateEntry;
+use crb::superagent::{StateEntry, Supervisor, SupervisorSession};
+use futures::SinkExt;
 use libp2p::PeerId;
 
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,
     state: PlayerState<F>,
     session: Slot<StateEntry<OpenSession>>,
+    writer: Slot<MessageSink>,
 }
 
 impl<F: Flow> RemotePlayer<F> {
@@ -22,12 +26,17 @@ impl<F: Flow> RemotePlayer<F> {
             peer_id,
             state,
             session: Slot::empty(),
+            writer: Slot::empty(),
         }
     }
 }
 
+impl<F: Flow> Supervisor for RemotePlayer<F> {
+    type GroupBy = ();
+}
+
 impl<F: Flow> Agent for RemotePlayer<F> {
-    type Context = AgentSession<Self>;
+    type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(Initialize)
@@ -40,10 +49,15 @@ struct Initialize;
 impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let hub = Hub::link()?;
-        /*
-        let session = hub.connector.open_session(self.peer_id, &ctx).await?;
-        self.session.fill(session)?;
-        */
+        let mut control = hub.connector.get_control().await?;
+        let stream = control.open_stream(self.peer_id, PROTOCOL.clone()).await?;
+        let (drainer, writer) = to_drainer(stream);
+        ctx.assign(drainer, (), ());
+
+        let fqn = self.state.fqn.clone();
+        self.send(fqn.into()).await?;
+
+        self.writer.fill(writer)?;
 
         Ok(Next::events())
     }
@@ -51,35 +65,44 @@ impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
     // TODO: Fallback to reconnect
 }
 
-/*
-struct Subscribe;
-
-#[async_trait]
-impl<F: Flow> DoAsync<Subscribe> for RemotePlayer<F> {
-    async fn handle(&mut self, _: Subscribe, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let conn = self.session.get_mut()?;
-        let fqn = self.state.fqn.clone();
-        let req = protocol::Request::Subscribe(fqn);
-        conn.state.send(req)?;
-        Ok(Next::events())
-    }
-}
-
-#[async_trait]
-impl<F: Flow> OnEvent<protocol::Response> for RemotePlayer<F> {
-    async fn handle(&mut self, _res: protocol::Response, _ctx: &mut Context<Self>) -> Result<()> {
+impl<F: Flow> RemotePlayer<F> {
+    async fn send(&mut self, request: Ui9Request) -> Result<()> {
+        let writer = self.writer.get_mut()?;
+        let message = Ui9Message::from(request);
+        writer.send(message).await?;
         Ok(())
     }
 }
 
-use crate::subscriber::Relay;
-*/
+#[async_trait]
+impl<F: Flow> OnEvent<Result<Ui9Message>> for RemotePlayer<F> {
+    async fn handle(&mut self, msg: Result<Ui9Message>, _ctx: &mut Context<Self>) -> Result<()> {
+        match msg? {
+            Ui9Message::Response(response) => {
+                match response {
+                    Ui9Response::State(state) => {
+                        let unpacked_state = F::unpack_state(&state)?;
+                        self.state.allocate_state(unpacked_state);
+                    }
+                    Ui9Response::Event(event) => {
+                        let event = F::unpack_event(&event)?;
+                        self.state.apply_event(event);
+                    }
+                }
+                Ok(())
+            }
+            Ui9Message::Request(_) => Err(anyhow!(
+                "Request is not expected for the remote player stream"
+            )),
+        }
+    }
+}
 
 #[async_trait]
 impl<F: Flow> OnEvent<Act<F>> for RemotePlayer<F> {
     async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
-        Err(anyhow!(
-            "Not yet implemented: sending action to a remote component"
-        ))
+        let packed_action = F::pack_action(&action.action)?;
+        self.send(packed_action.into());
+        Ok(())
     }
 }

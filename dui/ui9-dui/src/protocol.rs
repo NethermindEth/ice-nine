@@ -3,7 +3,7 @@ use derive_more::{From, Into};
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 
-pub type Event = ui9_request_response::Event<Envelope<Request>, Envelope<Response>>;
+pub type Event = ui9_request_response::Event<Envelope<Ui9Request>, Envelope<Ui9Response>>;
 
 #[derive(
     Debug, Serialize, Deserialize, From, Into, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy,
@@ -17,20 +17,20 @@ pub struct Envelope<T> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
-pub enum Request {
+pub enum Ui9Request {
     Subscribe(Fqn),
     Action(PackedAction),
     Unsubscribe,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
-pub enum Response {
+pub enum Ui9Response {
     State(PackedState),
     Event(PackedEvent),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, From)]
-pub enum Message {
-    Request(Request),
-    Response(Response),
+pub enum Ui9Message {
+    Request(Ui9Request),
+    Response(Ui9Response),
 }

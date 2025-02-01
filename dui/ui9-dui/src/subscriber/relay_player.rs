@@ -1,19 +1,15 @@
 use crate::drainer::{to_drainer, MessageSink};
 use crate::flow::PackedEvent;
 use crate::hub::Hub;
-use crate::protocol::{Message, Request, Response};
+use crate::protocol::{Ui9Message, Ui9Request, Ui9Response};
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
-use futures::{AsyncReadExt, Sink, SinkExt, StreamExt};
+use futures::SinkExt;
 use libp2p::Stream;
-use std::pin::Pin;
-use tokio::io;
-use tokio_util::codec::{Framed, LengthDelimitedCodec};
-use tokio_util::compat::FuturesAsyncReadCompatExt;
 use ui9::names::Fqn;
 
 pub struct RelayPlayer {
@@ -67,13 +63,13 @@ impl DoAsync<Initialize> for RelayPlayer {
 }
 
 #[async_trait]
-impl OnEvent<Result<Message>> for RelayPlayer {
-    async fn handle(&mut self, event: Result<Message>, ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<Result<Ui9Message>> for RelayPlayer {
+    async fn handle(&mut self, event: Result<Ui9Message>, ctx: &mut Context<Self>) -> Result<()> {
         let event = event?;
         match event {
-            Message::Request(request) => {
+            Ui9Message::Request(request) => {
                 match request {
-                    Request::Subscribe(fqn) => {
+                    Ui9Request::Subscribe(fqn) => {
                         if self.entry.is_filled() {
                             return Err(anyhow!("Trying to subscribe twice"));
                         }
@@ -87,17 +83,17 @@ impl OnEvent<Result<Message>> for RelayPlayer {
                         self.entry.fill(state_entry.entry)?;
                         self.recorder.fill(recorder)?;
                     }
-                    Request::Action(action) => {
+                    Ui9Request::Action(action) => {
                         let recorder = self.recorder.get_mut()?;
                         recorder.act(action)?;
                     }
-                    Request::Unsubscribe => {
+                    Ui9Request::Unsubscribe => {
                         ctx.shutdown();
                     }
                 }
                 Ok(())
             }
-            Message::Response(_response) => {
+            Ui9Message::Response(_response) => {
                 Err(anyhow!("Response is not expected for relay stream"))
             }
         }
@@ -105,9 +101,9 @@ impl OnEvent<Result<Message>> for RelayPlayer {
 }
 
 impl RelayPlayer {
-    async fn send(&mut self, response: Response) -> Result<()> {
+    async fn send(&mut self, response: Ui9Response) -> Result<()> {
         let writer = self.writer.get_mut()?;
-        let message = Message::from(response);
+        let message = Ui9Message::from(response);
         writer.send(message).await?;
         Ok(())
     }

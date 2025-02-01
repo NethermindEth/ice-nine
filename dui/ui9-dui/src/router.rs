@@ -6,7 +6,7 @@ use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use libp2p::{PeerId, Stream, StreamProtocol};
 use libp2p_stream::Control;
 
-static PROTOCOL: StreamProtocol = StreamProtocol::new("/ui9-flow");
+pub static PROTOCOL: StreamProtocol = StreamProtocol::new("/ui9-flow");
 
 pub struct Router {
     control: Control,

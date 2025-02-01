@@ -1,4 +1,4 @@
-use crate::protocol::{self, Envelope, Request, Response, SessionId};
+use crate::protocol::{self, Envelope, SessionId, Ui9Request, Ui9Response};
 use crate::router::Router;
 use crate::subscriber::RelayPlayer;
 use crate::tracers::peer::Peer;
@@ -9,8 +9,8 @@ use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent
 use crb::core::{Slot, Unique};
 use crb::send::{Recipient, Sender};
 use crb::superagent::{
-    Fetcher, ManageSubscription, StateEntry, SubscribeExt, Subscription, Supervisor,
-    SupervisorSession,
+    Fetcher, InteractExt, ManageSubscription, OnRequest, Request, StateEntry, SubscribeExt,
+    Subscription, Supervisor, SupervisorSession,
 };
 use derive_more::{Deref, DerefMut, From};
 use futures::stream::StreamExt;
@@ -39,13 +39,18 @@ impl ConnectorLink {
     pub fn open_session(
         &self,
         peer_id: PeerId,
-        recipient: impl ToRecipient<Response>,
+        recipient: impl ToRecipient<Ui9Response>,
     ) -> Fetcher<StateEntry<OpenSession>> {
         let msg = OpenSession {
             peer_id,
             recipient: recipient.to_recipient(),
         };
         self.address.subscribe(msg)
+    }
+
+    pub fn get_control(&self) -> Fetcher<stream::Control> {
+        let msg = GetControl;
+        self.address.interact(msg)
     }
 }
 
@@ -63,7 +68,7 @@ struct SessionKey {
 
 struct SessionRecord {
     relay: Address<RelayPlayer>,
-    channel: ResponseChannel<Envelope<Response>>,
+    channel: ResponseChannel<Envelope<Ui9Response>>,
 }
 
 #[derive(Default)]
@@ -93,7 +98,8 @@ impl Connector {
 struct Ui9Behaviour {
     gossipsub: gossipsub::Behaviour,
     mdns: mdns::tokio::Behaviour,
-    request_response: request_response::cbor::Behaviour<Envelope<Request>, Envelope<Response>>,
+    request_response:
+        request_response::cbor::Behaviour<Envelope<Ui9Request>, Envelope<Ui9Response>>,
     stream: stream::Behaviour,
 }
 
@@ -304,6 +310,25 @@ impl OnEvent<protocol::Event> for Connector {
     }
 }
 
+pub struct GetControl;
+
+impl Request for GetControl {
+    type Response = stream::Control;
+}
+
+#[async_trait]
+impl OnRequest<GetControl> for Connector {
+    async fn on_request(
+        &mut self,
+        req: GetControl,
+        _ctx: &mut Context<Self>,
+    ) -> Result<stream::Control> {
+        let swarm = self.swarm.get_mut()?;
+        let control = swarm.behaviour_mut().stream.new_control();
+        Ok(control)
+    }
+}
+
 pub struct Session {
     sub: Unique<OpenSession>,
 }
@@ -315,7 +340,7 @@ pub struct ConnectionSender {
 }
 
 impl ConnectionSender {
-    pub fn send(&self, request: Request) -> Result<()> {
+    pub fn send(&self, request: Ui9Request) -> Result<()> {
         let request = ForwardRequest {
             peer_id: self.peer_id,
             session_id: self.session_id,
@@ -327,7 +352,7 @@ impl ConnectionSender {
 
 pub struct OpenSession {
     peer_id: PeerId,
-    recipient: Recipient<Response>,
+    recipient: Recipient<Ui9Response>,
 }
 
 impl Subscription for OpenSession {
@@ -368,7 +393,7 @@ impl ManageSubscription<OpenSession> for Connector {
 struct ForwardRequest {
     peer_id: PeerId,
     session_id: SessionId,
-    request: Request,
+    request: Ui9Request,
 }
 
 #[async_trait]
@@ -388,7 +413,7 @@ impl OnEvent<ForwardRequest> for Connector {
 
 struct ForwardResponse {
     session_key: SessionKey,
-    response: Response,
+    response: Ui9Response,
 }
 
 #[async_trait]
