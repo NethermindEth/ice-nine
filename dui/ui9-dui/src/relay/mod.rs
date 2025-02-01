@@ -8,8 +8,8 @@ mod remote_player;
 mod router;
 
 pub use connector::{Connector, ConnectorLink};
-pub use remote_player::RemotePlayer;
 pub use node::MeshNode;
+pub use remote_player::RemotePlayer;
 
 use libp2p::StreamProtocol;
 

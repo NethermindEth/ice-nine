@@ -21,7 +21,7 @@ use std::{
 };
 use tokio::select;
 
-#[derive(Deref, DerefMut, From)]
+#[derive(Deref, DerefMut, From, Clone)]
 pub struct ConnectorLink {
     connector: Address<Connector>,
 }

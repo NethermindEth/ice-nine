@@ -2,7 +2,7 @@ use super::connector::{Connector, ConnectorLink};
 use super::router::Router;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, Standalone};
+use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, Standalone, ToAddress};
 use crb::superagent::{PingExt, Supervisor, SupervisorSession};
 
 use std::sync::OnceLock;
@@ -63,10 +63,17 @@ struct Initialize;
 impl DoAsync<Initialize> for MeshNode {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let connector = Connector::new();
-        let connector = ctx.spawn_agent(connector, ()).equip();
+        let connector: ConnectorLink = ctx.spawn_agent(connector, ()).equip();
 
-        let router = Router::new(connector);
+        let router = Router::new(connector.clone());
         ctx.spawn_agent(router, ());
+
+        let link = MeshNodeLink {
+            node: ctx.to_address(),
+            connector,
+        };
+        NODE.set(link)
+            .map_err(|_| anyhow!("Node is already activated"))?;
 
         Ok(Next::events())
     }
