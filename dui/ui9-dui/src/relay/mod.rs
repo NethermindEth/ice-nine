@@ -1,5 +1,6 @@
 mod connector;
 mod router;
+mod relay_player;
 
 pub use connector::{Connector, ConnectorLink};
 

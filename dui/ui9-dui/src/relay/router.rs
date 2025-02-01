@@ -1,5 +1,5 @@
 use super::PROTOCOL;
-use crate::subscriber::RelayPlayer;
+use super::relay_player::RelayPlayer;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
