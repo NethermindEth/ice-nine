@@ -5,8 +5,10 @@ use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Stan
 use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
+use std::collections::BTreeMap;
 use ui9_dui::subscriber::SubEvent;
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
+use ui9_dui::tracers::tree::{Tree, TreeEvent};
 use ui9_dui::utils::to_drainer;
 use ui9_dui::Sub;
 
@@ -30,14 +32,16 @@ impl AppLink {
 pub struct App {
     peers: Sub<Peer>,
     ui_events_tx: mpsc::UnboundedSender<UiEvent>,
+    trees: BTreeMap<PeerId, Sub<Tree>>,
 }
 
 impl App {
     pub fn new() -> (RunAgent<Self>, AppLink) {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
-            peers: Sub::unified(),
+            peers: Sub::unified(None),
             ui_events_tx: events_tx,
+            trees: BTreeMap::new(),
         };
         let runtime = RunAgent::new(agent);
         let link = AppLink {
@@ -74,8 +78,17 @@ impl DoAsync<Initialize> for App {
 }
 
 impl App {
-    fn subscribe_to_peer(&mut self, peer: PeerId) {
+    fn subscribe_to_peer(&mut self, peer: PeerId, ctx: &mut Context<Self>) -> Result<()> {
         log::info!("Subscribing to peer's tree: {peer}");
+        if !self.trees.contains_key(&peer) {
+            let mut sub = Sub::<Tree>::unified(Some(peer));
+
+            let events = sub.events()?;
+            ctx.assign(events, (), ());
+
+            self.trees.insert(peer, sub);
+        }
+        Ok(())
     }
 }
 
@@ -85,7 +98,7 @@ impl OnEvent<SubEvent<Peer>> for App {
         match event {
             SubEvent::State(state) => {
                 for (peer_id, _) in state.borrow().peers.iter() {
-                    self.subscribe_to_peer(*peer_id);
+                    self.subscribe_to_peer(*peer_id, ctx);
                 }
                 let ui_event = UiEvent::SetState { peers: state };
                 self.ui_events_tx.send(ui_event)?;
@@ -93,7 +106,7 @@ impl OnEvent<SubEvent<Peer>> for App {
             SubEvent::Event(event) => {
                 match &event {
                     PeerEvent::AddPeer { peer_id, .. } => {
-                        self.subscribe_to_peer(*peer_id);
+                        self.subscribe_to_peer(*peer_id, ctx);
                     }
                     _ => {}
                 }
@@ -101,6 +114,20 @@ impl OnEvent<SubEvent<Peer>> for App {
                 self.ui_events_tx.send(ui_event)?;
             }
             SubEvent::Lost => {}
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<SubEvent<Tree>> for App {
+    async fn handle(&mut self, event: SubEvent<Tree>, ctx: &mut Context<Self>) -> Result<()> {
+        match event {
+            SubEvent::State(state) => {
+                let tree = state.borrow();
+                log::info!("TREE: {tree:?}");
+            }
+            _ => {}
         }
         Ok(())
     }

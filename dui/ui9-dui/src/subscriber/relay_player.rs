@@ -64,9 +64,9 @@ impl DoAsync<Initialize> for RelayPlayer {
 
 #[async_trait]
 impl OnEvent<Result<Ui9Message>> for RelayPlayer {
-    async fn handle(&mut self, event: Result<Ui9Message>, ctx: &mut Context<Self>) -> Result<()> {
-        let event = event?;
-        match event {
+    async fn handle(&mut self, msg: Result<Ui9Message>, ctx: &mut Context<Self>) -> Result<()> {
+        log::trace!("Imcoming UI9 request: {msg:?}");
+        match msg? {
             Ui9Message::Request(request) => {
                 match request {
                     Ui9Request::Subscribe(fqn) => {

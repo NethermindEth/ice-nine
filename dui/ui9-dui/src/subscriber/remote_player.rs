@@ -50,11 +50,10 @@ impl<F: Flow> DoAsync<Initialize> for RemotePlayer<F> {
         let stream = control.open_stream(self.peer_id, PROTOCOL.clone()).await?;
         let (drainer, writer) = to_drainer(stream);
         ctx.assign(drainer, (), ());
+        self.writer.fill(writer)?;
 
         let fqn = self.state.fqn.clone();
         self.send(fqn.into()).await?;
-
-        self.writer.fill(writer)?;
 
         Ok(Next::events())
     }
@@ -74,6 +73,7 @@ impl<F: Flow> RemotePlayer<F> {
 #[async_trait]
 impl<F: Flow> OnEvent<Result<Ui9Message>> for RemotePlayer<F> {
     async fn handle(&mut self, msg: Result<Ui9Message>, _ctx: &mut Context<Self>) -> Result<()> {
+        log::trace!("Imcoming UI9 response: {msg:?}");
         match msg? {
             Ui9Message::Response(response) => {
                 match response {
@@ -99,7 +99,7 @@ impl<F: Flow> OnEvent<Result<Ui9Message>> for RemotePlayer<F> {
 impl<F: Flow> OnEvent<Act<F>> for RemotePlayer<F> {
     async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
         let packed_action = F::pack_action(&action.action)?;
-        self.send(packed_action.into());
+        self.send(packed_action.into()).await?;
         Ok(())
     }
 }

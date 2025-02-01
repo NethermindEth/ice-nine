@@ -48,7 +48,7 @@ pub enum TreeEvent {
     DelFlow { fqn: Fqn },
 }
 
-#[derive(Clone, Serialize, Deserialize, Default)]
+#[derive(Clone, Serialize, Deserialize, Default, Debug)]
 pub struct Tree {
     pub root: Level,
 }
@@ -72,7 +72,7 @@ impl Flow for Tree {
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Clone, Serialize, Deserialize, Debug)]
 pub struct Level {
     pub levels: BTreeMap<String, Level>,
     pub tracer_info: Option<TracerInfo>,

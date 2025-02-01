@@ -33,11 +33,11 @@ impl<P: Subscriber> Sub<P> {
         }
     }
 
-    pub fn unified() -> Self
+    pub fn unified(peer: Option<PeerId>) -> Self
     where
         P: Unified,
     {
-        Self::new(None, P::fqn())
+        Self::new(peer, P::fqn())
     }
 }
 
