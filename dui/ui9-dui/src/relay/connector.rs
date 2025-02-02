@@ -2,7 +2,9 @@ use crate::tracers::peer::Peer;
 use crate::Pub;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent};
+use crb::agent::{
+    Address, Agent, AgentContext, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent,
+};
 use crb::core::Slot;
 use crb::superagent::{Fetcher, InteractExt, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
