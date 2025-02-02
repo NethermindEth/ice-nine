@@ -7412,6 +7412,7 @@ dependencies = [
  "async-trait",
  "crb",
  "log",
+ "ui9",
  "ui9-dui",
 ]
 
