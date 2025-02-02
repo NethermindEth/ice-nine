@@ -1,41 +1,41 @@
 use crate::protocol::UiEvent;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Standalone};
-use crb::core::{mpsc, Slot};
+use crb::core::{mpsc, Slot, Msg};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use std::collections::BTreeMap;
 use ui9_dui::subscriber::{drainer, SubEvent};
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::tracers::tree::Tree;
-use ui9_dui::Sub;
+use ui9_dui::{Sub, Flow};
 
-pub struct AppLink {
-    pub address: Address<App>,
-    pub events_rx: Slot<mpsc::UnboundedReceiver<UiEvent>>,
+pub struct AppLink<E: Msg> {
+    pub address: Address<App<E>>,
+    pub events_rx: Slot<mpsc::UnboundedReceiver<E>>,
 }
 
-impl AppLink {
-    pub fn try_recv(&mut self) -> Result<UiEvent> {
+impl<E: Msg> AppLink<E> {
+    pub fn try_recv(&mut self) -> Result<E> {
         let event = self.events_rx.get_mut()?.try_recv()?;
         Ok(event)
     }
 
-    pub fn drainer(&mut self) -> Result<Drainer<UiEvent>> {
+    pub fn drainer(&mut self) -> Result<Drainer<E>> {
         let rx = self.events_rx.take()?;
         Ok(drainer::from_mpsc(rx))
     }
 }
 
-pub struct App {
+pub struct App<E> {
     peers: Sub<Peer>,
     tree: Sub<Tree>,
-    ui_events_tx: mpsc::UnboundedSender<UiEvent>,
+    ui_events_tx: mpsc::UnboundedSender<E>,
 }
 
-impl App {
-    pub fn new() -> (RunAgent<Self>, AppLink) {
+impl<E: Msg> App<E> {
+    pub fn new() -> (RunAgent<Self>, AppLink<E>) {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
             peers: Sub::unified(None),
@@ -51,13 +51,13 @@ impl App {
     }
 }
 
-impl Standalone for App {}
+impl<E: Msg> Standalone for App<E> {}
 
-impl Supervisor for App {
+impl<E: Msg> Supervisor for App<E> {
     type GroupBy = ();
 }
 
-impl Agent for App {
+impl<E: Msg> Agent for App<E> {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
@@ -68,45 +68,28 @@ impl Agent for App {
 struct Initialize;
 
 #[async_trait]
-impl DoAsync<Initialize> for App {
+impl<E: Msg> DoAsync<Initialize> for App<E> {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        /*
         let events = self.peers.events()?;
         ctx.assign(events, (), ());
 
         let events = self.tree.events()?;
         ctx.assign(events, (), ());
+        */
         Ok(Next::events())
     }
 }
 
 #[async_trait]
-impl OnEvent<SubEvent<Peer>> for App {
-    async fn handle(&mut self, event: SubEvent<Peer>, ctx: &mut Context<Self>) -> Result<()> {
-        match event {
-            SubEvent::State(state) => {
-                let ui_event = UiEvent::SetState { peers: state };
-                self.ui_events_tx.send(ui_event)?;
-            }
-            SubEvent::Event(event) => {
-                let ui_event = UiEvent::StateChanged;
-                self.ui_events_tx.send(ui_event)?;
-            }
-            SubEvent::Lost => {}
-        }
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl OnEvent<SubEvent<Tree>> for App {
-    async fn handle(&mut self, event: SubEvent<Tree>, _ctx: &mut Context<Self>) -> Result<()> {
-        match event {
-            SubEvent::State(state) => {
-                let tree = state.borrow();
-                log::info!("TREE: {tree:?}");
-            }
-            _ => {}
-        }
+impl<E, F> OnEvent<SubEvent<F>> for App<E>
+where
+    E: Msg + From<SubEvent<F>>,
+    F: Flow,
+{
+    async fn handle(&mut self, event: SubEvent<F>, ctx: &mut Context<Self>) -> Result<()> {
+        self.ui_events_tx.send(event.into())
+            .map_err(|_| anyhow!("Can't forward an event to UI."))?;
         Ok(())
     }
 }
