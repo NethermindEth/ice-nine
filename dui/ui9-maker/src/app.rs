@@ -30,8 +30,8 @@ impl AppLink {
 
 pub struct App {
     peers: Sub<Peer>,
-    tree: Sub<Tree>,
     ui_events_tx: mpsc::UnboundedSender<UiEvent>,
+    trees: BTreeMap<PeerId, Sub<Tree>>,
 }
 
 impl App {
@@ -39,8 +39,8 @@ impl App {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
             peers: Sub::unified(None),
-            tree: Sub::unified(None),
             ui_events_tx: events_tx,
+            trees: BTreeMap::new(),
         };
         let runtime = RunAgent::new(agent);
         let link = AppLink {
@@ -72,10 +72,22 @@ impl DoAsync<Initialize> for App {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let events = self.peers.events()?;
         ctx.assign(events, (), ());
-
-        let events = self.tree.events()?;
-        ctx.assign(events, (), ());
         Ok(Next::events())
+    }
+}
+
+impl App {
+    fn subscribe_to_peer(&mut self, peer: PeerId, ctx: &mut Context<Self>) -> Result<()> {
+        log::info!("Subscribing to peer's tree: {peer}");
+        if !self.trees.contains_key(&peer) {
+            let mut sub = Sub::<Tree>::unified(Some(peer));
+
+            let events = sub.events()?;
+            ctx.assign(events, (), ());
+
+            self.trees.insert(peer, sub);
+        }
+        Ok(())
     }
 }
 
@@ -84,10 +96,19 @@ impl OnEvent<SubEvent<Peer>> for App {
     async fn handle(&mut self, event: SubEvent<Peer>, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
+                for (peer_id, _) in state.borrow().peers.iter() {
+                    self.subscribe_to_peer(*peer_id, ctx)?;
+                }
                 let ui_event = UiEvent::SetState { peers: state };
                 self.ui_events_tx.send(ui_event)?;
             }
             SubEvent::Event(event) => {
+                match &event {
+                    PeerEvent::AddPeer { peer_id, .. } => {
+                        self.subscribe_to_peer(*peer_id, ctx)?;
+                    }
+                    _ => {}
+                }
                 let ui_event = UiEvent::StateChanged;
                 self.ui_events_tx.send(ui_event)?;
             }

@@ -8,7 +8,7 @@ use crb::runtime::InterruptionLevel;
 use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
-use ui9_app::{AppLink, UiEvent};
+use ui9_maker::{AppLink, UiEvent};
 
 pub struct AppTui {
     terminal: Slot<DefaultTerminal>,
