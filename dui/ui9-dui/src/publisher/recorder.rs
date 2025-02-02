@@ -3,10 +3,13 @@ use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use crate::subscriber::Act;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, EventExt, OnEvent, UniAddress};
+use crb::agent::{Address, Agent, AgentSession, Context, OnEvent, UniAddress};
 use crb::core::Unique;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, StateEntry, SubscribeExt, Subscription};
+use crb::superagent::{
+    Fetcher, InteractExt, ManageSubscription, OnRequest, Request, StateEntry, SubscribeExt,
+    Subscription,
+};
 use std::collections::HashSet;
 
 #[derive(Clone)]
@@ -30,8 +33,9 @@ impl RecorderLink {
         Ok(state)
     }
 
-    pub fn act(&mut self, action: PackedAction) -> Result<()> {
-        self.address.event(action)
+    pub fn act(&mut self, action: PackedAction) -> Fetcher<()> {
+        let action = Action { action };
+        self.address.interact(action)
     }
 }
 
@@ -39,7 +43,7 @@ pub trait UniRecorder
 where
     Self: Sync + Send + 'static,
     Self: SubscribeExt<EventFlow>,
-    Self: EventExt<PackedAction>,
+    Self: InteractExt<Action>,
 {
 }
 
@@ -117,10 +121,18 @@ impl<F: Flow> ManageSubscription<EventFlow> for Recorder<F> {
     }
 }
 
+pub struct Action {
+    action: PackedAction,
+}
+
+impl Request for Action {
+    type Response = ();
+}
+
 #[async_trait]
-impl<F: Flow> OnEvent<PackedAction> for Recorder<F> {
-    async fn handle(&mut self, action: PackedAction, _ctx: &mut Context<Self>) -> Result<()> {
-        let action = F::unpack_action(&action)?;
+impl<F: Flow> OnRequest<Action> for Recorder<F> {
+    async fn on_request(&mut self, request: Action, _ctx: &mut Context<Self>) -> Result<()> {
+        let action = F::unpack_action(&request.action)?;
         let reaction = self.state.reaction(&action);
         if let Some(event) = reaction {
             self.distribute(event)?;

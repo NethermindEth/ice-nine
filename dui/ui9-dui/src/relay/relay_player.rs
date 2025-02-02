@@ -85,7 +85,7 @@ impl OnEvent<Result<Ui9Message>> for RelayPlayer {
                     }
                     Ui9Request::Action(action) => {
                         let recorder = self.recorder.get_mut()?;
-                        recorder.act(action)?;
+                        recorder.act(action).await?;
                     }
                     Ui9Request::Unsubscribe => {
                         ctx.shutdown();

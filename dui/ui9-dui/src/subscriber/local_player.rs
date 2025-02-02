@@ -69,12 +69,13 @@ impl<F: Flow> OnEvent<PackedEvent> for LocalPlayer<F> {
     }
 }
 
+// TODO: Turn that into an interaction
 #[async_trait]
 impl<F: Flow> OnEvent<Act<F>> for LocalPlayer<F> {
     async fn handle(&mut self, action: Act<F>, _ctx: &mut Context<Self>) -> Result<()> {
         let recorder = self.recorder.get_mut()?;
         let packed_action = F::pack_action(&action.action)?;
-        recorder.act(packed_action)?;
+        recorder.act(packed_action).await?;
         Ok(())
     }
 }
