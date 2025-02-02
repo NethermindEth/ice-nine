@@ -1,6 +1,6 @@
 use super::RecorderState;
-use crate::subscriber::Act;
 use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
+use crate::subscriber::Act;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, EventExt, OnEvent, UniAddress};

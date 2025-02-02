@@ -1,10 +1,10 @@
 use eframe::{run_native, CreationContext, NativeOptions};
 use egui::ViewportBuilder;
 use std::time::Duration;
-use ui9_maker::protocol::UiEvent;
-use ui9_maker::AppLink;
 use ui9_dui::subscriber::State;
 use ui9_dui::tracers::peer::Peer;
+use ui9_maker::protocol::UiEvent;
+use ui9_maker::AppLink;
 
 pub struct AppGui {
     state_changed: bool,

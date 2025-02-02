@@ -1,7 +1,9 @@
 use anyhow::Result;
 use crb_system::Main;
 use ice9_core::Substance;
+use ice_nine_plugin_app_stdio::StdioApp;
 use ice_nine_plugin_chat_telegram::TelegramParticle;
+use ice_nine_plugin_control_chat::ChatParticle;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
 use ice_nine_plugin_model_openai::OpenAIParticle;
 use ui9_mesh::Mesh;
@@ -13,7 +15,10 @@ async fn main() -> Result<()> {
     let substance = Substance::arise();
     substance.add_particle::<OpenAIParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
-    substance.add_particle::<TelegramParticle>()?;
+    substance.add_particle::<ChatParticle>()?;
+    substance.add_particle::<StdioApp>()?;
+
+    // substance.add_particle::<TelegramParticle>()?;
     // Stdio is not compatible with tracing and will be replaced with DUI
     // substance.add_particle::<StdioParticle>()?;
     substance.into_address().join_or_signal().await?;

@@ -1,0 +1,17 @@
+[package]
+name = "ice-nine-plugin-app-stdio"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+crb.workspace = true
+ice9-core.workspace = true
+ice-nine-plugin-control-chat.path = "../control-chat"
+ui9.workspace = true
+ui9-dui.workspace = true
+tokio.workspace = true

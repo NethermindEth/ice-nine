@@ -1,10 +1,10 @@
 use crate::flow::{Chat, ChatAction};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Next, Context, DoAsync, OnEvent};
-use crb::superagent::{SupervisorSession, Supervisor};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
+use crb::superagent::{Supervisor, SupervisorSession};
 use ice9_core::{Particle, SubstanceLinks};
-use ui9_dui::{Pub, Act};
+use ui9_dui::{Act, Pub};
 
 pub struct ChatParticle {
     chat: Pub<Chat>,

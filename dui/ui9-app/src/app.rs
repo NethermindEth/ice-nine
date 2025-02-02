@@ -2,18 +2,18 @@ use crate::protocol::UiEvent;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Standalone};
-use crb::core::{mpsc, Slot, Msg};
+use crb::core::{mpsc, Msg, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
+use std::any::Any;
 use std::collections::HashMap;
+use std::marker::PhantomData;
+use std::ops::DerefMut;
 use ui9::names::Fqn;
 use ui9_dui::subscriber::{drainer, SubEvent};
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::tracers::tree::Tree;
-use ui9_dui::{Sub, Flow, Subscriber, Listener};
-use std::any::Any;
-use std::marker::PhantomData;
-use std::ops::DerefMut;
+use ui9_dui::{Flow, Listener, Sub, Subscriber};
 
 pub trait AnySub: Send {}
 
@@ -21,7 +21,8 @@ impl<F: Subscriber> AnySub for Sub<F>
 where
     F: Subscriber,
     F::Driver: Send,
-{}
+{
+}
 
 pub struct AppLink<E: Msg> {
     pub address: Address<App<E>>,
@@ -102,7 +103,8 @@ where
     F: Flow,
 {
     async fn handle(&mut self, event: SubEvent<F>, ctx: &mut Context<Self>) -> Result<()> {
-        self.ui_events_tx.send(event.into())
+        self.ui_events_tx
+            .send(event.into())
             .map_err(|_| anyhow!("Can't forward an event to UI."))?;
         Ok(())
     }

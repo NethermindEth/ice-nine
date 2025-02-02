@@ -8,4 +8,4 @@ pub mod tracers;
 pub use flow::{Flow, Unified};
 pub use hub::Hub;
 pub use publisher::{Pub, Publisher, Tracer, TracerInfo};
-pub use subscriber::{Listener, Sub, Subscriber, Act};
+pub use subscriber::{Act, Listener, State, Sub, SubEvent, Subscriber};

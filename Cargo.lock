@@ -3228,6 +3228,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ice-nine-plugin-app-stdio"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "ice-nine-plugin-control-chat",
+ "ice9-core",
+ "tokio",
+ "ui9",
+ "ui9-dui",
+]
+
+[[package]]
 name = "ice-nine-plugin-chat-stdio"
 version = "0.0.1"
 dependencies = [
@@ -7322,8 +7336,10 @@ dependencies = [
  "crb",
  "crb-system",
  "env_logger",
+ "ice-nine-plugin-app-stdio",
  "ice-nine-plugin-chat-stdio",
  "ice-nine-plugin-chat-telegram",
+ "ice-nine-plugin-control-chat",
  "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-model-openai",
  "ice9-core",

@@ -6,8 +6,8 @@ pub use recorder::{EventFlow, Recorder, RecorderLink, UniRecorder};
 pub use server::{HubServer, HubServerLink};
 pub use tracer::{Tracer, TracerInfo};
 
-use crate::subscriber::Act;
 use crate::flow::{Flow, Unified};
+use crate::subscriber::Act;
 use crb::core::mpsc;
 use derive_more::{Deref, DerefMut};
 use ui9::names::Fqn;

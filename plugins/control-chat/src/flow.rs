@@ -1,7 +1,7 @@
-use ui9::names::Fqn;
-use ui9_dui::{Flow, Listener, Subscriber, Tracer, Publisher, Unified};
 use derive_more::{Deref, DerefMut, From, Into};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use ui9::names::Fqn;
+use ui9_dui::{Flow, Listener, Publisher, Subscriber, Tracer, Unified};
 
 #[derive(Deref, DerefMut, From, Into)]
 pub struct ChatSub {
@@ -10,6 +10,13 @@ pub struct ChatSub {
 
 impl Subscriber for Chat {
     type Driver = ChatSub;
+}
+
+impl ChatSub {
+    pub fn request(&mut self, question: String) {
+        let event = ChatAction::Request { question };
+        self.listener.action(event);
+    }
 }
 
 #[derive(Deref, DerefMut, From, Into)]
@@ -41,8 +48,8 @@ impl ChatPub {
 
 #[derive(Clone, Serialize, Deserialize, Default, Debug)]
 pub struct Chat {
-    thinking: Option<String>,
-    messages: Vec<String>,
+    pub thinking: Option<String>,
+    pub messages: Vec<String>,
 }
 
 impl Unified for Chat {

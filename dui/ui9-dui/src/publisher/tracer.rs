@@ -1,12 +1,12 @@
-use crate::subscriber::{drainer, Act};
 use super::recorder::{Recorder, Update};
 use super::server::HubServer;
 use super::RecorderState;
-use anyhow::{anyhow, Result};
 use crate::flow::Flow;
+use crate::subscriber::{drainer, Act};
+use anyhow::{anyhow, Result};
 use crb::agent::StopAddress;
-use crb::superagent::Drainer;
 use crb::core::mpsc;
+use crb::superagent::Drainer;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
 
@@ -42,7 +42,6 @@ impl<F: Flow> Tracer<F> {
     pub fn actions(&mut self) -> Result<Drainer<Act<F>>> {
         self.receiver().map(drainer::from_mpsc)
     }
-
 
     pub fn event(&self, event: F::Event) {
         let update = Update { event };
