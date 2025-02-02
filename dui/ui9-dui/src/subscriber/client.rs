@@ -1,9 +1,13 @@
+use super::{Act, LocalPlayer, PlayerState};
+use crate::flow::Flow;
+use crate::relay::RemotePlayer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
-use crb::runtime::Runtime;
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, StopRecipient};
+use crb::runtime::{InteractiveRuntime, Runtime};
 use crb::superagent::{EventBridge, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
+use libp2p::PeerId;
 use std::sync::LazyLock;
 
 #[derive(Deref, DerefMut, From, Clone)]
@@ -14,6 +18,25 @@ pub struct HubClientLink {
 static SUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
 
 impl HubClient {
+    pub fn spawn_player<F: Flow>(
+        peer_id: Option<PeerId>,
+        state: PlayerState<F>,
+    ) -> StopRecipient<Act<F>> {
+        if let Some(peer_id) = peer_id {
+            let player = RemotePlayer::new(peer_id, state);
+            let runtime = RunAgent::new(player);
+            let player = runtime.address();
+            HubClient::add_player(runtime);
+            player.to_stop_address().to_stop_recipient()
+        } else {
+            let player = LocalPlayer::new(state);
+            let runtime = RunAgent::new(player);
+            let player = runtime.address();
+            HubClient::add_player(runtime);
+            player.to_stop_address().to_stop_recipient()
+        }
+    }
+
     pub fn add_player(runtime: impl Runtime) {
         let delegate = Delegate {
             runtime: Box::new(runtime),

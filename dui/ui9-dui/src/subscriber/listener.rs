@@ -1,13 +1,10 @@
 use super::client::HubClient;
 use super::drainer;
-use super::local_player::LocalPlayer;
 use super::{Act, PlayerState, SubEvent};
 use crate::flow::Flow;
-use crate::relay::RemotePlayer;
 use anyhow::{anyhow, Result};
-use crb::agent::{RunAgent, StopRecipient};
+use crb::agent::StopRecipient;
 use crb::core::mpsc;
-use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use crb::superagent::Drainer;
 use libp2p::PeerId;
@@ -26,21 +23,7 @@ impl<F: Flow> Listener<F> {
             state_tx: None,
             event_tx,
         };
-        let player = {
-            if let Some(peer_id) = peer_id {
-                let player = RemotePlayer::new(peer_id, state);
-                let runtime = RunAgent::new(player);
-                let player = runtime.address().to_stop_address().to_stop_recipient();
-                HubClient::add_player(runtime);
-                player
-            } else {
-                let player = LocalPlayer::new(state);
-                let runtime = RunAgent::new(player);
-                let player = runtime.address().to_stop_address().to_stop_recipient();
-                HubClient::add_player(runtime);
-                player
-            }
-        };
+        let player = HubClient::spawn_player(peer_id, state);
         Self {
             player,
             event_rx: Some(event_rx),

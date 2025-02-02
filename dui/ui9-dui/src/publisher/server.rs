@@ -1,12 +1,13 @@
-use super::{Pub, Recorder, RecorderLink, RecorderState, TracerInfo, UniRecorder};
+use super::{Pub, Recorder, RecorderLink, RecorderState, TracerInfo};
 use crate::flow::Flow;
 use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
     Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent, Standalone,
+    StopAddress,
 };
-use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
+use crb::runtime::{InteractiveRuntime, Runtime};
 use crb::superagent::{
     EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
 };
@@ -31,7 +32,7 @@ impl HubServerLink {
 static PUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
 
 impl HubServer {
-    pub fn spawn_recorder<F>(fqn: Fqn, state: RecorderState<F>) -> Address<Recorder<F>>
+    pub fn spawn_recorder<F>(fqn: Fqn, state: RecorderState<F>) -> StopAddress<Recorder<F>>
     where
         F: Flow,
     {
@@ -48,7 +49,7 @@ impl HubServer {
             runtime: Box::new(runtime),
         };
         PUB_BRIDGE.send(delegate);
-        address
+        address.to_stop_address()
     }
 }
 
