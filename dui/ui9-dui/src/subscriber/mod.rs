@@ -9,7 +9,7 @@ pub use local_player::LocalPlayer;
 
 use crate::flow::{Flow, Unified};
 use crb::core::{mpsc, watch};
-use derive_more::{Deref, DerefMut};
+use derive_more::{Deref, DerefMut, From};
 use libp2p::PeerId;
 use ui9::names::Fqn;
 

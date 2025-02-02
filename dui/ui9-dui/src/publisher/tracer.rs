@@ -1,8 +1,11 @@
+use crate::subscriber::{drainer, Act};
 use super::recorder::{Recorder, Update};
 use super::server::HubServer;
 use super::RecorderState;
+use anyhow::{anyhow, Result};
 use crate::flow::Flow;
 use crb::agent::StopAddress;
+use crb::superagent::Drainer;
 use crb::core::mpsc;
 use serde::{Deserialize, Serialize};
 use ui9::names::Fqn;
@@ -16,7 +19,7 @@ pub struct TracerInfo {
 pub struct Tracer<F: Flow> {
     // TODO: Consider using StopRecipient
     recorder: StopAddress<Recorder<F>>,
-    action_rx: Option<mpsc::UnboundedReceiver<F::Action>>,
+    action_rx: Option<mpsc::UnboundedReceiver<Act<F>>>,
 }
 
 impl<F: Flow> Tracer<F> {
@@ -30,9 +33,16 @@ impl<F: Flow> Tracer<F> {
         }
     }
 
-    pub fn ignore_actions(&mut self) {
-        self.action_rx.take();
+    pub fn receiver(&mut self) -> Result<mpsc::UnboundedReceiver<Act<F>>> {
+        self.action_rx
+            .take()
+            .ok_or_else(|| anyhow!("Actions stream (drainer) has taken already."))
     }
+
+    pub fn actions(&mut self) -> Result<Drainer<Act<F>>> {
+        self.receiver().map(drainer::from_mpsc)
+    }
+
 
     pub fn event(&self, event: F::Event) {
         let update = Update { event };

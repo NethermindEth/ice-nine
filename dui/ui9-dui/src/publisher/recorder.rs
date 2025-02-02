@@ -1,4 +1,5 @@
 use super::RecorderState;
+use crate::subscriber::Act;
 use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -124,7 +125,8 @@ impl<F: Flow> OnEvent<PackedAction> for Recorder<F> {
         if let Some(event) = reaction {
             self.distribute(event)?;
         }
-        self.state.action_tx.send(action)?;
+        let msg = Act { action };
+        self.state.action_tx.send(msg)?;
         Ok(())
     }
 }

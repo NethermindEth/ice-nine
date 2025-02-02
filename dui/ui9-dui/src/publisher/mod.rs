@@ -6,6 +6,7 @@ pub use recorder::{EventFlow, Recorder, RecorderLink, UniRecorder};
 pub use server::{HubServer, HubServerLink};
 pub use tracer::{Tracer, TracerInfo};
 
+use crate::subscriber::Act;
 use crate::flow::{Flow, Unified};
 use crb::core::mpsc;
 use derive_more::{Deref, DerefMut};
@@ -42,5 +43,5 @@ pub struct RecorderState<F: Flow> {
     #[deref]
     #[deref_mut]
     state: F,
-    action_tx: mpsc::UnboundedSender<F::Action>,
+    action_tx: mpsc::UnboundedSender<Act<F>>,
 }

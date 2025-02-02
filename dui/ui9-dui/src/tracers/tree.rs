@@ -36,21 +36,15 @@ impl TreePub {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Default, Debug)]
+pub struct Tree {
+    pub root: Level,
+}
+
 impl Unified for Tree {
     fn fqn() -> Fqn {
         Fqn::root("@tree")
     }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub enum TreeEvent {
-    AddFlow { fqn: Fqn, info: TracerInfo },
-    DelFlow { fqn: Fqn },
-}
-
-#[derive(Clone, Serialize, Deserialize, Default, Debug)]
-pub struct Tree {
-    pub root: Level,
 }
 
 impl Flow for Tree {
@@ -70,6 +64,12 @@ impl Flow for Tree {
             }
         }
     }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub enum TreeEvent {
+    AddFlow { fqn: Fqn, info: TracerInfo },
+    DelFlow { fqn: Fqn },
 }
 
 #[derive(Default, Clone, Serialize, Deserialize, Debug)]

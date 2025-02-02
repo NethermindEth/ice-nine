@@ -3254,6 +3254,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ice-nine-plugin-control-chat"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "ice9-core",
+ "serde",
+ "ui9",
+ "ui9-dui",
+]
+
+[[package]]
 name = "ice-nine-plugin-exchange-dydx"
 version = "0.0.1"
 dependencies = [
