@@ -26,10 +26,22 @@ impl ChatPub {
         let event = ChatEvent::Add { message };
         self.tracer.event(event);
     }
+
+    pub fn start_thinking(&mut self, reason: &str) {
+        let reason = Some(reason.into());
+        let event = ChatEvent::SetThinking { reason };
+        self.tracer.event(event);
+    }
+
+    pub fn stop_thinking(&mut self) {
+        let event = ChatEvent::SetThinking { reason: None };
+        self.tracer.event(event);
+    }
 }
 
 #[derive(Clone, Serialize, Deserialize, Default, Debug)]
 pub struct Chat {
+    thinking: Option<String>,
     messages: Vec<String>,
 }
 
@@ -41,12 +53,15 @@ impl Unified for Chat {
 
 impl Flow for Chat {
     type Event = ChatEvent;
-    type Action = ();
+    type Action = ChatAction;
 
     fn apply(&mut self, event: Self::Event) {
         match event {
             ChatEvent::Add { message } => {
                 self.messages.push(message);
+            }
+            ChatEvent::SetThinking { reason } => {
+                self.thinking = reason;
             }
         }
     }
@@ -55,4 +70,10 @@ impl Flow for Chat {
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum ChatEvent {
     Add { message: String },
+    SetThinking { reason: Option<String> },
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub enum ChatAction {
+    Request { question: String },
 }
