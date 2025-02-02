@@ -1,4 +1,4 @@
-use super::RecorderSetup;
+use super::RecorderState;
 use crate::flow::{Flow, PackedAction, PackedEvent, PackedState};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -45,14 +45,14 @@ where
 impl<F: Flow> UniRecorder for Address<Recorder<F>> {}
 
 pub struct Recorder<F: Flow> {
-    setup: RecorderSetup<F>,
+    state: RecorderState<F>,
     subscribers: HashSet<Unique<EventFlow>>,
 }
 
 impl<F: Flow> Recorder<F> {
-    pub fn new(setup: RecorderSetup<F>) -> Self {
+    pub fn new(state: RecorderState<F>) -> Self {
         Self {
-            setup,
+            state,
             subscribers: HashSet::new(),
         }
     }
@@ -65,7 +65,7 @@ impl<F: Flow> Agent for Recorder<F> {
 impl<F: Flow> Recorder<F> {
     fn distribute(&mut self, event: F::Event) -> Result<()> {
         let packed_event = F::pack_event(&event)?;
-        self.setup.state.apply(event);
+        self.state.apply(event);
         for subscriber in &self.subscribers {
             subscriber.recipient.send(packed_event.clone()).ok();
         }
@@ -101,7 +101,7 @@ impl<F: Flow> ManageSubscription<EventFlow> for Recorder<F> {
         sub: Unique<EventFlow>,
         _ctx: &mut Context<Self>,
     ) -> Result<PackedState> {
-        let packed_state = self.setup.state.pack_state()?;
+        let packed_state = self.state.pack_state()?;
         self.subscribers.insert(sub);
         Ok(packed_state)
     }
@@ -120,11 +120,11 @@ impl<F: Flow> ManageSubscription<EventFlow> for Recorder<F> {
 impl<F: Flow> OnEvent<PackedAction> for Recorder<F> {
     async fn handle(&mut self, action: PackedAction, _ctx: &mut Context<Self>) -> Result<()> {
         let action = F::unpack_action(&action)?;
-        let reaction = self.setup.state.reaction(&action);
+        let reaction = self.state.reaction(&action);
         if let Some(event) = reaction {
             self.distribute(event)?;
         }
-        self.setup.action_tx.send(action)?;
+        self.state.action_tx.send(action)?;
         Ok(())
     }
 }

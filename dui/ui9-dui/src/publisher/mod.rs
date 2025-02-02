@@ -37,7 +37,10 @@ impl<P: Publisher> Pub<P> {
     }
 }
 
-pub struct RecorderSetup<F: Flow> {
+#[derive(Deref, DerefMut)]
+pub struct RecorderState<F: Flow> {
+    #[deref]
+    #[deref_mut]
     state: F,
     action_tx: mpsc::UnboundedSender<F::Action>,
 }

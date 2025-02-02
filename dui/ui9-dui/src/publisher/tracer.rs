@@ -1,6 +1,6 @@
 use super::recorder::{Recorder, Update};
 use super::server::HubServer;
-use super::RecorderSetup;
+use super::RecorderState;
 use crate::flow::Flow;
 use crb::agent::{RunAgent, StopAddress};
 use crb::core::mpsc;
@@ -23,8 +23,8 @@ pub struct Tracer<F: Flow> {
 impl<F: Flow> Tracer<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
         let (action_tx, action_rx) = mpsc::unbounded_channel();
-        let setup = RecorderSetup { state, action_tx };
-        let recorder = Recorder::new(setup);
+        let state = RecorderState { state, action_tx };
+        let recorder = Recorder::new(state);
         let runtime = RunAgent::new(recorder);
         let address = runtime.address();
         let info = TracerInfo {
