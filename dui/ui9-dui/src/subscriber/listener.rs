@@ -30,11 +30,14 @@ impl<F: Flow> Listener<F> {
         }
     }
 
-    pub fn events(&mut self) -> Result<Drainer<SubEvent<F>>> {
+    pub fn receiver(&mut self) -> Result<mpsc::UnboundedReceiver<SubEvent<F>>> {
         self.event_rx
             .take()
-            .map(drainer::from_mpsc)
             .ok_or_else(|| anyhow!("Events stream (drainer) has taken already."))
+    }
+
+    pub fn events(&mut self) -> Result<Drainer<SubEvent<F>>> {
+        self.receiver().map(drainer::from_mpsc)
     }
 
     pub fn action(&self, action: F::Action) {
