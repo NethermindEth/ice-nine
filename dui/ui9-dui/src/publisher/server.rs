@@ -1,8 +1,11 @@
-use crate::publisher::{Pub, RecorderLink, TracerInfo, UniRecorder};
+use super::{Pub, Recorder, RecorderLink, RecorderState, TracerInfo, UniRecorder};
+use crate::flow::Flow;
 use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, Standalone};
+use crb::agent::{
+    Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent, Standalone,
+};
 use crb::runtime::{InteractiveRuntime, ReachableContext, Runtime};
 use crb::superagent::{
     EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
@@ -28,11 +31,16 @@ impl HubServerLink {
 static PUB_BRIDGE: LazyLock<EventBridge<Delegate>> = LazyLock::new(|| EventBridge::new());
 
 impl HubServer {
-    pub fn add_recorder<R>(fqn: Fqn, tracer_info: TracerInfo, runtime: R)
+    pub fn spawn_recorder<F>(fqn: Fqn, state: RecorderState<F>) -> Address<Recorder<F>>
     where
-        R: InteractiveRuntime,
-        <R::Context as ReachableContext>::Address: UniRecorder,
+        F: Flow,
     {
+        let recorder = Recorder::new(state);
+        let runtime = RunAgent::new(recorder);
+        let address = runtime.address();
+        let tracer_info = TracerInfo {
+            class: F::class().into(),
+        };
         let delegate = Delegate {
             fqn,
             tracer_info,
@@ -40,6 +48,7 @@ impl HubServer {
             runtime: Box::new(runtime),
         };
         PUB_BRIDGE.send(delegate);
+        address
     }
 }
 

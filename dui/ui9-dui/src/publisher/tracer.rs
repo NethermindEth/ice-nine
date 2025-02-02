@@ -23,14 +23,10 @@ pub struct Tracer<F: Flow> {
 impl<F: Flow> Tracer<F> {
     pub fn new(fqn: Fqn, state: F) -> Self {
         let (action_tx, action_rx) = mpsc::unbounded_channel();
+
         let state = RecorderState { state, action_tx };
-        let recorder = Recorder::new(state);
-        let runtime = RunAgent::new(recorder);
-        let address = runtime.address();
-        let info = TracerInfo {
-            class: F::class().into(),
-        };
-        HubServer::add_recorder(fqn, info, runtime);
+        let address = HubServer::spawn_recorder(fqn, state);
+
         Self {
             recorder: address.to_stop_address(),
             action_rx: Some(action_rx),
