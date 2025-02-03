@@ -1302,13 +1302,43 @@ dependencies = [
 [[package]]
 name = "crb"
 version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3074b7c559c84f36c756fb59d924ae999ac9d411c0948b7261a56b8229b5e2c5"
+dependencies = [
+ "crb-agent 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-core 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-runtime 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-send 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-superagent 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "crb"
+version = "0.0.28"
 source = "git+https://github.com/runtime-blocks/crb#4528110ebaeccf042a70af187d7906197df31150"
 dependencies = [
- "crb-agent",
- "crb-core",
- "crb-runtime",
- "crb-send",
- "crb-superagent",
+ "crb-agent 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-core 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-runtime 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-send 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-superagent 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+]
+
+[[package]]
+name = "crb-agent"
+version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d044c9e5bb3b3b1dbf9e7636cec5421e4517202705a37526bb7906503284092"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb-core 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-runtime 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-send 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive_more 1.0.0",
+ "futures",
+ "log",
+ "tokio",
 ]
 
 [[package]]
@@ -1318,13 +1348,33 @@ source = "git+https://github.com/runtime-blocks/crb#4528110ebaeccf042a70af187d79
 dependencies = [
  "anyhow",
  "async-trait",
- "crb-core",
- "crb-runtime",
- "crb-send",
+ "crb-core 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-runtime 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-send 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "futures",
  "log",
  "tokio",
+]
+
+[[package]]
+name = "crb-core"
+version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15d6abc5ddcce5870bdfb67879720fb8bc0ed9672ca2257e011e0ee4163ddcc9"
+dependencies = [
+ "anyhow",
+ "derive_more 1.0.0",
+ "event-listener",
+ "futures",
+ "gloo-timers",
+ "js-sys",
+ "ordered-float",
+ "thiserror 2.0.11",
+ "tokio",
+ "uuid",
+ "wasm-bindgen-futures",
+ "web-sys",
 ]
 
 [[package]]
@@ -1349,14 +1399,37 @@ dependencies = [
 [[package]]
 name = "crb-runtime"
 version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4f042001e4e66000377205dadbd4628527300409fb483f638c8a2e5c714b7df4"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb-core 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive_more 1.0.0",
+ "futures",
+ "thiserror 2.0.11",
+]
+
+[[package]]
+name = "crb-runtime"
+version = "0.0.28"
 source = "git+https://github.com/runtime-blocks/crb#4528110ebaeccf042a70af187d7906197df31150"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb-core",
+ "crb-core 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "futures",
  "thiserror 2.0.11",
+]
+
+[[package]]
+name = "crb-send"
+version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "455c7b0e794f683117323927c74fac7392206719d110dd2791eb04e2d241eead"
+dependencies = [
+ "anyhow",
 ]
 
 [[package]]
@@ -1370,14 +1443,33 @@ dependencies = [
 [[package]]
 name = "crb-superagent"
 version = "0.0.28"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a12e94726820a78778aef573b3eebd0d95c41e75ad4bc97c9e555d17747426fd"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb-agent 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-core 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-runtime 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "crb-send 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+ "derive_more 1.0.0",
+ "futures",
+ "log",
+ "thiserror 2.0.11",
+ "typed-slab",
+]
+
+[[package]]
+name = "crb-superagent"
+version = "0.0.28"
 source = "git+https://github.com/runtime-blocks/crb#4528110ebaeccf042a70af187d7906197df31150"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb-agent",
- "crb-core",
- "crb-runtime",
- "crb-send",
+ "crb-agent 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-core 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-runtime 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-send 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "futures",
  "log",
@@ -1392,8 +1484,8 @@ source = "git+https://github.com/runtime-blocks/crb#4528110ebaeccf042a70af187d79
 dependencies = [
  "anyhow",
  "async-trait",
- "crb-agent",
- "crb-runtime",
+ "crb-agent 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crb-runtime 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "tokio",
 ]
 
@@ -3233,7 +3325,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "ice-nine-plugin-control-chat",
  "ice9-core",
  "tokio",
@@ -3247,7 +3339,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "ice9-core",
  "serde",
@@ -3260,7 +3352,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "ice9-core",
  "serde",
@@ -3273,7 +3365,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "ice9-core",
  "serde",
@@ -3287,7 +3379,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "dydx",
  "ice9-core",
@@ -3301,7 +3393,7 @@ dependencies = [
  "anyhow",
  "async-openai",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "ice9-core",
  "serde",
  "ui9",
@@ -3323,7 +3415,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "dotenvy",
  "envy",
@@ -3345,7 +3437,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "clap",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "eframe",
  "egui",
  "env_logger",
@@ -3361,7 +3453,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "crossterm",
  "env_logger",
  "ratatui",
@@ -3377,7 +3469,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "dirs",
  "log",
@@ -4551,6 +4643,9 @@ dependencies = [
 [[package]]
 name = "n9"
 version = "0.0.1"
+dependencies = [
+ "crb 0.0.28 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "n9-app-line"
@@ -7341,7 +7436,7 @@ name = "trading-assistant"
 version = "0.0.1"
 dependencies = [
  "anyhow",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "crb-system",
  "env_logger",
  "ice-nine-plugin-app-stdio",
@@ -7448,7 +7543,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "log",
  "ui9",
  "ui9-dui",
@@ -7474,7 +7569,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "bytes",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "flexbuffers",
  "futures",
@@ -7497,7 +7592,7 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "async-trait",
- "crb",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "log",
  "ui9-dui",
 ]

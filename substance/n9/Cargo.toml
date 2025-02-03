@@ -7,3 +7,4 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+crb = "0.0.28"
