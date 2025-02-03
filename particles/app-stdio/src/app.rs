@@ -96,9 +96,12 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                 }
                 self.state = Some(state);
             }
-            SubEvent::Event(event) => {
-                //
-            }
+            SubEvent::Event(event) => match event {
+                ChatEvent::Add { message } => {
+                    self.writeln(&message).await?;
+                }
+                ChatEvent::SetThinking { .. } => {}
+            },
             SubEvent::Lost => {
                 self.state.take();
             }

@@ -2,7 +2,7 @@ use anyhow::Result;
 use crb_system::Main;
 use ice9_core::Substance;
 use ice_nine_plugin_app_stdio::StdioApp;
-use ice_nine_plugin_chat_telegram::TelegramParticle;
+// use ice_nine_plugin_chat_telegram::TelegramParticle;
 use ice_nine_plugin_control_chat::ChatParticle;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
 use ice_nine_plugin_model_openai::OpenAIParticle;
@@ -23,5 +23,6 @@ async fn main() -> Result<()> {
     // substance.add_particle::<StdioParticle>()?;
     substance.into_address().join_or_signal().await?;
     Mesh::deactivate().await?;
+    // Unblocking stdin
     Ok(())
 }

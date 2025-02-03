@@ -3,16 +3,18 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{StreamSession, Supervisor};
-use ice9_core::{Particle, SubstanceLinks};
+use ice9_core::{ChatRequest, Particle, SubstanceLinks};
 use ui9_dui::{Act, Pub};
 
 pub struct ChatParticle {
+    substance: SubstanceLinks,
     chat: Pub<Chat>,
 }
 
 impl Particle for ChatParticle {
     fn construct(substance: SubstanceLinks) -> Self {
         Self {
+            substance,
             chat: Pub::unified(),
         }
     }
@@ -43,13 +45,29 @@ impl DoAsync<Initialize> for ChatParticle {
 
 #[async_trait]
 impl OnEvent<Act<Chat>> for ChatParticle {
-    async fn handle(&mut self, msg: Act<Chat>, _ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, msg: Act<Chat>, ctx: &mut Context<Self>) -> Result<()> {
         match msg.action {
             ChatAction::Request { question } => {
-                self.chat.start_thinking("...");
-                // TODO: Send a request to a substance
+                let ask = Ask { question };
+                ctx.do_next(Next::do_async(ask));
             }
         }
         Ok(())
+    }
+}
+
+struct Ask {
+    question: String,
+}
+
+#[async_trait]
+impl DoAsync<Ask> for ChatParticle {
+    async fn handle(&mut self, msg: Ask, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        self.chat.start_thinking("...");
+        let request = ChatRequest::user(&msg.question);
+        let text = self.substance.router.chat(request).await?.squash();
+        self.chat.add(text);
+        self.chat.stop_thinking();
+        Ok(Next::events())
     }
 }
