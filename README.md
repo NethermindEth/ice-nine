@@ -8,11 +8,27 @@ A flexible framework for building a distributed network of AI agents that work e
 
 ## Overview
 
-###  Cases
+### Project Structure
 
-- Personal assistants (Mechs)
-- AI-driven trading bots
-- Chatbots
+The project is built using Rust (full-stack) and organized as a workspace consisting of two major groups:
+
+- **`substance/`** - The core components of the system, responsible for interaction.
+- **`particles/`** - Plugins for the system that enable additional functionalities.
+- **`examples/`** - Usage examples of the framework.
+
+###  Use cases
+
+The following cases will have a minimal implementation, and they will be used to track the progress of the framework and its flexibility in building such systems.
+
+- ☑️ **Conversational AI & Chatbots** – AI-driven natural language chatbots for customer support, virtual assistants, and automation.
+- ⬜ **AI-Governed Blockchain Networks (ChaosChain)** – Self-regulating and intelligent blockchain ecosystems with automated decision-making.
+- ⬜ **Personal AI Assistant with Dynamic UI Generation** – AI that generates adaptive and context-aware user interfaces on demand.
+- ☑️ **AI-Powered Trading Bots** – Autonomous financial agents for high-frequency trading and portfolio management.
+- ⬜ **Intelligent Email Assistant** – AI for reading, summarizing, filtering, and responding to emails autonomously.
+- ⬜ **AI-Enhanced Smart Home Interactivity** – AI-powered automation for home appliances, making them responsive and adaptive.
+- ⬜ **On-Demand Observability & Awareness in DevOps** – AI-driven insights, predictive monitoring, and automated issue detection in IT systems.
+- ⬜ **AI-Powered Developer Tools** – AI agents assisting with code generation, debugging, and software optimization.
+- ⬜ **Autonomous Research Agent** – Self-learning AI for data analysis, knowledge discovery, and hypothesis testing.
 
 ###  Features (goals)
 
