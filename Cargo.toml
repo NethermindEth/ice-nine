@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "dui/*",
-    "essential/*",
+    "substance/*",
     "examples/*",
     "particles/*",
     "tools/*",
@@ -32,8 +32,8 @@ egui = "0.30.0"
 env_logger = "0.11.6"
 envy = "0.4.2"
 futures = "0.3.31"
-ice9-core = { version = "0.0.1", path = "essential/core" }
-ice9-std = { version = "0.0.1", path = "essential/std" }
+ice9-core = { version = "0.0.1", path = "substance/core" }
+ice9-std = { version = "0.0.1", path = "substance/std" }
 libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "serde", "tcp", "tokio", "quic", "yamux"] }
 libp2p-stream = "0.3.0-alpha"
 futures-bounded = "0.2.4"
