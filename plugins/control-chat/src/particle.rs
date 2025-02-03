@@ -2,7 +2,7 @@ use crate::flow::{Chat, ChatAction};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{StreamSession, Supervisor};
 use ice9_core::{Particle, SubstanceLinks};
 use ui9_dui::{Act, Pub};
 
@@ -23,7 +23,7 @@ impl Supervisor for ChatParticle {
 }
 
 impl Agent for ChatParticle {
-    type Context = SupervisorSession<Self>;
+    type Context = StreamSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(Initialize)
@@ -36,7 +36,7 @@ struct Initialize;
 impl DoAsync<Initialize> for ChatParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let actions = self.chat.actions()?;
-        ctx.assign(actions, (), ());
+        ctx.consume(actions.into_events_stream());
         Ok(Next::events())
     }
 }
