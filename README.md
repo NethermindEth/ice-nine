@@ -30,6 +30,8 @@ The following cases will have a minimal implementation, and they will be used to
 - ⬜ **AI-powered developer tools** - AI agents assisting with code generation, debugging, and software optimization.
 - ⬜ **Autonomous research agent** - Self-learning AI for data analysis, knowledge discovery, and hypothesis testing.
 
+Status: ⬜ Not started | ☑️ In Progress | ✅ Completed
+
 ###  Features (goals)
 
 - Built on Rust and implemented as hybrid actor-state machines.
