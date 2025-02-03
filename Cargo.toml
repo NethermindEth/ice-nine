@@ -13,8 +13,8 @@ exclude = [
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
-repository = "https://github.com/NethermindEth/ice-nine"
-rust-version = "1.84.0"
+repository = "https://github.com/NethermindEth/nine"
+rust-version = "1.84.1"
 
 [workspace.dependencies]
 anyhow = "1.0.95"
