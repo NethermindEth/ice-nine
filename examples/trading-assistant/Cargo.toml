@@ -11,6 +11,7 @@ crb-system.workspace = true
 env_logger.workspace = true
 ice9-core.path = "../../substance/core"
 ice-nine-plugin-app-stdio.path = "../../particles/app-stdio"
+n9-app-line.path = "../../particles/app-line"
 ice-nine-plugin-exchange-dydx.path = "../../particles/exchange-dydx"
 ice-nine-plugin-control-chat.path = "../../particles/control-chat"
 ice-nine-plugin-chat-stdio.path = "../../particles/chat-stdio"
