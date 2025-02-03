@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
 members = [
-    "dui/*",
     "substance/*",
     "examples/*",
     "particles/*",
@@ -48,10 +47,10 @@ toml = "0.8.19"
 tracing = "0.1.41"
 tracing-subscriber = "0.3.19"
 typed-slab = "0.2.1"
-ui9 = { version = "0.0.1", path = "dui/ui9" }
-ui9-app = { version = "0.0.1", path = "dui/ui9-app" }
-ui9-dui = { version = "0.0.1", path = "dui/ui9-dui" }
-ui9-codec = { version = "0.0.1", path = "dui/ui9-codec", features = ["flex"] }
-ui9-maker = { version = "0.0.1", path = "dui/ui9-maker" }
-ui9-mesh = { version = "0.0.1", path = "dui/ui9-mesh" }
-ui9-tracers = { version = "0.0.1", path = "dui/ui9-tracers" }
+ui9 = { version = "0.0.1", path = "substance/ui9" }
+ui9-app = { version = "0.0.1", path = "substance/ui9-app" }
+ui9-dui = { version = "0.0.1", path = "substance/ui9-dui" }
+ui9-codec = { version = "0.0.1", path = "substance/ui9-codec", features = ["flex"] }
+ui9-maker = { version = "0.0.1", path = "substance/ui9-maker" }
+ui9-mesh = { version = "0.0.1", path = "substance/ui9-mesh" }
+ui9-tracers = { version = "0.0.1", path = "substance/ui9-tracers" }
