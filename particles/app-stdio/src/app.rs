@@ -1,3 +1,4 @@
+use crate::editor::IoControl;
 use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -19,8 +20,7 @@ use ui9_dui::{State, Sub, SubEvent};
 static RATE: u64 = 200;
 
 pub struct StdioApp {
-    editor: Slot<DefaultEditor>,
-    stdout: Stdout,
+    io_control: Slot<IoControl>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
 
@@ -33,8 +33,7 @@ pub struct StdioApp {
 impl Particle for StdioApp {
     fn construct(substance: SubstanceLinks) -> Self {
         Self {
-            editor: Slot::empty(),
-            stdout: io::stdout(),
+            io_control: Slot::empty(),
             chat: Sub::unified(None),
             state: None,
 
@@ -58,53 +57,19 @@ impl Agent for StdioApp {
     }
 }
 
-impl StdioApp {
-    async fn write(&mut self, text: &str) -> Result<()> {
-        self.stdout.write_all(text.as_ref()).await?;
-        self.stdout.flush().await?;
-        Ok(())
-    }
-
-    async fn writeln(&mut self, text: &str) -> Result<()> {
-        self.stdout.write_all(text.as_ref()).await?;
-        self.stdout.write_all(b"\n").await?;
-        self.stdout.flush().await?;
-        Ok(())
-    }
-
-    async fn start_thinking(&mut self) -> Result<()> {
-        let rl = self.editor.get_mut()?;
-        rl.set_cursor_visibility(false)?;
-        Ok(())
-    }
-
-    async fn stop_thinking(&mut self) -> Result<()> {
-        let rl = self.editor.get_mut()?;
-        rl.set_cursor_visibility(true)?;
-        self.clear_line().await?;
-        Ok(())
-    }
-
-    async fn clear_line(&mut self) -> Result<()> {
-        self.stdout.write_all(b"\r").await?;
-        self.stdout.flush().await?;
-        Ok(())
-    }
-}
-
 struct Initialize;
 
 #[async_trait]
 impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let mut editor = DefaultEditor::new()?;
-        self.editor.fill(editor)?;
+        self.io_control.fill(IoControl::new()?)?;
+        let io_control = self.io_control.get_mut()?;
 
         self.interval.add_listener(&ctx);
         self.interval.start();
 
         self.queue.add_message("Loading the state...");
-        self.start_thinking().await?;
+        io_control.start_thinking().await?;
 
         // TODO: Use `MultiplexSession` instead of supervisor
         let events = self.chat.events()?.into_events_stream();
@@ -119,6 +84,7 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
+        let io_control = self.io_control.get_mut()?;
         let spinner_chars = ['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾'];
         let idx = self.started.elapsed().as_millis() as u64 / RATE % spinner_chars.len() as u64;
         if let Some(reason) = self.queue.pick_next() {
@@ -127,8 +93,8 @@ impl OnEvent<Tick> for StdioApp {
             status.push_str(&current_char.to_string().green().to_string());
             status.push_str(" ");
             status.push_str(&reason);
-            self.clear_line().await?;
-            self.write(&status).await?;
+            io_control.clear_line().await?;
+            io_control.write(&status).await?;
         }
         Ok(())
     }
@@ -139,8 +105,8 @@ struct Asking;
 #[async_trait]
 impl DoAsync<Asking> for StdioApp {
     async fn handle(&mut self, _: Asking, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let rl = self.editor.get_mut()?;
-        let readline = rl.readline(">> ");
+        let io_control = self.io_control.get_mut()?;
+        let readline = io_control.readline(">> ");
         match readline {
             Ok(line) => {
                 // TODO: Actions must be interactive! Do await!

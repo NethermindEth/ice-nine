@@ -17,3 +17,4 @@ rustyline = { version = "15.0.0", features = ["derive"] }
 tokio.workspace = true
 ui9.workspace = true
 ui9-dui.workspace = true
+derive_more.workspace = true

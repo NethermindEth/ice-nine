@@ -1,4 +1,5 @@
 use anyhow::Result;
+use derive_more::{Deref, DerefMut};
 use rustyline::{
     error::ReadlineError,
     history::DefaultHistory,
@@ -6,10 +7,10 @@ use rustyline::{
     Cmd, Completer, Config, DefaultEditor, Editor, Event, Helper, Highlighter, Hinter, KeyCode,
     KeyEvent, Modifiers,
 };
-use tokio::io::{AsyncWriteExt, Stdout};
+use tokio::io::{self, AsyncWriteExt, Stdout};
 
 #[derive(Completer, Helper, Highlighter, Hinter)]
-struct InputBlocker;
+pub struct InputBlocker;
 
 impl Validator for InputBlocker {
     fn validate(&self, ctx: &mut ValidationContext) -> rustyline::Result<ValidationResult> {
@@ -21,37 +22,49 @@ impl Validator for InputBlocker {
     }
 }
 
+#[derive(Deref, DerefMut)]
 pub struct IoControl {
+    #[deref]
+    #[deref_mut]
     editor: Editor<InputBlocker, DefaultHistory>,
     stdout: Stdout,
 }
 
 impl IoControl {
-    async fn write(&mut self, text: &str) -> Result<()> {
+    pub fn new() -> Result<Self> {
+        let mut editor = Editor::new()?;
+        editor.set_helper(Some(InputBlocker));
+        Ok(Self {
+            editor,
+            stdout: io::stdout(),
+        })
+    }
+
+    pub async fn write(&mut self, text: &str) -> Result<()> {
         self.stdout.write_all(text.as_ref()).await?;
         self.stdout.flush().await?;
         Ok(())
     }
 
-    async fn writeln(&mut self, text: &str) -> Result<()> {
+    pub async fn writeln(&mut self, text: &str) -> Result<()> {
         self.stdout.write_all(text.as_ref()).await?;
         self.stdout.write_all(b"\n").await?;
         self.stdout.flush().await?;
         Ok(())
     }
 
-    async fn start_thinking(&mut self) -> Result<()> {
+    pub async fn start_thinking(&mut self) -> Result<()> {
         self.editor.set_cursor_visibility(false)?;
         Ok(())
     }
 
-    async fn stop_thinking(&mut self) -> Result<()> {
+    pub async fn stop_thinking(&mut self) -> Result<()> {
         self.editor.set_cursor_visibility(true)?;
         self.clear_line().await?;
         Ok(())
     }
 
-    async fn clear_line(&mut self) -> Result<()> {
+    pub async fn clear_line(&mut self) -> Result<()> {
         self.stdout.write_all(b"\r").await?;
         self.stdout.flush().await?;
         Ok(())

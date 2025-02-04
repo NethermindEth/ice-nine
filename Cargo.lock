@@ -4667,6 +4667,7 @@ dependencies = [
  "async-trait",
  "colored",
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "derive_more 1.0.0",
  "ice-nine-plugin-control-chat",
  "ice9-core",
  "rustyline",
