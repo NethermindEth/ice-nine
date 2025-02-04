@@ -16,3 +16,4 @@ ui9.workspace = true
 ui9-dui.workspace = true
 rustyline = "15.0.0"
 tokio.workspace = true
+colored = "3.0.0"
