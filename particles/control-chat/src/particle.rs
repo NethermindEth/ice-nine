@@ -63,11 +63,13 @@ struct Ask {
 #[async_trait]
 impl DoAsync<Ask> for ChatParticle {
     async fn handle(&mut self, msg: Ask, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.chat.start_thinking("...");
+        self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
-        let text = self.substance.router.chat(request).await?.squash();
-        self.chat.add(text);
-        self.chat.stop_thinking();
+        let req = self.substance.router.chat(request);
+        self.chat.add(msg.question);
+        let resp = req.await?.squash();
+        self.chat.add(resp);
+        self.chat.thinking(false);
         Ok(Next::events())
     }
 }

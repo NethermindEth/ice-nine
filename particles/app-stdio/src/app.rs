@@ -1,13 +1,13 @@
-use crate::editor::IoControl;
+use crate::editor::{IoControl, RATE};
 use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use colored::Colorize;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, DoSync, Next, OnEvent};
 use crb::core::time::{Duration, Instant};
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Supervisor};
-use ice9_core::{Particle, SubstanceLinks};
+use ice9_core::{ChatRequest, Particle, SubstanceLinks};
 use ice_nine_plugin_control_chat::{Chat, ChatEvent};
 use rustyline::{
     error::ReadlineError,
@@ -17,15 +17,13 @@ use rustyline::{
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 use ui9_dui::{State, Sub, SubEvent};
 
-static RATE: u64 = 200;
-
 pub struct StdioApp {
+    substance: SubstanceLinks,
     io_control: Slot<IoControl>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
 
     queue: Queue,
-    started: Instant,
     thinking: Option<String>,
     interval: Interval<Tick>,
 }
@@ -33,12 +31,12 @@ pub struct StdioApp {
 impl Particle for StdioApp {
     fn construct(substance: SubstanceLinks) -> Self {
         Self {
+            substance,
             io_control: Slot::empty(),
             chat: Sub::unified(None),
             state: None,
 
             queue: Queue::new(),
-            started: Instant::now(),
             thinking: None,
             interval: Interval::new(Tick, Duration::from_millis(RATE)),
         }
@@ -64,12 +62,14 @@ impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.io_control.fill(IoControl::new()?)?;
         let io_control = self.io_control.get_mut()?;
+        io_control
+            .writeln(&"Nine - Stdio Client".green().to_string())
+            .await?;
 
         self.interval.add_listener(&ctx);
-        self.interval.start();
 
         self.queue.add_message("Loading the state...");
-        io_control.start_thinking().await?;
+        self.interval.start();
 
         // TODO: Use `MultiplexSession` instead of supervisor
         let events = self.chat.events()?.into_events_stream();
@@ -85,43 +85,37 @@ struct Tick;
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
         let io_control = self.io_control.get_mut()?;
-        let spinner_chars = ['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾'];
-        let idx = self.started.elapsed().as_millis() as u64 / RATE % spinner_chars.len() as u64;
         if let Some(reason) = self.queue.pick_next() {
-            let mut status = String::new();
-            let current_char = spinner_chars[idx as usize];
-            status.push_str(&current_char.to_string().green().to_string());
-            status.push_str(" ");
-            status.push_str(&reason);
+            io_control.render_progress(reason).await?;
+        } else {
+            self.interval.stop();
             io_control.clear_line().await?;
-            io_control.write(&status).await?;
+            ctx.do_next(Next::do_sync(Prompt));
         }
         Ok(())
     }
 }
 
-struct Asking;
+struct Prompt;
+
+impl DoSync<Prompt> for StdioApp {
+    fn once(&mut self, _: &mut Prompt) -> Result<Next<Self>> {
+        let io_control = self.io_control.get_mut()?;
+        let prompt = io_control.prompt()?;
+        Ok(Next::do_async(Asking { prompt }))
+    }
+}
+
+struct Asking {
+    prompt: String,
+}
 
 #[async_trait]
 impl DoAsync<Asking> for StdioApp {
-    async fn handle(&mut self, _: Asking, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, msg: Asking, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let io_control = self.io_control.get_mut()?;
-        let readline = io_control.readline(">> ");
-        match readline {
-            Ok(line) => {
-                // TODO: Actions must be interactive! Do await!
-                self.chat.request(line);
-            }
-            Err(ReadlineError::Interrupted) => {
-                println!("CTRL-C");
-            }
-            Err(ReadlineError::Eof) => {
-                println!("CTRL-D");
-            }
-            Err(err) => {
-                println!("Error: {:?}", err);
-            }
-        }
+        io_control.clear_line().await?;
+        self.chat.request(msg.prompt);
         Ok(Next::events())
     }
 }
@@ -139,25 +133,23 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                 self.state = Some(state);
             }
             SubEvent::Event(event) => match event {
-                ChatEvent::Add { message } => {}
-                ChatEvent::SetThinking { .. } => {}
+                ChatEvent::Add { message } => {
+                    let io_control = self.io_control.get_mut()?;
+                    io_control.writeln(&message).await?;
+                }
+                ChatEvent::SetThinking { flag } => {
+                    if flag {
+                        self.queue.add_message("Thinking...");
+                        self.interval.start();
+                    } else {
+                        // TODO: Add an event to request...
+                    }
+                }
             },
             SubEvent::Lost => {
                 self.state.take();
             }
         }
-        let reason = self
-            .state
-            .as_ref()
-            .map(State::borrow)
-            .and_then(|state| state.thinking.clone());
-        /*
-        if let Some(reason) = reason {
-            // TODO: Spawn a timer
-        } else {
-            ctx.do_next(Next::do_async(Asking));
-        }
-        */
         Ok(())
     }
 }

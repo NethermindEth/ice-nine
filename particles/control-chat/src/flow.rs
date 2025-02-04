@@ -34,21 +34,15 @@ impl ChatPub {
         self.tracer.event(event);
     }
 
-    pub fn start_thinking(&mut self, reason: &str) {
-        let reason = Some(reason.into());
-        let event = ChatEvent::SetThinking { reason };
-        self.tracer.event(event);
-    }
-
-    pub fn stop_thinking(&mut self) {
-        let event = ChatEvent::SetThinking { reason: None };
+    pub fn thinking(&mut self, flag: bool) {
+        let event = ChatEvent::SetThinking { flag };
         self.tracer.event(event);
     }
 }
 
 #[derive(Clone, Serialize, Deserialize, Default, Debug)]
 pub struct Chat {
-    pub thinking: Option<String>,
+    pub thinking: bool,
     pub messages: Vec<String>,
 }
 
@@ -67,17 +61,19 @@ impl Flow for Chat {
             ChatEvent::Add { message } => {
                 self.messages.push(message);
             }
-            ChatEvent::SetThinking { reason } => {
-                self.thinking = reason;
+            ChatEvent::SetThinking { flag } => {
+                self.thinking = flag;
             }
         }
     }
 }
 
+// TODO: Add roles
+
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum ChatEvent {
     Add { message: String },
-    SetThinking { reason: Option<String> },
+    SetThinking { flag: bool },
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

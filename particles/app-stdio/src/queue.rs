@@ -17,6 +17,9 @@ impl Queue {
     }
 
     pub fn add_message(&mut self, content: &str) {
+        if self.messages.is_empty() {
+            self.picked = Instant::now();
+        }
         self.messages.push_back(content.into());
     }
 

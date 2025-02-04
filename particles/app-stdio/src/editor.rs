@@ -1,4 +1,6 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
+use colored::Colorize;
+use crb::core::time::Instant;
 use derive_more::{Deref, DerefMut};
 use rustyline::{
     error::ReadlineError,
@@ -9,16 +11,21 @@ use rustyline::{
 };
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
+pub static RATE: u64 = 200;
+
 #[derive(Completer, Helper, Highlighter, Hinter)]
 pub struct InputBlocker;
 
 impl Validator for InputBlocker {
     fn validate(&self, ctx: &mut ValidationContext) -> rustyline::Result<ValidationResult> {
-        Ok(if ctx.input().contains('\n') {
-            ValidationResult::Incomplete
-        } else {
-            ValidationResult::Valid(None)
-        })
+        let result = {
+            if ctx.input().contains('\n') {
+                ValidationResult::Invalid(None)
+            } else {
+                ValidationResult::Valid(None)
+            }
+        };
+        Ok(result)
     }
 }
 
@@ -28,6 +35,9 @@ pub struct IoControl {
     #[deref_mut]
     editor: Editor<InputBlocker, DefaultHistory>,
     stdout: Stdout,
+    started: Instant,
+    rate: u64,
+    spinner: Box<[char]>,
 }
 
 impl IoControl {
@@ -37,7 +47,29 @@ impl IoControl {
         Ok(Self {
             editor,
             stdout: io::stdout(),
+            started: Instant::now(),
+            rate: RATE,
+            spinner: Box::new(['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾']),
         })
+    }
+
+    pub fn prompt(&mut self) -> Result<String> {
+        let readline = self.readline(">> ");
+        match readline {
+            Ok(line) => {
+                return Ok(line);
+            }
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+            }
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+            }
+            Err(err) => {
+                println!("Error: {:?}", err);
+            }
+        }
+        Err(anyhow!("readline interrupted"))
     }
 
     pub async fn write(&mut self, text: &str) -> Result<()> {
@@ -53,20 +85,23 @@ impl IoControl {
         Ok(())
     }
 
-    pub async fn start_thinking(&mut self) -> Result<()> {
-        self.editor.set_cursor_visibility(false)?;
-        Ok(())
-    }
-
-    pub async fn stop_thinking(&mut self) -> Result<()> {
-        self.editor.set_cursor_visibility(true)?;
-        self.clear_line().await?;
-        Ok(())
-    }
-
     pub async fn clear_line(&mut self) -> Result<()> {
         self.stdout.write_all(b"\r").await?;
         self.stdout.flush().await?;
+        Ok(())
+    }
+
+    pub async fn render_progress(&mut self, reason: &str) -> Result<()> {
+        let elapsed = self.started.elapsed().as_millis() as u64;
+        let len = self.spinner.len() as u64;
+        let idx = elapsed / self.rate % len;
+        let mut status = String::new();
+        let current_char = self.spinner[idx as usize];
+        status.push_str(&current_char.to_string().green().to_string());
+        status.push_str(" ");
+        status.push_str(&reason);
+        self.clear_line().await?;
+        self.write(&status).await?;
         Ok(())
     }
 }
