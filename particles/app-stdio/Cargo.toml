@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-app-stdio"
+name = "n9-app-stdio"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -14,4 +14,5 @@ ice9-core.workspace = true
 ice-nine-plugin-control-chat.path = "../control-chat"
 ui9.workspace = true
 ui9-dui.workspace = true
+rustyline = "15.0.0"
 tokio.workspace = true
