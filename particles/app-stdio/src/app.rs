@@ -92,18 +92,6 @@ impl StdioApp {
     }
 }
 
-struct InputBlocker;
-
-impl Validator for InputBlocker {
-    fn validate(&self, ctx: &mut ValidationContext) -> rustyline::Result<ValidationResult> {
-        Ok(if ctx.input().contains('\n') {
-            ValidationResult::Incomplete
-        } else {
-            ValidationResult::Valid(None)
-        })
-    }
-}
-
 struct Initialize;
 
 #[async_trait]

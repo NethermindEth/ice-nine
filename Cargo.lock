@@ -6264,10 +6264,22 @@ dependencies = [
  "memchr",
  "nix 0.29.0",
  "radix_trie",
+ "rustyline-derive",
  "unicode-segmentation",
  "unicode-width 0.2.0",
  "utf8parse",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "rustyline-derive"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "327e9d075f6df7e25fbf594f1be7ef55cf0d567a6cb5112eeccbbd51ceb48e0d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.97",
 ]
 
 [[package]]
