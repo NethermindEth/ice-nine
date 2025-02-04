@@ -1,15 +1,20 @@
+use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
+use colored::Colorize;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::time::{Duration, Instant};
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Supervisor};
 use ice9_core::{Particle, SubstanceLinks};
 use ice_nine_plugin_control_chat::{Chat, ChatEvent};
-use rustyline::{error::ReadlineError, DefaultEditor};
+use rustyline::{
+    error::ReadlineError,
+    validate::{ValidationContext, ValidationResult, Validator},
+    Cmd, Config, DefaultEditor, Editor, Event, KeyCode, KeyEvent, Modifiers,
+};
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 use ui9_dui::{State, Sub, SubEvent};
-use colored::Colorize;
 
 static RATE: u64 = 200;
 
@@ -19,6 +24,7 @@ pub struct StdioApp {
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
 
+    queue: Queue,
     started: Instant,
     thinking: Option<String>,
     interval: Interval<Tick>,
@@ -31,6 +37,8 @@ impl Particle for StdioApp {
             stdout: io::stdout(),
             chat: Sub::unified(None),
             state: None,
+
+            queue: Queue::new(),
             started: Instant::now(),
             thinking: None,
             interval: Interval::new(Tick, Duration::from_millis(RATE)),
@@ -64,17 +72,15 @@ impl StdioApp {
         Ok(())
     }
 
-    async fn start_thinking(&mut self, reason: &str) -> Result<()> {
+    async fn start_thinking(&mut self) -> Result<()> {
         let rl = self.editor.get_mut()?;
         rl.set_cursor_visibility(false)?;
-        self.thinking = Some(reason.into());
         Ok(())
     }
 
     async fn stop_thinking(&mut self) -> Result<()> {
         let rl = self.editor.get_mut()?;
         rl.set_cursor_visibility(true)?;
-        self.thinking.take();
         self.clear_line().await?;
         Ok(())
     }
@@ -86,18 +92,31 @@ impl StdioApp {
     }
 }
 
+struct InputBlocker;
+
+impl Validator for InputBlocker {
+    fn validate(&self, ctx: &mut ValidationContext) -> rustyline::Result<ValidationResult> {
+        Ok(if ctx.input().contains('\n') {
+            ValidationResult::Incomplete
+        } else {
+            ValidationResult::Valid(None)
+        })
+    }
+}
+
 struct Initialize;
 
 #[async_trait]
 impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let editor = DefaultEditor::new()?;
+        let mut editor = DefaultEditor::new()?;
         self.editor.fill(editor)?;
 
         self.interval.add_listener(&ctx);
         self.interval.start();
 
-        self.start_thinking("Loading the state...").await?;
+        self.queue.add_message("Loading the state...");
+        self.start_thinking().await?;
 
         // TODO: Use `MultiplexSession` instead of supervisor
         let events = self.chat.events()?.into_events_stream();
@@ -112,17 +131,14 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
-        let spinner_chars = ['⣷','⣯','⣟','⡿','⢿','⣻','⣽','⣾'];
+        let spinner_chars = ['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾'];
         let idx = self.started.elapsed().as_millis() as u64 / RATE % spinner_chars.len() as u64;
-        let mut status = String::new();
-        if let Some(reason) = self.thinking.as_ref() {
+        if let Some(reason) = self.queue.pick_next() {
+            let mut status = String::new();
             let current_char = spinner_chars[idx as usize];
             status.push_str(&current_char.to_string().green().to_string());
             status.push_str(" ");
             status.push_str(&reason);
-            // TODO: add dots
-        }
-        if !status.is_empty() {
             self.clear_line().await?;
             self.write(&status).await?;
         }
@@ -161,6 +177,7 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
     async fn handle(&mut self, event: SubEvent<Chat>, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
+                self.queue.add_message("Chat state has loaded");
                 {
                     let state_ref = state.borrow();
                     for message in &state_ref.messages {}
