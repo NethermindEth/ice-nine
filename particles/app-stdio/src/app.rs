@@ -1,10 +1,10 @@
 use crate::editor::{IoControl, RATE};
-use crate::input;
+use crate::input::{self, CtrlC};
 use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use colored::Colorize;
-use crb::agent::{Agent, Context, DoAsync, DoSync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, DoSync, ManagedContext, Next, OnEvent};
 use crb::core::time::{Duration, Instant};
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Supervisor};
@@ -79,8 +79,8 @@ impl DoAsync<Initialize> for StdioApp {
 
         let events = self.chat.events()?;
         ctx.consume(events);
-        let lines = input::stdin_lines();
-        ctx.consume(lines);
+        ctx.consume(input::lines());
+        ctx.consume(input::signals());
         Ok(Next::events())
     }
 }
@@ -116,6 +116,13 @@ impl DoAsync<Asking> for StdioApp {
         io_control.clear_line().await?;
         self.chat.request(msg.prompt);
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnEvent<CtrlC> for StdioApp {
+    async fn handle(&mut self, _: CtrlC, ctx: &mut Context<Self>) -> Result<()> {
+        self.substance.substance.interrupt()
     }
 }
 

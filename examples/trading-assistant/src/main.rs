@@ -11,7 +11,7 @@ use ui9_mesh::Mesh;
 async fn main() -> Result<()> {
     env_logger::try_init()?;
     Mesh::activate().await?;
-    let substance = Substance::arise();
+    let mut substance = Substance::arise();
     substance.add_particle::<OpenAIParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<ChatParticle>()?;
@@ -20,8 +20,8 @@ async fn main() -> Result<()> {
     // substance.add_particle::<TelegramParticle>()?;
     // Stdio is not compatible with tracing and will be replaced with DUI
     // substance.add_particle::<StdioParticle>()?;
-    substance.into_address().join_or_signal().await?;
+    substance.join().await?;
     Mesh::deactivate().await?;
     // Unblocking stdin
-    Ok(())
+    std::process::exit(0);
 }

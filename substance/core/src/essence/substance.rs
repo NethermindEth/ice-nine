@@ -98,6 +98,7 @@ impl DoAsync<Configure> for Substance {
         let space = ctx.spawn_agent(agent, Group::Services).equip();
 
         let links = SubstanceLinks {
+            substance: ctx.address().clone().equip(),
             keeper,
             router,
             space,
