@@ -11,10 +11,12 @@ anyhow.workspace = true
 async-trait.workspace = true
 colored = "3.0.0"
 crb.workspace = true
+derive_more.workspace = true
+futures.workspace = true
 ice9-core.workspace = true
 ice-nine-plugin-control-chat.path = "../control-chat"
 rustyline = { version = "15.0.0", features = ["derive"] }
 tokio.workspace = true
+tokio-stream = { workspace = true, features = ["io-util"] }
 ui9.workspace = true
 ui9-dui.workspace = true
-derive_more.workspace = true

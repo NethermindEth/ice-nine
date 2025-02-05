@@ -4668,10 +4668,12 @@ dependencies = [
  "colored",
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
+ "futures",
  "ice-nine-plugin-control-chat",
  "ice9-core",
  "rustyline",
  "tokio",
+ "tokio-stream",
  "ui9",
  "ui9-dui",
 ]
