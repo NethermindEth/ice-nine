@@ -114,7 +114,7 @@ impl IoControl {
         let idx = elapsed / self.rate % len;
         let mut status = String::new();
         let current_char = self.spinner[idx as usize];
-        status.push_str(&current_char.to_string().green().to_string());
+        status.push_str(&current_char.to_string().blue().to_string());
         status.push_str(" ");
         status.push_str(&reason);
         self.clear_line().await?;

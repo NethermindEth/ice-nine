@@ -68,9 +68,7 @@ impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.io_control.fill(IoControl::new()?)?;
         let io_control = self.io_control.get_mut()?;
-        io_control
-            .writeln(&"Nine - Stdio Client".green().to_string())
-            .await?;
+        io_control.writeln(&"Nine".blue().to_string()).await?;
 
         self.interval.add_listener(&ctx);
 
@@ -162,10 +160,10 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                 ChatEvent::Add { message } => {
                     let io_control = self.io_control.get_mut()?;
                     let role = match message.role {
-                        Role::Request => "👤 Request:",
-                        Role::Response => "🤖 Response:",
+                        Role::Request => "👤 Request:".blue(),
+                        Role::Response => "🤖 Response:".yellow(),
                     };
-                    io_control.writeln(role).await?;
+                    io_control.writeln(&role.to_string()).await?;
                     io_control.write_md(&message.content).await?;
                 }
                 ChatEvent::SetThinking { flag } => {
