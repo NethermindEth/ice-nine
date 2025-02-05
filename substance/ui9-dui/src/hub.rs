@@ -1,4 +1,5 @@
 use crate::publisher::{HubServer, HubServerLink};
+use crate::reporter::Reporter;
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -47,6 +48,7 @@ impl Standalone for Hub {}
 pub enum Group {
     Client,
     Server,
+    Reporter,
 }
 
 impl Supervisor for Hub {
@@ -73,6 +75,9 @@ impl DoAsync<Initialize> for Hub {
 
         let client = HubClient::new();
         let client = stacker.schedule(client, Group::Client);
+
+        let reporter = Reporter::new();
+        let reporter = stacker.schedule(reporter, Group::Reporter);
 
         let link = HubLink {
             hub: ctx.to_address(),

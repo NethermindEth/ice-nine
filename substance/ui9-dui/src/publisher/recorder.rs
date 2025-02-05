@@ -133,10 +133,6 @@ impl Request for Action {
 impl<F: Flow> OnRequest<Action> for Recorder<F> {
     async fn on_request(&mut self, request: Action, _ctx: &mut Context<Self>) -> Result<()> {
         let action = F::unpack_action(&request.action)?;
-        let reaction = self.state.reaction(&action);
-        if let Some(event) = reaction {
-            self.distribute(event)?;
-        }
         let msg = Act { action };
         self.state.action_tx.send(msg)?;
         Ok(())

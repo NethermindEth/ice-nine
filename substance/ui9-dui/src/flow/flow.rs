@@ -32,14 +32,6 @@ pub trait Flow: DataFraction {
     /// Applies the event (delta).
     fn apply(&mut self, event: Self::Event);
 
-    /// `Event` reaction to an incoming `Action`.
-    ///
-    /// It expects `self` to control that process using the state.
-    /// And to avoid sending responses if necessary.
-    fn reaction(&self, _action: &Self::Action) -> Option<Self::Event> {
-        None
-    }
-
     /// Packs the state.
     fn pack_state(&self) -> Result<PackedState> {
         FlexCodec::pack(self)
