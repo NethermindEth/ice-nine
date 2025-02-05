@@ -77,10 +77,9 @@ impl DoAsync<Initialize> for StdioApp {
         self.queue.add_message("Loading the state...");
         self.interval.start();
 
-        // TODO: Use `MultiplexSession` instead of supervisor
-        let events = self.chat.events()?.into_events_stream();
+        let events = self.chat.events()?;
         ctx.consume(events);
-        let lines = input::stdin_lines().into_events_stream();
+        let lines = input::stdin_lines();
         ctx.consume(lines);
         Ok(Next::events())
     }

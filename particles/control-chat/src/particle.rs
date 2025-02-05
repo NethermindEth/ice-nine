@@ -38,7 +38,7 @@ struct Initialize;
 impl DoAsync<Initialize> for ChatParticle {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let actions = self.chat.actions()?;
-        ctx.consume(actions.into_events_stream());
+        ctx.consume(actions);
         Ok(Next::events())
     }
 }
