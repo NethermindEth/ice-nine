@@ -21,3 +21,4 @@ tokio-stream = { workspace = true, features = ["io-util"] }
 ui9.workspace = true
 ui9-dui.workspace = true
 termimad = "0.31.2"
+crossterm = "0.28.1"

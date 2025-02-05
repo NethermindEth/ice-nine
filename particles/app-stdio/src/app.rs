@@ -132,6 +132,10 @@ impl OnEvent<CtrlC> for StdioApp {
 #[async_trait]
 impl OnEvent<Result<String>> for StdioApp {
     async fn handle(&mut self, event: Result<String>, ctx: &mut Context<Self>) -> Result<()> {
+        let io_control = self.io_control.get_mut()?;
+        io_control.move_up().await?;
+        io_control.clear_line().await?;
+
         self.prompts.push_back(event?);
         if self.queue.is_empty() {
             if let Some(prompt) = self.prompts.pop_front() {
@@ -158,10 +162,10 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                 ChatEvent::Add { message } => {
                     let io_control = self.io_control.get_mut()?;
                     let role = match message.role {
-                        Role::Request => "👤 ",
-                        Role::Response => "🤖 ",
+                        Role::Request => "👤 Request:",
+                        Role::Response => "🤖 Response:",
                     };
-                    io_control.write(role).await?;
+                    io_control.writeln(role).await?;
                     io_control.write_md(&message.content).await?;
                 }
                 ChatEvent::SetThinking { flag } => {

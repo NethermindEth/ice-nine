@@ -4766,6 +4766,7 @@ dependencies = [
  "async-trait",
  "colored",
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "crossterm",
  "derive_more 1.0.0",
  "futures",
  "ice9-core",

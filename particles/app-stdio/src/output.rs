@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use colored::Colorize;
 use crb::core::time::Instant;
+use crossterm::{cursor, execute, terminal, Command};
 use derive_more::{Deref, DerefMut};
 use rustyline::{
     error::ReadlineError,
@@ -9,6 +10,7 @@ use rustyline::{
     Cmd, Completer, Config, DefaultEditor, Editor, Event, Helper, Highlighter, Hinter, KeyCode,
     KeyEvent, Modifiers,
 };
+use std::os::fd::AsFd;
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
 pub static RATE: u64 = 200;
@@ -90,6 +92,14 @@ impl IoControl {
     pub async fn write_md(&mut self, text: &str) -> Result<()> {
         let render = termimad::text(text).to_string();
         self.writeln(&render).await
+    }
+
+    pub async fn move_up(&mut self) -> Result<()> {
+        let mut buffer = Vec::new();
+        execute!(&mut buffer, cursor::MoveUp(1),)?;
+        self.stdout.write_all(&buffer).await?;
+        self.stdout.flush().await?;
+        Ok(())
     }
 
     pub async fn clear_line(&mut self) -> Result<()> {
