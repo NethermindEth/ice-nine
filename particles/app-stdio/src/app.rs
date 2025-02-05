@@ -9,7 +9,7 @@ use crb::core::time::{Duration, Instant};
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Supervisor};
 use ice9_core::{ChatRequest, Particle, SubstanceLinks};
-use ice_nine_plugin_control_chat::{Chat, ChatEvent};
+use n9_control_chat::{Chat, ChatEvent, Role};
 use rustyline::{
     error::ReadlineError,
     validate::{ValidationContext, ValidationResult, Validator},
@@ -157,7 +157,12 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
             SubEvent::Event(event) => match event {
                 ChatEvent::Add { message } => {
                     let io_control = self.io_control.get_mut()?;
-                    io_control.write_md(&message).await?;
+                    let role = match message.role {
+                        Role::Request => "👤 ",
+                        Role::Response => "🤖 ",
+                    };
+                    io_control.write(role).await?;
+                    io_control.write_md(&message.content).await?;
                 }
                 ChatEvent::SetThinking { flag } => {
                     if flag {

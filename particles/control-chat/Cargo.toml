@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-control-chat"
+name = "n9-control-chat"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

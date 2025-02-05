@@ -3453,20 +3453,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-plugin-control-chat"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
- "derive_more 1.0.0",
- "ice9-core",
- "serde",
- "ui9",
- "ui9-dui",
-]
-
-[[package]]
 name = "ice-nine-plugin-exchange-dydx"
 version = "0.0.1"
 dependencies = [
@@ -4782,12 +4768,26 @@ dependencies = [
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "derive_more 1.0.0",
  "futures",
- "ice-nine-plugin-control-chat",
  "ice9-core",
+ "n9-control-chat",
  "rustyline",
  "termimad",
  "tokio",
  "tokio-stream",
+ "ui9",
+ "ui9-dui",
+]
+
+[[package]]
+name = "n9-control-chat"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "derive_more 1.0.0",
+ "ice9-core",
+ "serde",
  "ui9",
  "ui9-dui",
 ]
@@ -7706,11 +7706,11 @@ dependencies = [
  "env_logger",
  "ice-nine-plugin-chat-stdio",
  "ice-nine-plugin-chat-telegram",
- "ice-nine-plugin-control-chat",
  "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-model-openai",
  "ice9-core",
  "n9-app-stdio",
+ "n9-control-chat",
  "tokio",
  "ui9-dui",
  "ui9-mesh",

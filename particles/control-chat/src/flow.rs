@@ -29,7 +29,8 @@ impl Publisher for Chat {
 }
 
 impl ChatPub {
-    pub fn add(&mut self, message: String) {
+    pub fn add(&mut self, content: String, role: Role) {
+        let message = Message { content, role };
         let event = ChatEvent::Add { message };
         self.tracer.event(event);
     }
@@ -40,10 +41,17 @@ impl ChatPub {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct Message {
+    pub role: Role,
+    pub content: String,
+}
+
 #[derive(Clone, Serialize, Deserialize, Default, Debug)]
 pub struct Chat {
     pub thinking: bool,
-    pub messages: Vec<String>,
+    // TODO: Keep pairs instead
+    pub messages: Vec<Message>,
 }
 
 impl Unified for Chat {
@@ -68,11 +76,15 @@ impl Flow for Chat {
     }
 }
 
-// TODO: Add roles
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub enum Role {
+    Request,
+    Response,
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub enum ChatEvent {
-    Add { message: String },
+    Add { message: Message },
     SetThinking { flag: bool },
 }
 

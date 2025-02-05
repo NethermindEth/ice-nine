@@ -1,10 +1,10 @@
 use anyhow::Result;
 use crb_system::Main;
 use ice9_core::Substance;
-use ice_nine_plugin_control_chat::ChatParticle;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
 use ice_nine_plugin_model_openai::OpenAIParticle;
 use n9_app_stdio::StdioApp;
+use n9_control_chat::ChatParticle;
 use ui9_mesh::Mesh;
 
 #[tokio::main]

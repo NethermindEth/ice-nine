@@ -1,4 +1,4 @@
-use crate::flow::{Chat, ChatAction};
+use crate::flow::{Chat, ChatAction, Role};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
@@ -66,9 +66,9 @@ impl DoAsync<Ask> for ChatParticle {
         self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
         let req = self.substance.router.chat(request);
-        self.chat.add(msg.question);
+        self.chat.add(msg.question, Role::Request);
         let resp = req.await?.squash();
-        self.chat.add(resp);
+        self.chat.add(resp, Role::Response);
         self.chat.thinking(false);
         Ok(Next::events())
     }

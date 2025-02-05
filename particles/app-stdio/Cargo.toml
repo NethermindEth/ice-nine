@@ -14,7 +14,7 @@ crb.workspace = true
 derive_more.workspace = true
 futures.workspace = true
 ice9-core.workspace = true
-ice-nine-plugin-control-chat.path = "../control-chat"
+n9-control-chat.path = "../control-chat"
 rustyline = { version = "15.0.0", features = ["derive"] }
 tokio.workspace = true
 tokio-stream = { workspace = true, features = ["io-util"] }
