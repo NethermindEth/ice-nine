@@ -1,6 +1,6 @@
 mod app;
-mod editor;
 mod input;
+mod output;
 mod queue;
 
 pub use app::StdioApp;

@@ -87,6 +87,11 @@ impl IoControl {
         Ok(())
     }
 
+    pub async fn write_md(&mut self, text: &str) -> Result<()> {
+        let render = termimad::text(text).to_string();
+        self.writeln(&render).await
+    }
+
     pub async fn clear_line(&mut self) -> Result<()> {
         self.stdout.write_all(b"\r\x1B[2K").await?;
         self.stdout.flush().await?;

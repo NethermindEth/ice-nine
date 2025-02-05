@@ -1,5 +1,5 @@
-use crate::editor::{IoControl, RATE};
 use crate::input::{self, CtrlC};
+use crate::output::{IoControl, RATE};
 use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -122,6 +122,9 @@ impl DoAsync<Asking> for StdioApp {
 #[async_trait]
 impl OnEvent<CtrlC> for StdioApp {
     async fn handle(&mut self, _: CtrlC, ctx: &mut Context<Self>) -> Result<()> {
+        let io_control = self.io_control.get_mut()?;
+        io_control.clear_line().await?;
+        io_control.writeln("Closing the session 🙌").await?;
         self.substance.substance.interrupt()
     }
 }
@@ -130,6 +133,11 @@ impl OnEvent<CtrlC> for StdioApp {
 impl OnEvent<Result<String>> for StdioApp {
     async fn handle(&mut self, event: Result<String>, ctx: &mut Context<Self>) -> Result<()> {
         self.prompts.push_back(event?);
+        if self.queue.is_empty() {
+            if let Some(prompt) = self.prompts.pop_front() {
+                ctx.do_next(Next::do_async(Asking { prompt }));
+            }
+        }
         Ok(())
     }
 }
@@ -149,7 +157,7 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
             SubEvent::Event(event) => match event {
                 ChatEvent::Add { message } => {
                     let io_control = self.io_control.get_mut()?;
-                    io_control.writeln(&message).await?;
+                    io_control.write_md(&message).await?;
                 }
                 ChatEvent::SetThinking { flag } => {
                     if flag {
