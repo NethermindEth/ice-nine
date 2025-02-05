@@ -1,4 +1,5 @@
 use crate::editor::{IoControl, RATE};
+use crate::input;
 use crate::queue::Queue;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -14,6 +15,7 @@ use rustyline::{
     validate::{ValidationContext, ValidationResult, Validator},
     Cmd, Config, DefaultEditor, Editor, Event, KeyCode, KeyEvent, Modifiers,
 };
+use std::collections::VecDeque;
 use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 use ui9_dui::{State, Sub, SubEvent};
 
@@ -22,6 +24,8 @@ pub struct StdioApp {
     io_control: Slot<IoControl>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
+
+    prompts: VecDeque<String>,
 
     queue: Queue,
     thinking: Option<String>,
@@ -35,6 +39,8 @@ impl Particle for StdioApp {
             io_control: Slot::empty(),
             chat: Sub::unified(None),
             state: None,
+
+            prompts: VecDeque::new(),
 
             queue: Queue::new(),
             thinking: None,
@@ -74,6 +80,8 @@ impl DoAsync<Initialize> for StdioApp {
         // TODO: Use `MultiplexSession` instead of supervisor
         let events = self.chat.events()?.into_events_stream();
         ctx.consume(events);
+        let lines = input::stdin_lines().into_events_stream();
+        ctx.consume(lines);
         Ok(Next::events())
     }
 }
@@ -90,19 +98,11 @@ impl OnEvent<Tick> for StdioApp {
         } else {
             self.interval.stop();
             io_control.clear_line().await?;
-            ctx.do_next(Next::do_sync(Prompt));
+            if let Some(prompt) = self.prompts.pop_front() {
+                ctx.do_next(Next::do_async(Asking { prompt }));
+            }
         }
         Ok(())
-    }
-}
-
-struct Prompt;
-
-impl DoSync<Prompt> for StdioApp {
-    fn once(&mut self, _: &mut Prompt) -> Result<Next<Self>> {
-        let io_control = self.io_control.get_mut()?;
-        let prompt = io_control.prompt()?;
-        Ok(Next::do_async(Asking { prompt }))
     }
 }
 
@@ -117,6 +117,14 @@ impl DoAsync<Asking> for StdioApp {
         io_control.clear_line().await?;
         self.chat.request(msg.prompt);
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnEvent<Result<String>> for StdioApp {
+    async fn handle(&mut self, event: Result<String>, ctx: &mut Context<Self>) -> Result<()> {
+        self.prompts.push_back(event?);
+        Ok(())
     }
 }
 

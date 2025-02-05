@@ -53,6 +53,7 @@ impl IoControl {
         })
     }
 
+    /*
     pub fn prompt(&mut self) -> Result<String> {
         let readline = self.readline(">> ");
         match readline {
@@ -71,6 +72,7 @@ impl IoControl {
         }
         Err(anyhow!("readline interrupted"))
     }
+    */
 
     pub async fn write(&mut self, text: &str) -> Result<()> {
         self.stdout.write_all(text.as_ref()).await?;
@@ -86,7 +88,7 @@ impl IoControl {
     }
 
     pub async fn clear_line(&mut self) -> Result<()> {
-        self.stdout.write_all(b"\r").await?;
+        self.stdout.write_all(b"\r\x1B[2K").await?;
         self.stdout.flush().await?;
         Ok(())
     }
