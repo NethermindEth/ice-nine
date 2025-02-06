@@ -1,5 +1,6 @@
 use crate::config::AnthropicConfig;
 use crate::convert;
+use anthropic_sdk::Client;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next};
@@ -10,7 +11,6 @@ use ice9_core::{
     ToolingChatResponse, UpdateConfig,
 };
 use serde_json::json;
-use anthropic_sdk::Client;
 
 pub struct AnthropicParticle {
     substance: SubstanceLinks,
@@ -65,8 +65,13 @@ impl UpdateConfig<AnthropicConfig> for AnthropicParticle {
         config: AnthropicConfig,
         _ctx: &mut Context<Self>,
     ) -> Result<()> {
-        let client = config.extract();
-        self.client.fill(client)?;
+        if self.client.is_filled() {
+            self.client.take()?;
+        }
+        let client = config.extract()?;
+        if let Err(e) = self.client.fill(client) {
+            return Err(anyhow::anyhow!("Failed to fill client slot: {}", e));
+        }
         Ok(())
     }
 }
@@ -81,11 +86,12 @@ impl OnRequest<ToolingChatRequest> for AnthropicParticle {
         let client = self.client.take()?;
 
         let messages: Vec<_> = request.messages.into_iter().map(convert::message).collect();
+        let config = self.substance.config::<AnthropicConfig>().await?;
 
         let anthropic_request = client
-            .model("claude-3-opus-20240229")  
+            .model(config.model.as_str())
             .messages(&serde_json::to_value(messages)?)
-            .max_tokens(1024)  
+            .max_tokens(config.max_tokens)
             .build()?;
 
         let mut combined_response = String::new();
@@ -95,14 +101,16 @@ impl OnRequest<ToolingChatRequest> for AnthropicParticle {
                 async {}
             })
             .await;
-
-        let config: AnthropicConfig = self.substance.config().await?;
-        self.client.fill(config.extract())?;
-
+        if let Ok(client) = config.extract() {
+            if let Err(e) = self.client.fill(client) {
+                return Err(anyhow::anyhow!("Failed to fill client slot: {}", e));
+            }
+        } else {
+            return Err(anyhow::anyhow!("Failed to extract client from config"));
+        }
         if let Err(e) = result {
             return Err(e);
         }
-
         let response_message = convert::choice(&json!({
             "role": "assistant",
             "content": combined_response,

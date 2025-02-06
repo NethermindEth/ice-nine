@@ -3494,6 +3494,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "dotenvy",
  "ice9-core",
  "serde",
  "serde_json",
