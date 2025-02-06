@@ -57,6 +57,14 @@ impl From<LiveAction> for LiveEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LiveAction(pub LiveData);
 
+impl From<&str> for LiveAction {
+    fn from(message: &str) -> Self {
+        Self(LiveData::Message {
+            message: message.into(),
+        })
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LiveData {
     Message { message: String },

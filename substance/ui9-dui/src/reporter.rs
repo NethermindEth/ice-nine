@@ -1,9 +1,24 @@
-use crate::tracers::live::Live;
+use crate::tracers::live::{Live, LiveAction};
 use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
 use crb::superagent::StreamSession;
+use derive_more::{Deref, DerefMut, From};
+
+#[derive(Deref, DerefMut, From)]
+pub struct ReporterLink {
+    address: Address<Reporter>,
+}
+
+impl ReporterLink {
+    pub fn log(&self, msg: &str) {
+        let event = Act {
+            action: LiveAction::from(msg),
+        };
+        self.address.event(event).ok();
+    }
+}
 
 pub struct Reporter {
     live: Pub<Live>,
