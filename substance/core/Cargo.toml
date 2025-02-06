@@ -21,4 +21,5 @@ toml.workspace = true
 typed-slab = "0.2.1"
 typedmap = "0.6.0"
 ui9.workspace = true
+ui9-dui.workspace = true
 ui9-tracers.workspace = true

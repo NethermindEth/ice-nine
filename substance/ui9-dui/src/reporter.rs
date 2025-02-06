@@ -12,11 +12,11 @@ pub struct ReporterLink {
 }
 
 impl ReporterLink {
-    pub fn log(&self, msg: &str) {
+    pub fn log(&self, msg: &str) -> Result<()> {
         let event = Act {
             action: LiveAction::from(msg),
         };
-        self.address.event(event).ok();
+        self.address.event(event)
     }
 }
 

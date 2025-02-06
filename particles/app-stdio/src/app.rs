@@ -11,13 +11,17 @@ use crb::superagent::{Interval, StreamSession, Supervisor};
 use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use std::collections::VecDeque;
+use ui9_dui::tracers::live::Live;
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
     substance: SubstanceLinks,
     io_control: Slot<IoControl>,
+
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
+
+    live: Sub<Live>,
 
     prompts: VecDeque<String>,
 
@@ -33,6 +37,8 @@ impl Particle for StdioApp {
             io_control: Slot::empty(),
             chat: Sub::unified(None),
             state: None,
+
+            live: Sub::unified(None),
 
             prompts: VecDeque::new(),
 
@@ -69,8 +75,8 @@ impl DoAsync<Initialize> for StdioApp {
         self.queue.add_message("Loading the state...");
         self.interval.start();
 
-        let events = self.chat.events()?;
-        ctx.consume(events);
+        ctx.consume(self.chat.events()?);
+        ctx.consume(self.live.events()?);
         ctx.consume(input::lines());
         ctx.consume(input::signals());
         Ok(Next::events())
@@ -172,6 +178,25 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
             SubEvent::Lost => {
                 self.state.take();
             }
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<SubEvent<Live>> for StdioApp {
+    async fn handle(&mut self, event: SubEvent<Live>, ctx: &mut Context<Self>) -> Result<()> {
+        match event {
+            SubEvent::State(state) => {
+                for message in state.borrow().messages.iter() {
+                    self.queue.add_message(message);
+                }
+            }
+            SubEvent::Event(event) => {
+                let message = String::from(event);
+                self.queue.add_message(&message);
+            }
+            SubEvent::Lost => {}
         }
         Ok(())
     }

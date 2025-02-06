@@ -12,6 +12,7 @@ use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSes
 use derive_more::{Deref, DerefMut, From, Into};
 use std::any::type_name;
 use std::marker::PhantomData;
+use ui9_dui::Hub;
 
 #[derive(Deref, DerefMut, From, Into, Clone)]
 pub struct SubstanceLink {
@@ -119,10 +120,14 @@ where
     P: Particle,
 {
     async fn handle(&mut self, _: AddParticle<P>, ctx: &mut Context<Self>) -> Result<()> {
-        log::info!("Add particle: {}", type_name::<P>());
+        let name = P::name();
+        log::info!("Add particle: {name}");
         let setup = self.get_setup()?;
         let agent = P::construct(setup);
         let _addr = ctx.spawn_agent(agent, Group::Particles);
+        Hub::link()?
+            .reporter
+            .log(&format!("Particle ***{name}*** is added"))?;
         Ok(())
     }
 }

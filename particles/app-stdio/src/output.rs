@@ -52,27 +52,6 @@ impl IoControl {
         })
     }
 
-    /*
-    pub fn prompt(&mut self) -> Result<String> {
-        let readline = self.readline(">> ");
-        match readline {
-            Ok(line) => {
-                return Ok(line);
-            }
-            Err(ReadlineError::Interrupted) => {
-                println!("CTRL-C");
-            }
-            Err(ReadlineError::Eof) => {
-                println!("CTRL-D");
-            }
-            Err(err) => {
-                println!("Error: {:?}", err);
-            }
-        }
-        Err(anyhow!("readline interrupted"))
-    }
-    */
-
     pub async fn write(&mut self, text: &str) -> Result<()> {
         self.stdout.write_all(text.as_ref()).await?;
         self.stdout.flush().await?;
@@ -87,8 +66,8 @@ impl IoControl {
     }
 
     pub async fn write_md(&mut self, text: &str) -> Result<()> {
-        let render = termimad::text(text).to_string();
-        self.writeln(&render).await
+        let rendered = termimad::text(text).to_string();
+        self.writeln(&rendered).await
     }
 
     pub async fn move_up(&mut self) -> Result<()> {
@@ -113,7 +92,8 @@ impl IoControl {
         let current_char = self.spinner[idx as usize];
         status.push_str(&current_char.to_string().blue().to_string());
         status.push_str(" ");
-        status.push_str(&reason);
+        let rendered = termimad::text(reason).to_string();
+        status.push_str(rendered.trim());
         self.clear_line().await?;
         self.write(&status).await?;
         Ok(())

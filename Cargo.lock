@@ -3506,6 +3506,7 @@ dependencies = [
  "typed-slab",
  "typedmap",
  "ui9",
+ "ui9-dui",
  "ui9-tracers",
 ]
 

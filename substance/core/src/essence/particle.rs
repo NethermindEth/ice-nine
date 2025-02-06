@@ -23,6 +23,10 @@ impl SubstanceLinks {
 }
 
 pub trait Particle: Agent<Context: Default> {
+    fn name() -> &'static str {
+        std::any::type_name::<Self>()
+    }
+
     fn construct(substance: SubstanceLinks) -> Self;
 }
 

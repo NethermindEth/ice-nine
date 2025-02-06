@@ -1,6 +1,8 @@
 use crb::core::time::{Duration, Instant};
 use std::collections::VecDeque;
 
+static DURATION: Duration = Duration::from_millis(400);
+
 pub struct Queue {
     started: Instant,
     picked: Instant,
@@ -28,7 +30,7 @@ impl Queue {
     }
 
     pub fn pick_next(&mut self) -> Option<&str> {
-        if self.picked.elapsed() >= Duration::from_secs(1) {
+        if self.picked.elapsed() >= DURATION {
             self.messages.pop_front();
             self.picked = Instant::now();
         }
