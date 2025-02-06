@@ -3427,19 +3427,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-plugin-chat-stdio"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
- "derive_more 1.0.0",
- "ice9-core",
- "serde",
- "tokio",
-]
-
-[[package]]
 name = "ice-nine-plugin-chat-telegram"
 version = "0.0.1"
 dependencies = [
@@ -7706,7 +7693,6 @@ dependencies = [
  "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
  "crb-system",
  "env_logger",
- "ice-nine-plugin-chat-stdio",
  "ice-nine-plugin-chat-telegram",
  "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-model-openai",

@@ -28,6 +28,7 @@ pub struct StdioApp {
     queue: Queue,
     thinking: Option<String>,
     interval: Interval<Tick>,
+    asking: bool,
 }
 
 impl Particle for StdioApp {
@@ -45,6 +46,7 @@ impl Particle for StdioApp {
             queue: Queue::new(),
             thinking: None,
             interval: Interval::new(Tick, Duration::from_millis(RATE)),
+            asking: false,
         }
     }
 }
@@ -89,27 +91,32 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
-        let io_control = self.io_control.get_mut()?;
-        if let Some(reason) = self.queue.pick_next() {
-            io_control.render_progress(reason).await?;
-        } else {
-            self.interval.stop();
-            io_control.clear_line().await?;
-            if let Some(prompt) = self.prompts.pop_front() {
-                ctx.do_next(Next::do_async(Asking { prompt }));
+        if !self.asking {
+            let io_control = self.io_control.get_mut()?;
+            if let Some(reason) = self.queue.pick_next() {
+                io_control.render_progress(reason).await?;
+            } else {
+                self.interval.stop();
+                io_control.clear_line().await?;
+                if let Some(prompt) = self.prompts.pop_front() {
+                    ctx.do_next(Next::do_async(ProcessingPrompt { prompt }));
+                } else {
+                    io_control.write(">> ").await?;
+                    self.asking = true;
+                }
             }
         }
         Ok(())
     }
 }
 
-struct Asking {
+struct ProcessingPrompt {
     prompt: String,
 }
 
 #[async_trait]
-impl DoAsync<Asking> for StdioApp {
-    async fn handle(&mut self, msg: Asking, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+impl DoAsync<ProcessingPrompt> for StdioApp {
+    async fn handle(&mut self, msg: ProcessingPrompt, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let io_control = self.io_control.get_mut()?;
         io_control.clear_line().await?;
         self.chat.request(msg.prompt);
@@ -130,14 +137,17 @@ impl OnEvent<CtrlC> for StdioApp {
 #[async_trait]
 impl OnEvent<Result<String>> for StdioApp {
     async fn handle(&mut self, event: Result<String>, ctx: &mut Context<Self>) -> Result<()> {
-        let io_control = self.io_control.get_mut()?;
-        io_control.move_up().await?;
-        io_control.clear_line().await?;
+        if self.asking {
+            let io_control = self.io_control.get_mut()?;
+            io_control.move_up().await?;
+            io_control.clear_line().await?;
+            self.asking = false;
 
-        self.prompts.push_back(event?);
-        if self.queue.is_empty() {
-            if let Some(prompt) = self.prompts.pop_front() {
-                ctx.do_next(Next::do_async(Asking { prompt }));
+            self.prompts.push_back(event?);
+            if self.queue.is_empty() {
+                if let Some(prompt) = self.prompts.pop_front() {
+                    ctx.do_next(Next::do_async(ProcessingPrompt { prompt }));
+                }
             }
         }
         Ok(())
