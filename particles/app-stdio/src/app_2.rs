@@ -1,29 +1,34 @@
 use crate::input::{self, CtrlC};
 use crate::output::{IoControl, RATE};
+use crate::queue::Queue;
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
-use ice9_core::{Particle, SubstanceLinks};
-use crb::agent::{Agent, Next, DoAsync, Context, OnEvent};
-use crb::superagent::{StreamSession, Drainer, Timer};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::core::time::Duration;
 use crb::core::Slot;
-use crb::core::time::{sleep, Duration};
+use crb::superagent::{Interval, StreamSession, Supervisor};
+use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
-use ui9_dui::{State, Sub, SubEvent};
-use ui9_dui::tracers::live::Live;
 use std::collections::VecDeque;
+use ui9_dui::tracers::live::Live;
+use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
     substance: SubstanceLinks,
     io_control: Slot<IoControl>,
-    messages: VecDeque<String>,
+
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
+
     live: Sub<Live>,
-    input: Drainer<Result<String>>,
-    // TODO: Use interval instead
-    timer: Timer<Tick>,
-    waiting: bool,
+
+    prompts: VecDeque<String>,
+
+    queue: Queue,
+    thinking: Option<String>,
+    interval: Interval<Tick>,
+    asking: bool,
 }
 
 impl Particle for StdioApp {
@@ -31,16 +36,23 @@ impl Particle for StdioApp {
         Self {
             substance,
             io_control: Slot::empty(),
-            messages: VecDeque::new(),
             chat: Sub::unified(None),
             state: None,
+
             live: Sub::unified(None),
-            input: input::lines(),
-            // TODO: Use interval instead
-            timer: Timer::new(Tick),
-            waiting: false,
+
+            prompts: VecDeque::new(),
+
+            queue: Queue::new(),
+            thinking: None,
+            interval: Interval::new(Tick, Duration::from_millis(RATE)),
+            asking: false,
         }
     }
+}
+
+impl Supervisor for StdioApp {
+    type GroupBy = ();
 }
 
 impl Agent for StdioApp {
@@ -51,68 +63,24 @@ impl Agent for StdioApp {
     }
 }
 
-impl StdioApp {
-    pub fn add_message(&mut self, content: &str) {
-        self.messages.push_back(content.into());
-    }
-}
-
 struct Initialize;
 
 #[async_trait]
 impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.timer.add_listener(&ctx);
-        self.timer.set_duration(Duration::from_millis(200));
         self.io_control.fill(IoControl::new()?)?;
         let io_control = self.io_control.get_mut()?;
         io_control.writeln(&"Nine".blue().to_string()).await?;
-        self.add_message("Loading the state...");
+
+        self.interval.add_listener(&ctx);
+
+        self.queue.add_message("Loading the state...");
+        self.interval.start();
+
         ctx.consume(self.chat.events()?);
         ctx.consume(self.live.events()?);
-        // ctx.consume(input::lines());
+        ctx.consume(input::lines());
         ctx.consume(input::signals());
-
-        self.timer.restart();
-        Ok(Next::events())
-    }
-}
-
-struct News;
-
-#[async_trait]
-impl DoAsync<News> for StdioApp {
-    async fn repeat(&mut self, _: &mut News) -> Result<Option<Next<Self>>> {
-        let io_control = self.io_control.get_mut()?;
-        if let Some(message) = self.messages.pop_front() {
-            io_control.render_progress(&message).await?;
-            sleep(Duration::from_millis(400)).await;
-            Ok(None)
-        } else {
-            io_control.clear_line().await?;
-            if self.waiting {
-                Ok(Some(Next::events()))
-            } else {
-                Ok(Some(Next::do_async(Prompt)))
-            }
-        }
-    }
-}
-
-struct Prompt;
-
-#[async_trait]
-impl DoAsync<Prompt> for StdioApp {
-    async fn once(&mut self, _: &mut Prompt) -> Result<Next<Self>> {
-        let io_control = self.io_control.get_mut()?;
-        io_control.write(">> ").await?;
-        let prompt = input::next_line().await?;
-        // TODO: Send propmot
-        io_control.move_up().await?;
-        io_control.clear_line().await?;
-        self.waiting = true;
-
-        self.timer.restart();
         Ok(Next::events())
     }
 }
@@ -123,9 +91,36 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
-        // TODO: Add thinking message if waiting...
-        ctx.do_next(Next::do_async(News));
+        if !self.asking {
+            let io_control = self.io_control.get_mut()?;
+            if let Some(reason) = self.queue.pick_next() {
+                io_control.render_progress(reason).await?;
+            } else {
+                self.interval.stop();
+                io_control.clear_line().await?;
+                if let Some(prompt) = self.prompts.pop_front() {
+                    ctx.do_next(Next::do_async(ProcessingPrompt { prompt }));
+                } else {
+                    io_control.write(">> ").await?;
+                    self.asking = true;
+                }
+            }
+        }
         Ok(())
+    }
+}
+
+struct ProcessingPrompt {
+    prompt: String,
+}
+
+#[async_trait]
+impl DoAsync<ProcessingPrompt> for StdioApp {
+    async fn handle(&mut self, msg: ProcessingPrompt, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        let io_control = self.io_control.get_mut()?;
+        io_control.clear_line().await?;
+        self.chat.request(msg.prompt);
+        Ok(Next::events())
     }
 }
 
@@ -140,11 +135,31 @@ impl OnEvent<CtrlC> for StdioApp {
 }
 
 #[async_trait]
+impl OnEvent<Result<String>> for StdioApp {
+    async fn handle(&mut self, event: Result<String>, ctx: &mut Context<Self>) -> Result<()> {
+        if self.asking {
+            let io_control = self.io_control.get_mut()?;
+            io_control.move_up().await?;
+            io_control.clear_line().await?;
+            self.asking = false;
+
+            self.prompts.push_back(event?);
+            if self.queue.is_empty() {
+                if let Some(prompt) = self.prompts.pop_front() {
+                    ctx.do_next(Next::do_async(ProcessingPrompt { prompt }));
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+#[async_trait]
 impl OnEvent<SubEvent<Chat>> for StdioApp {
     async fn handle(&mut self, event: SubEvent<Chat>, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
-                self.add_message("Chat state has loaded");
+                self.queue.add_message("Chat state has loaded");
                 {
                     let state_ref = state.borrow();
                     for message in &state_ref.messages {}
@@ -163,7 +178,8 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                 }
                 ChatEvent::SetThinking { flag } => {
                     if flag {
-                        self.add_message("Thinking...");
+                        self.queue.add_message("Thinking...");
+                        self.interval.start();
                     } else {
                         // TODO: Add an event to request...
                     }
@@ -183,12 +199,12 @@ impl OnEvent<SubEvent<Live>> for StdioApp {
         match event {
             SubEvent::State(state) => {
                 for message in state.borrow().messages.iter() {
-                    self.add_message(message);
+                    self.queue.add_message(message);
                 }
             }
             SubEvent::Event(event) => {
                 let message = String::from(event);
-                self.add_message(&message);
+                self.queue.add_message(&message);
             }
             SubEvent::Lost => {}
         }
