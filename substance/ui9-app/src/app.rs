@@ -1,18 +1,14 @@
-use crate::protocol::UiEvent;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Standalone};
+use crb::agent::{Address, Agent, Context, OnEvent, RunAgent, Standalone};
 use crb::core::{mpsc, Msg, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
-use std::any::Any;
 use std::collections::HashMap;
 use std::marker::PhantomData;
 use std::ops::DerefMut;
 use ui9::names::Fqn;
 use ui9_dui::subscriber::{drainer, SubEvent};
-use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
-use ui9_dui::tracers::tree::Tree;
 use ui9_dui::{Flow, Listener, Sub, Subscriber};
 
 pub trait AnySub: Send {}

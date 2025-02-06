@@ -1,22 +1,16 @@
 use crate::input::{self, CtrlC};
 use crate::output::{IoControl, RATE};
 use crate::queue::Queue;
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
-use crb::agent::{Agent, Context, DoAsync, DoSync, ManagedContext, Next, OnEvent};
-use crb::core::time::{Duration, Instant};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::core::time::Duration;
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Supervisor};
-use ice9_core::{ChatRequest, Particle, SubstanceLinks};
+use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
-use rustyline::{
-    error::ReadlineError,
-    validate::{ValidationContext, ValidationResult, Validator},
-    Cmd, Config, DefaultEditor, Editor, Event, KeyCode, KeyEvent, Modifiers,
-};
 use std::collections::VecDeque;
-use tokio::io::{self, AsyncBufReadExt, AsyncWriteExt, BufReader, Lines, Stdin, Stdout};
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {

@@ -3,8 +3,6 @@ use crate::publisher::{Publisher, Tracer};
 use crate::subscriber::{Listener, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
-use std::num::ParseIntError;
 use ui9::names::Fqn;
 
 #[derive(Deref, DerefMut, From, Into)]

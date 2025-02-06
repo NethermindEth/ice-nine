@@ -1,16 +1,13 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use colored::Colorize;
 use crb::core::time::Instant;
-use crossterm::{cursor, execute, terminal, Command};
+use crossterm::{cursor, execute};
 use derive_more::{Deref, DerefMut};
 use rustyline::{
-    error::ReadlineError,
     history::DefaultHistory,
     validate::{ValidationContext, ValidationResult, Validator},
-    Cmd, Completer, Config, DefaultEditor, Editor, Event, Helper, Highlighter, Hinter, KeyCode,
-    KeyEvent, Modifiers,
+    Completer, Editor, Helper, Highlighter, Hinter,
 };
-use std::os::fd::AsFd;
 use tokio::io::{self, AsyncWriteExt, Stdout};
 
 pub static RATE: u64 = 200;
