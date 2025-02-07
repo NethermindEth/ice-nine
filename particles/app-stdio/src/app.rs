@@ -3,7 +3,7 @@ use crate::output::{Output, RATE};
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::time::{sleep, Duration};
 use crb::core::Slot;
 use crb::superagent::{Drainer, Interval, StreamSession, Tick};
@@ -128,7 +128,9 @@ impl OnEvent<CtrlC> for StdioApp {
         let out = self.out.get_mut()?;
         out.clear_line().await?;
         out.writeln("Closing the session 🙌").await?;
+        // To avoid entering the prompt state
         self.waiting = true;
+        ctx.shutdown();
         self.substance.substance.interrupt()
     }
 }
