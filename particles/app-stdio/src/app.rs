@@ -3,15 +3,15 @@ use crate::output::{IoControl, RATE};
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
-use ice9_core::{Particle, SubstanceLinks};
-use crb::agent::{Agent, Next, DoAsync, Context, OnEvent};
-use crb::superagent::{StreamSession, Drainer, Timer};
-use crb::core::Slot;
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::time::{sleep, Duration};
+use crb::core::Slot;
+use crb::superagent::{Drainer, StreamSession, Timer};
+use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
-use ui9_dui::{State, Sub, SubEvent};
-use ui9_dui::tracers::live::Live;
 use std::collections::VecDeque;
+use ui9_dui::tracers::live::Live;
+use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
     substance: SubstanceLinks,

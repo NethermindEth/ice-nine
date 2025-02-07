@@ -25,7 +25,11 @@ impl Queue {
     }
 
     pub fn pick_next(&mut self) -> Option<&str> {
-        let next = self.picked.as_ref().map(|(_, when)| when.elapsed() > DURATION).unwrap_or(true);
+        let next = self
+            .picked
+            .as_ref()
+            .map(|(_, when)| when.elapsed() > DURATION)
+            .unwrap_or(true);
         if next {
             let next = self.messages.pop_front();
             self.picked = next.map(|msg| (msg, Instant::now()));

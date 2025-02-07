@@ -14,7 +14,9 @@ pub fn lines() -> Drainer<Result<String>> {
 pub async fn next_line() -> Result<String> {
     let reader = BufReader::new(stdin());
     let mut lines = reader.lines();
-    let line = lines.next_line().await?
+    let line = lines
+        .next_line()
+        .await?
         .ok_or_else(|| Error::msg("Stdin closed"))?;
     Ok(line)
 }
