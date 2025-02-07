@@ -2,6 +2,7 @@ use anyhow::Result;
 use crb_system::Main;
 use ice9_core::Substance;
 use ice_nine_plugin_exchange_dydx::DyDxParticle;
+use ice_nine_plugin_model_anthropic::AnthropicParticle;
 use ice_nine_plugin_model_openai::OpenAIParticle;
 use n9_app_stdio::StdioApp;
 use n9_control_chat::ChatParticle;
@@ -12,7 +13,8 @@ async fn main() -> Result<()> {
     env_logger::try_init()?;
     Mesh::activate().await?;
     let mut substance = Substance::arise();
-    substance.add_particle::<OpenAIParticle>()?;
+    // substance.add_particle::<OpenAIParticle>()?;
+    substance.add_particle::<AnthropicParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<ChatParticle>()?;
     substance.add_particle::<StdioApp>()?;

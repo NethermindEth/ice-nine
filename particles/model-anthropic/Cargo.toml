@@ -1,0 +1,16 @@
+[package]
+name = "ice-nine-plugin-model-anthropic"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+crb.workspace = true
+ice9-core.workspace = true
+serde.workspace = true
+dotenvy.workspace = true
+anthropic-sdk = "0.1.5"
+serde_json = "1.0" 
+tokio = { workspace = true, features = ["full"] }

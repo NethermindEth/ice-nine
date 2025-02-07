@@ -281,6 +281,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "anthropic-sdk"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b0e11a7c14d8af2206c110597bf7f2919ea0c1dc5011c017d2d4dc9d033f5363"
+dependencies = [
+ "anyhow",
+ "dotenv",
+ "futures",
+ "reqwest 0.12.12",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1983,6 +1998,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77c90badedccf4105eca100756a0b1289e191f6fcbdadd3cee1d2f614f97da8f"
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3450,6 +3471,21 @@ dependencies = [
  "dydx",
  "ice9-core",
  "serde",
+]
+
+[[package]]
+name = "ice-nine-plugin-model-anthropic"
+version = "0.0.1"
+dependencies = [
+ "anthropic-sdk",
+ "anyhow",
+ "async-trait",
+ "crb 0.0.28 (git+https://github.com/runtime-blocks/crb)",
+ "dotenvy",
+ "ice9-core",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -7695,6 +7731,7 @@ dependencies = [
  "env_logger",
  "ice-nine-plugin-chat-telegram",
  "ice-nine-plugin-exchange-dydx",
+ "ice-nine-plugin-model-anthropic",
  "ice-nine-plugin-model-openai",
  "ice9-core",
  "n9-app-stdio",

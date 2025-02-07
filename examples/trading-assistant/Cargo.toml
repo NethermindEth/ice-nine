@@ -15,6 +15,7 @@ ice-nine-plugin-exchange-dydx.path = "../../particles/exchange-dydx"
 n9-control-chat.path = "../../particles/control-chat"
 ice-nine-plugin-chat-telegram.path = "../../particles/chat-telegram"
 ice-nine-plugin-model-openai.path = "../../particles/model-openai"
+"ice-nine-plugin-model-anthropic".path = "../../particles/model-anthropic"
 tokio.workspace = true
 ui9-dui.workspace = true
 ui9-mesh.workspace = true
