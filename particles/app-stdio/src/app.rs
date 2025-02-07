@@ -21,7 +21,6 @@ pub struct StdioApp {
     state: Option<State<Chat>>,
     live: Sub<Live>,
     input: Drainer<Result<String>>,
-    // TODO: Use interval instead
     timer: Timer<Tick>,
     waiting: bool,
 }
@@ -91,6 +90,7 @@ impl DoAsync<News> for StdioApp {
         } else {
             io_control.clear_line().await?;
             if self.waiting {
+                self.timer.restart();
                 Ok(Some(Next::events()))
             } else {
                 Ok(Some(Next::do_async(Prompt)))
@@ -107,7 +107,7 @@ impl DoAsync<Prompt> for StdioApp {
         let io_control = self.io_control.get_mut()?;
         io_control.write(">> ").await?;
         let prompt = input::next_line().await?;
-        // TODO: Send propmot
+        self.chat.request(prompt);
         io_control.move_up().await?;
         io_control.clear_line().await?;
         self.waiting = true;
@@ -123,7 +123,9 @@ struct Tick;
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
     async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
-        // TODO: Add thinking message if waiting...
+        if self.waiting {
+            self.add_message("Thinking...");
+        }
         ctx.do_next(Next::do_async(News));
         Ok(())
     }
