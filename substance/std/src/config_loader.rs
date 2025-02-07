@@ -5,7 +5,7 @@ use crb::agent::{
 };
 use crb::core::Unique;
 use crb::send::{Recipient, Sender};
-use crb::superagent::{ManageSubscription, Subscription, Timer, TimerHandle};
+use crb::superagent::{ManageSubscription, StreamSession, Subscription, Timeout, Timer};
 use derive_more::{Deref, DerefMut, From};
 use notify::{
     recommended_watcher, Event, EventHandler, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
@@ -37,12 +37,12 @@ impl ConfigLayer {
 }
 
 pub struct ChangedFiles {
-    _debouncer: TimerHandle,
+    _debouncer: Timer,
     files: HashSet<Arc<PathBuf>>,
 }
 
 impl ChangedFiles {
-    fn new(debouncer: TimerHandle) -> Self {
+    fn new(debouncer: Timer) -> Self {
         Self {
             _debouncer: debouncer,
             files: HashSet::new(),
@@ -69,7 +69,7 @@ impl ConfigLoader {
 }
 
 impl Agent for ConfigLoader {
-    type Context = AgentSession<Self>;
+    type Context = StreamSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
         Next::do_async(Initialize)
@@ -138,9 +138,10 @@ impl ConfigLoader {
                 changed_files.files.insert(path);
             }
             None => {
-                let address = ctx.address().clone();
+                let mut timeout = Timer::new();
                 let duration = Duration::from_millis(250);
-                let timeout = Timer::just_spawn(address, duration, ());
+                timeout.schedule(duration)?;
+                ctx.consume(timeout.events()?);
                 let mut changed_files = ChangedFiles::new(timeout);
                 changed_files.files.insert(path);
                 self.changed_files = Some(changed_files);
@@ -227,8 +228,8 @@ impl OnEvent<WatchEvent> for ConfigLoader {
 }
 
 #[async_trait]
-impl OnEvent<()> for ConfigLoader {
-    async fn handle(&mut self, _: (), _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<Timeout> for ConfigLoader {
+    async fn handle(&mut self, _: Timeout, _ctx: &mut Context<Self>) -> Result<()> {
         self.update_configs(false).await
     }
 }
