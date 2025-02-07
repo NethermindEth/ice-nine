@@ -1,7 +1,7 @@
 use crate::config::AnthropicConfig;
 use crate::convert;
 use anthropic_sdk::Client;
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next};
 use crb::core::Slot;
@@ -69,9 +69,7 @@ impl UpdateConfig<AnthropicConfig> for AnthropicParticle {
             self.client.take()?;
         }
         let client = config.extract()?;
-        if let Err(e) = self.client.fill(client) {
-            return Err(anyhow::anyhow!("Failed to fill client slot: {}", e));
-        }
+        self.client.fill(client)?;
         Ok(())
     }
 }
@@ -100,22 +98,16 @@ impl OnRequest<ToolingChatRequest> for AnthropicParticle {
                 combined_response.push_str(&text);
                 async {}
             })
-            .await;
-        if let Ok(client) = config.extract() {
-            if let Err(e) = self.client.fill(client) {
-                return Err(anyhow::anyhow!("Failed to fill client slot: {}", e));
-            }
-        } else {
-            return Err(anyhow::anyhow!("Failed to extract client from config"));
-        }
-        if let Err(e) = result {
-            return Err(e);
-        }
+            .await?;
+
+        let client = config.extract()?;
+        self.client.fill(client)?;
+
         let response_message = convert::choice(&json!({
             "role": "assistant",
             "content": combined_response,
         }))
-        .ok_or(anyhow::anyhow!("Failed to build response"))?;
+        .ok_or_else(|| anyhow!("Failed to build response"))?;
 
         let messages = vec![response_message];
         let response = ToolingChatResponse { messages };
