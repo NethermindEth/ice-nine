@@ -102,10 +102,12 @@ impl DoAsync<Prompt> for StdioApp {
         let out = self.out.get_mut()?;
         out.write(">> ").await?;
         let prompt = input::next_line().await?;
-        self.chat.request(prompt);
         out.move_up().await?;
         out.clear_line().await?;
-        self.waiting = true;
+        if !prompt.trim().is_empty() {
+            self.chat.request(prompt);
+            self.waiting = true;
+        }
         Ok(Next::events())
     }
 }

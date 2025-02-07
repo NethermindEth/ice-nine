@@ -3,9 +3,12 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
-use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
+use crb::superagent::{
+    timer::{Interval, Tick},
+    Entry, OnResponse, Output, StreamSession, Supervisor, SupervisorSession,
+};
 use ice9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
@@ -24,7 +27,7 @@ pub struct TelegramParticle {
     client: Slot<Client>,
 
     typing: HashSet<ChatId>,
-    thinking_interval: Interval<Tick>,
+    interval: Interval,
 }
 
 impl Particle for TelegramParticle {
@@ -35,13 +38,13 @@ impl Particle for TelegramParticle {
             bond: Slot::empty(),
             client: Slot::empty(),
             typing: HashSet::new(),
-            thinking_interval: Interval::default(),
+            interval: Interval::default(),
         }
     }
 }
 
 impl Supervisor for TelegramParticle {
-    type BasedOn = AgentSession<Self>;
+    type BasedOn = StreamSession<Self>;
     type GroupBy = ();
 }
 
@@ -64,7 +67,7 @@ impl DoAsync<Initialize> for TelegramParticle {
         self.update_config(config, ctx).await?;
         self.bond.fill(bond)?;
 
-        self.thinking_interval.enable(ctx);
+        ctx.consume(self.interval.events()?);
 
         Ok(Next::events())
     }
@@ -133,9 +136,6 @@ impl OnResponse<ChatResponse, ChatId> for TelegramParticle {
         Ok(())
     }
 }
-
-#[derive(Clone, Default)]
-struct Tick;
 
 #[async_trait]
 impl OnEvent<Tick> for TelegramParticle {
