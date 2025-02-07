@@ -29,7 +29,7 @@ impl Validator for InputBlocker {
 }
 
 #[derive(Deref, DerefMut)]
-pub struct IoControl {
+pub struct Output {
     #[deref]
     #[deref_mut]
     editor: Editor<InputBlocker, DefaultHistory>,
@@ -39,7 +39,7 @@ pub struct IoControl {
     spinner: Box<[char]>,
 }
 
-impl IoControl {
+impl Output {
     pub fn new() -> Result<Self> {
         let mut editor = Editor::new()?;
         editor.set_helper(Some(InputBlocker));

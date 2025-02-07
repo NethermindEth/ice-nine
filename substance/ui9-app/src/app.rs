@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, OnEvent, RunAgent, Standalone};
+use crb::agent::{Address, Agent, AgentSession, Context, OnEvent, RunAgent, Standalone};
 use crb::core::{mpsc, Msg, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
@@ -63,6 +63,7 @@ impl<E: Msg> App<E> {
 impl<E: Msg> Standalone for App<E> {}
 
 impl<E: Msg> Supervisor for App<E> {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = usize;
 }
 

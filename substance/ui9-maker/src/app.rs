@@ -1,7 +1,9 @@
 use crate::protocol::UiEvent;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, Standalone};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, DoAsync, Next, OnEvent, RunAgent, Standalone,
+};
 use crb::core::{mpsc, Slot};
 use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
@@ -54,6 +56,7 @@ impl App {
 impl Standalone for App {}
 
 impl Supervisor for App {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

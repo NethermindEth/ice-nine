@@ -1,5 +1,5 @@
 use crate::input::{self, CtrlC};
-use crate::output::{IoControl, RATE};
+use crate::output::{Output, RATE};
 use anyhow::Result;
 use async_trait::async_trait;
 use colored::Colorize;
@@ -16,12 +16,11 @@ use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
     substance: SubstanceLinks,
-    io_control: Slot<IoControl>,
+    out: Slot<Output>,
     messages: VecDeque<String>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
     live: Sub<Live>,
-    input: Drainer<Result<String>>,
     interval: Interval,
     waiting: bool,
 }
@@ -30,12 +29,11 @@ impl Particle for StdioApp {
     fn construct(substance: SubstanceLinks) -> Self {
         Self {
             substance,
-            io_control: Slot::empty(),
+            out: Slot::empty(),
             messages: VecDeque::new(),
             chat: Sub::unified(None),
             state: None,
             live: Sub::unified(None),
-            input: input::lines(),
             interval: Interval::new(),
             waiting: false,
         }
@@ -61,9 +59,9 @@ struct Initialize;
 #[async_trait]
 impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.io_control.fill(IoControl::new()?)?;
-        let io_control = self.io_control.get_mut()?;
-        io_control.writeln(&"Nine".blue().to_string()).await?;
+        self.out.fill(Output::new()?)?;
+        let out = self.out.get_mut()?;
+        out.writeln(&"Nine".blue().to_string()).await?;
         self.add_message("Loading the state...");
         self.interval.set_interval_ms(200)?;
         ctx.consume(self.interval.events()?);
@@ -80,13 +78,13 @@ struct News;
 #[async_trait]
 impl DoAsync<News> for StdioApp {
     async fn repeat(&mut self, _: &mut News) -> Result<Option<Next<Self>>> {
-        let io_control = self.io_control.get_mut()?;
+        let out = self.out.get_mut()?;
         if let Some(message) = self.messages.pop_front() {
-            io_control.render_progress(&message).await?;
+            out.render_progress(&message).await?;
             sleep(Duration::from_millis(400)).await;
             Ok(None)
         } else {
-            io_control.clear_line().await?;
+            out.clear_line().await?;
             if self.waiting {
                 Ok(Some(Next::events()))
             } else {
@@ -101,12 +99,12 @@ struct Prompt;
 #[async_trait]
 impl DoAsync<Prompt> for StdioApp {
     async fn once(&mut self, _: &mut Prompt) -> Result<Next<Self>> {
-        let io_control = self.io_control.get_mut()?;
-        io_control.write(">> ").await?;
+        let out = self.out.get_mut()?;
+        out.write(">> ").await?;
         let prompt = input::next_line().await?;
         self.chat.request(prompt);
-        io_control.move_up().await?;
-        io_control.clear_line().await?;
+        out.move_up().await?;
+        out.clear_line().await?;
         self.waiting = true;
         Ok(Next::events())
     }
@@ -126,9 +124,9 @@ impl OnEvent<Tick> for StdioApp {
 #[async_trait]
 impl OnEvent<CtrlC> for StdioApp {
     async fn handle(&mut self, _: CtrlC, ctx: &mut Context<Self>) -> Result<()> {
-        let io_control = self.io_control.get_mut()?;
-        io_control.clear_line().await?;
-        io_control.writeln("Closing the session 🙌").await?;
+        let out = self.out.get_mut()?;
+        out.clear_line().await?;
+        out.writeln("Closing the session 🙌").await?;
         self.waiting = true;
         self.substance.substance.interrupt()
     }
@@ -148,13 +146,13 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
             }
             SubEvent::Event(event) => match event {
                 ChatEvent::Add { message } => {
-                    let io_control = self.io_control.get_mut()?;
+                    let out = self.out.get_mut()?;
                     let role = match message.role {
                         Role::Request => "👤 Request:".blue(),
                         Role::Response => "🤖 Response:".yellow(),
                     };
-                    io_control.writeln(&role.to_string()).await?;
-                    io_control.write_md(&message.content).await?;
+                    out.writeln(&role.to_string()).await?;
+                    out.write_md(&message.content).await?;
                 }
                 ChatEvent::SetThinking { flag } => {
                     self.waiting = flag;

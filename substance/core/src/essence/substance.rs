@@ -6,7 +6,9 @@ use crate::space::Space;
 use crate::trace::TracerPack;
 use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, OnEvent, Standalone};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, DoAsync, Equip, Next, OnEvent, Standalone,
+};
 use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From, Into};
@@ -61,6 +63,11 @@ impl Substance {
     }
 }
 
+impl Supervisor for Substance {
+    type BasedOn = AgentSession<Self>;
+    type GroupBy = Group;
+}
+
 impl Agent for Substance {
     type Context = SupervisorSession<Self>;
 
@@ -78,10 +85,6 @@ impl Agent for Substance {
 pub enum Group {
     Services,
     Particles,
-}
-
-impl Supervisor for Substance {
-    type GroupBy = Group;
 }
 
 struct Configure;

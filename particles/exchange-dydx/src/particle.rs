@@ -1,7 +1,7 @@
 use crate::config::DyDxConfig;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use ice9_core::{
@@ -16,6 +16,7 @@ pub struct DyDxParticle {
 }
 
 impl Supervisor for DyDxParticle {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

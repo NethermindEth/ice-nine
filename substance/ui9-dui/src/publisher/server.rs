@@ -4,8 +4,8 @@ use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent, Standalone,
-    StopAddress,
+    Address, Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent,
+    Standalone, StopAddress,
 };
 use crb::runtime::{InteractiveRuntime, Runtime};
 use crb::superagent::{
@@ -79,6 +79,7 @@ pub enum Group {
 }
 
 impl Supervisor for HubServer {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = Group;
 
     fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {

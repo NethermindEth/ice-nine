@@ -4,7 +4,7 @@ pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, Next};
+use crb::agent::{Address, Agent, AgentSession, Context, Next};
 use crb::superagent::{
     Interaction, OnRequest, OnResponse, Output, Responder, Supervisor, SupervisorSession,
 };
@@ -40,6 +40,7 @@ impl ReasoningRouter {
 }
 
 impl Supervisor for ReasoningRouter {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

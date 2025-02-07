@@ -3,7 +3,9 @@ use crate::flow::Flow;
 use crate::relay::RemotePlayer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, StopRecipient};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, DoAsync, Next, OnEvent, RunAgent, StopRecipient,
+};
 use crb::runtime::{InteractiveRuntime, Runtime};
 use crb::superagent::{EventBridge, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
@@ -54,6 +56,7 @@ impl HubClient {
 }
 
 impl Supervisor for HubClient {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

@@ -3,7 +3,7 @@ use super::relay_player::RelayPlayer;
 use super::PROTOCOL;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use libp2p::{PeerId, Stream};
 
@@ -18,6 +18,7 @@ impl Router {
 }
 
 impl Supervisor for Router {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

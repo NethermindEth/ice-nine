@@ -3,7 +3,7 @@ use crate::config::TelegramConfig;
 use crate::drainer::TelegramDrainer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Entry, Interval, OnResponse, Output, Supervisor, SupervisorSession};
 use ice9_core::{
@@ -27,10 +27,6 @@ pub struct TelegramParticle {
     thinking_interval: Interval<Tick>,
 }
 
-impl Supervisor for TelegramParticle {
-    type GroupBy = ();
-}
-
 impl Particle for TelegramParticle {
     fn construct(substance: SubstanceLinks) -> Self {
         Self {
@@ -42,6 +38,11 @@ impl Particle for TelegramParticle {
             thinking_interval: Interval::default(),
         }
     }
+}
+
+impl Supervisor for TelegramParticle {
+    type BasedOn = AgentSession<Self>;
+    type GroupBy = ();
 }
 
 impl Agent for TelegramParticle {

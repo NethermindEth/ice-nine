@@ -5,7 +5,7 @@ use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, ManagedContext, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use futures::SinkExt;
@@ -38,6 +38,7 @@ impl RelayPlayer {
 }
 
 impl Supervisor for RelayPlayer {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

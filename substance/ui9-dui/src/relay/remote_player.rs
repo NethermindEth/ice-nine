@@ -6,7 +6,7 @@ use crate::subscriber::{Act, PlayerState};
 use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use futures::SinkExt;
@@ -29,6 +29,7 @@ impl<F: Flow> RemotePlayer<F> {
 }
 
 impl<F: Flow> Supervisor for RemotePlayer<F> {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

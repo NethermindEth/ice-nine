@@ -1,7 +1,7 @@
 use crate::flow::{Chat, ChatAction, Role};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{StreamSession, Supervisor};
 use ice9_core::{ChatRequest, Particle, SubstanceLinks};
 use ui9_dui::{Act, Pub};
@@ -21,6 +21,7 @@ impl Particle for ChatParticle {
 }
 
 impl Supervisor for ChatParticle {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

@@ -3,7 +3,7 @@ pub mod subscription;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
+use crb::agent::{Address, Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::{Slot, Unique};
 use crb::superagent::{Entry, SubscribeExt, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
@@ -59,6 +59,7 @@ impl Keeper {
 }
 
 impl Supervisor for Keeper {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

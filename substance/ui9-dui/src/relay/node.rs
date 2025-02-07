@@ -2,7 +2,9 @@ use super::connector::{Connector, ConnectorLink};
 use super::router::Router;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, Standalone, ToAddress};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, DoAsync, Equip, Next, Standalone, ToAddress,
+};
 use crb::superagent::{PingExt, Supervisor, SupervisorSession};
 
 use std::sync::OnceLock;
@@ -46,6 +48,7 @@ impl MeshNode {
 impl Standalone for MeshNode {}
 
 impl Supervisor for MeshNode {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 

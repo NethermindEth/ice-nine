@@ -3,7 +3,9 @@ use crate::reporter::{Reporter, ReporterLink};
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Equip, Next, Standalone, ToAddress};
+use crb::agent::{
+    Address, Agent, AgentSession, Context, DoAsync, Equip, Next, Standalone, ToAddress,
+};
 use crb::superagent::{PingExt, Stacker, Supervisor, SupervisorSession};
 use std::sync::OnceLock;
 
@@ -53,6 +55,7 @@ pub enum Group {
 }
 
 impl Supervisor for Hub {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = Group;
 }
 

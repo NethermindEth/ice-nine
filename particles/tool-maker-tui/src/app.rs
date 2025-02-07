@@ -2,7 +2,7 @@ use crate::events::EventsDrainer;
 use crate::state::AppState;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, Context, DoAsync, DoSync, Next, OnEvent, RunAgent};
+use crb::agent::{Agent, AgentSession, Context, DoAsync, DoSync, Next, OnEvent, RunAgent};
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
 use crb::superagent::{Supervisor, SupervisorSession};
@@ -27,6 +27,7 @@ impl AppTui {
 }
 
 impl Supervisor for AppTui {
+    type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 
