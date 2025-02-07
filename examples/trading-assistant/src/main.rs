@@ -13,8 +13,8 @@ async fn main() -> Result<()> {
     env_logger::try_init()?;
     Mesh::activate().await?;
     let mut substance = Substance::arise();
-    // substance.add_particle::<OpenAIParticle>()?;
-    substance.add_particle::<AnthropicParticle>()?;
+    substance.add_particle::<OpenAIParticle>()?;
+    // substance.add_particle::<AnthropicParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<ChatParticle>()?;
     substance.add_particle::<StdioApp>()?;

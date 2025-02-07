@@ -6,6 +6,7 @@ use colored::Colorize;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::time::{sleep, Duration};
 use crb::core::Slot;
+use crb::superagent::timer::{Interval, Tick};
 use crb::superagent::{Drainer, StreamSession, Timer};
 use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
@@ -21,7 +22,7 @@ pub struct StdioApp {
     state: Option<State<Chat>>,
     live: Sub<Live>,
     input: Drainer<Result<String>>,
-    timer: Timer<Tick>,
+    interval: Interval,
     waiting: bool,
 }
 
@@ -35,8 +36,7 @@ impl Particle for StdioApp {
             state: None,
             live: Sub::unified(None),
             input: input::lines(),
-            // TODO: Use interval instead
-            timer: Timer::new(Tick),
+            interval: Interval::new(),
             waiting: false,
         }
     }
@@ -61,18 +61,16 @@ struct Initialize;
 #[async_trait]
 impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        self.timer.add_listener(&ctx);
-        self.timer.set_duration(Duration::from_millis(200));
         self.io_control.fill(IoControl::new()?)?;
         let io_control = self.io_control.get_mut()?;
         io_control.writeln(&"Nine".blue().to_string()).await?;
         self.add_message("Loading the state...");
+        self.interval.set_interval_ms(200)?;
+        ctx.consume(self.interval.events()?);
         ctx.consume(self.chat.events()?);
         ctx.consume(self.live.events()?);
         // ctx.consume(input::lines());
         ctx.consume(input::signals());
-
-        self.timer.restart();
         Ok(Next::events())
     }
 }
@@ -90,7 +88,6 @@ impl DoAsync<News> for StdioApp {
         } else {
             io_control.clear_line().await?;
             if self.waiting {
-                self.timer.restart();
                 Ok(Some(Next::events()))
             } else {
                 Ok(Some(Next::do_async(Prompt)))
@@ -111,14 +108,9 @@ impl DoAsync<Prompt> for StdioApp {
         io_control.move_up().await?;
         io_control.clear_line().await?;
         self.waiting = true;
-
-        self.timer.restart();
         Ok(Next::events())
     }
 }
-
-#[derive(Clone)]
-struct Tick;
 
 #[async_trait]
 impl OnEvent<Tick> for StdioApp {
@@ -137,6 +129,7 @@ impl OnEvent<CtrlC> for StdioApp {
         let io_control = self.io_control.get_mut()?;
         io_control.clear_line().await?;
         io_control.writeln("Closing the session 🙌").await?;
+        self.waiting = true;
         self.substance.substance.interrupt()
     }
 }
@@ -164,11 +157,7 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
                     io_control.write_md(&message.content).await?;
                 }
                 ChatEvent::SetThinking { flag } => {
-                    if flag {
-                        self.add_message("Thinking...");
-                    } else {
-                        // TODO: Add an event to request...
-                    }
+                    self.waiting = flag;
                 }
             },
             SubEvent::Lost => {
