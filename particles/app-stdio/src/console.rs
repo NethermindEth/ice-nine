@@ -1,9 +1,10 @@
-use anyhow::Result;
+use anyhow::{Error, Result};
 use colored::Colorize;
 use crb::core::time::Instant;
 use crossterm::{cursor, execute};
 use derive_more::{Deref, DerefMut};
 use rustyline::{
+    error::ReadlineError,
     history::DefaultHistory,
     validate::{ValidationContext, ValidationResult, Validator},
     Completer, Editor, Helper, Highlighter, Hinter,
@@ -29,7 +30,7 @@ impl Validator for InputBlocker {
 }
 
 #[derive(Deref, DerefMut)]
-pub struct Output {
+pub struct Console {
     #[deref]
     #[deref_mut]
     editor: Editor<InputBlocker, DefaultHistory>,
@@ -39,7 +40,7 @@ pub struct Output {
     spinner: Box<[char]>,
 }
 
-impl Output {
+impl Console {
     pub fn new() -> Result<Self> {
         let mut editor = Editor::new()?;
         editor.set_helper(Some(InputBlocker));
@@ -50,6 +51,10 @@ impl Output {
             rate: RATE,
             spinner: Box::new(['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾']),
         })
+    }
+
+    pub fn prompt(&mut self) -> Result<String> {
+        self.readline(">> ").map_err(Error::from)
     }
 
     pub async fn write(&mut self, text: &str) -> Result<()> {

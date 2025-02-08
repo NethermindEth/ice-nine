@@ -1,6 +1,4 @@
 mod app;
-mod input;
-mod output;
-mod queue;
+mod console;
 
 pub use app::StdioApp;
