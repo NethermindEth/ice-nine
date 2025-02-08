@@ -4,12 +4,13 @@ use crate::tracers::tree::Tree;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
-    Address, Agent, AgentSession, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent,
-    Standalone, StopAddress,
+    Address, Agent, Context, DoAsync, ManagedContext, Next, OnEvent, RunAgent, Standalone,
+    StopAddress,
 };
 use crb::runtime::{InteractiveRuntime, Runtime};
 use crb::superagent::{
-    EventBridge, InteractExt, OnRequest, Relation, Request, Supervisor, SupervisorSession,
+    EventBridge, InteractExt, OnRequest, Relation, Request, StreamSession, Supervisor,
+    SupervisorSession,
 };
 use derive_more::{Deref, DerefMut, From};
 use std::collections::HashMap;
@@ -79,7 +80,7 @@ pub enum Group {
 }
 
 impl Supervisor for HubServer {
-    type BasedOn = AgentSession<Self>;
+    type BasedOn = StreamSession<Self>;
     type GroupBy = Group;
 
     fn finished(&mut self, rel: &Relation<Self>, _ctx: &mut Context<Self>) {
@@ -111,7 +112,7 @@ struct Initialize;
 impl DoAsync<Initialize> for HubServer {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         log::debug!("HubServer starting...");
-        PUB_BRIDGE.subscribe(&ctx);
+        ctx.consume(PUB_BRIDGE.events().await?);
         self.tree = Some(Pub::unified());
         log::debug!("HubServer active");
 

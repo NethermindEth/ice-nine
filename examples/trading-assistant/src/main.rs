@@ -14,10 +14,11 @@ async fn main() -> Result<()> {
     Mesh::activate().await?;
     let mut substance = Substance::arise();
     substance.add_particle::<OpenAIParticle>()?;
-    // substance.add_particle::<AnthropicParticle>()?;
     substance.add_particle::<DyDxParticle>()?;
     substance.add_particle::<ChatParticle>()?;
     substance.add_particle::<StdioApp>()?;
+
+    // substance.add_particle::<AnthropicParticle>()?;
 
     // substance.add_particle::<TelegramParticle>()?;
     // Stdio is not compatible with tracing and will be replaced with DUI

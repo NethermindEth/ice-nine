@@ -2,23 +2,12 @@ use crate::tracers::live::{Live, LiveAction};
 use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent};
-use crb::superagent::StreamSession;
-use derive_more::{Deref, DerefMut, From};
+use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::superagent::{EventBridge, StreamSession};
+use derive_more::From;
+use std::sync::LazyLock;
 
-#[derive(Deref, DerefMut, From)]
-pub struct ReporterLink {
-    address: Address<Reporter>,
-}
-
-impl ReporterLink {
-    pub fn log(&self, msg: &str) -> Result<()> {
-        let event = Act {
-            action: LiveAction::from(msg),
-        };
-        self.address.event(event)
-    }
-}
+static LOG_BRIDGE: LazyLock<EventBridge<Act<Live>>> = LazyLock::new(|| EventBridge::new());
 
 pub struct Reporter {
     live: Pub<Live>,
@@ -29,6 +18,13 @@ impl Reporter {
         Self {
             live: Pub::unified(),
         }
+    }
+
+    pub fn log(msg: &str) {
+        let event = Act {
+            action: LiveAction::from(msg),
+        };
+        LOG_BRIDGE.send(event);
     }
 }
 
@@ -45,6 +41,7 @@ struct Initialize;
 #[async_trait]
 impl DoAsync<Initialize> for Reporter {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        ctx.consume(LOG_BRIDGE.events().await?);
         ctx.consume(self.live.actions()?);
         Ok(Next::events())
     }

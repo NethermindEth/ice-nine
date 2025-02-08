@@ -1,5 +1,5 @@
 use crate::publisher::{HubServer, HubServerLink};
-use crate::reporter::{Reporter, ReporterLink};
+use crate::reporter::Reporter;
 use crate::subscriber::{HubClient, HubClientLink};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
@@ -15,12 +15,15 @@ pub struct HubLink {
     pub hub: Address<Hub>,
     pub server: HubServerLink,
     pub client: HubClientLink,
-    pub reporter: ReporterLink,
 }
 
 pub struct Hub {}
 
 impl Hub {
+    pub fn log(msg: &str) {
+        Reporter::log(msg)
+    }
+
     pub fn link() -> Result<&'static HubLink> {
         HUB.get().ok_or_else(|| anyhow!("Hub is not assigned"))
     }
@@ -81,13 +84,12 @@ impl DoAsync<Initialize> for Hub {
         let client = stacker.schedule(client, Group::Client);
 
         let reporter = Reporter::new();
-        let reporter = stacker.schedule(reporter, Group::Reporter);
+        stacker.schedule(reporter, Group::Reporter);
 
         let link = HubLink {
             hub: ctx.to_address(),
             server: server.equip(),
             client: client.equip(),
-            reporter: reporter.equip(),
         };
         HUB.set(link)
             .map_err(|_| anyhow!("Hub is already activated"))?;

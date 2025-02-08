@@ -3,11 +3,9 @@ use crate::flow::Flow;
 use crate::relay::RemotePlayer;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{
-    Address, Agent, AgentSession, Context, DoAsync, Next, OnEvent, RunAgent, StopRecipient,
-};
+use crb::agent::{Address, Agent, Context, DoAsync, Next, OnEvent, RunAgent, StopRecipient};
 use crb::runtime::{InteractiveRuntime, Runtime};
-use crb::superagent::{EventBridge, Supervisor, SupervisorSession};
+use crb::superagent::{EventBridge, StreamSession, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From};
 use libp2p::PeerId;
 use std::sync::LazyLock;
@@ -56,7 +54,7 @@ impl HubClient {
 }
 
 impl Supervisor for HubClient {
-    type BasedOn = AgentSession<Self>;
+    type BasedOn = StreamSession<Self>;
     type GroupBy = ();
 }
 
@@ -74,7 +72,7 @@ struct Initialize;
 impl DoAsync<Initialize> for HubClient {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         log::debug!("HubClient starting...");
-        SUB_BRIDGE.subscribe(&ctx);
+        ctx.consume(SUB_BRIDGE.events().await?);
         log::debug!("HubClient active");
         Ok(Next::events())
     }
