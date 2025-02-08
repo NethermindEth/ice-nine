@@ -99,7 +99,7 @@ where
     E: Msg + From<SubEvent<F>>,
     F: Flow,
 {
-    async fn handle(&mut self, event: SubEvent<F>, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: SubEvent<F>, _ctx: &mut Context<Self>) -> Result<()> {
         self.ui_events_tx
             .send(event.into())
             .map_err(|_| anyhow!("Can't forward an event to UI."))?;

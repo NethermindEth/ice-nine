@@ -52,7 +52,7 @@ impl DoAsync<Initialize> for Reporter {
 
 #[async_trait]
 impl OnEvent<Act<Live>> for Reporter {
-    async fn handle(&mut self, msg: Act<Live>, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, msg: Act<Live>, _ctx: &mut Context<Self>) -> Result<()> {
         self.live.event(msg.action.into());
         Ok(())
     }

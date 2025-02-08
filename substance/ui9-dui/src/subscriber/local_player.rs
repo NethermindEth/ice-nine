@@ -5,15 +5,13 @@ use crate::publisher::{EventFlow, RecorderLink};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
-use crb::core::{watch, Slot};
+use crb::core::Slot;
 use crb::superagent::Entry;
 
 pub struct LocalPlayer<F: Flow> {
     state: PlayerState<F>,
     recorder: Slot<RecorderLink>,
     entry: Slot<Entry<EventFlow>>,
-    // TODO: Consider to move to PlayerState
-    state_tx: Option<watch::Sender<F>>,
 }
 
 impl<F: Flow> LocalPlayer<F> {
@@ -22,7 +20,6 @@ impl<F: Flow> LocalPlayer<F> {
             state,
             recorder: Slot::empty(),
             entry: Slot::empty(),
-            state_tx: None,
         }
     }
 }

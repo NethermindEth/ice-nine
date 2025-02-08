@@ -5,7 +5,7 @@ use colored::Colorize;
 use crb::agent::{Agent, Context, DoAsync, DoSync, ManagedContext, Next, OnEvent};
 use crb::core::time::{sleep, Duration};
 use crb::core::Slot;
-use crb::superagent::{Drainer, Interval, StreamSession, Tick};
+use crb::superagent::{Interval, StreamSession, Tick};
 use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use std::collections::VecDeque;
@@ -149,13 +149,13 @@ impl DoAsync<Terminate> for StdioApp {
 
 #[async_trait]
 impl OnEvent<SubEvent<Chat>> for StdioApp {
-    async fn handle(&mut self, event: SubEvent<Chat>, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: SubEvent<Chat>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
                 self.add_message("Chat state has loaded");
                 {
                     let state_ref = state.borrow();
-                    for message in &state_ref.messages {}
+                    for _message in &state_ref.messages {}
                 }
                 self.state = Some(state);
             }
@@ -183,7 +183,7 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
 
 #[async_trait]
 impl OnEvent<SubEvent<Live>> for StdioApp {
-    async fn handle(&mut self, event: SubEvent<Live>, ctx: &mut Context<Self>) -> Result<()> {
+    async fn handle(&mut self, event: SubEvent<Live>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
                 for message in state.borrow().messages.iter() {

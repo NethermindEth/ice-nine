@@ -12,7 +12,6 @@ use crb::agent::{
 use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From, Into};
-use std::any::type_name;
 use std::marker::PhantomData;
 use ui9_dui::Hub;
 

@@ -1,10 +1,8 @@
 use anyhow::{Error, Result};
 use colored::Colorize;
 use crb::core::time::Instant;
-use crossterm::{cursor, execute};
 use derive_more::{Deref, DerefMut};
 use rustyline::{
-    error::ReadlineError,
     history::DefaultHistory,
     validate::{ValidationContext, ValidationResult, Validator},
     Completer, Editor, Helper, Highlighter, Hinter,

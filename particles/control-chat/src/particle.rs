@@ -62,7 +62,7 @@ struct Ask {
 
 #[async_trait]
 impl DoAsync<Ask> for ChatParticle {
-    async fn handle(&mut self, msg: Ask, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, msg: Ask, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
         let req = self.substance.router.chat(request);

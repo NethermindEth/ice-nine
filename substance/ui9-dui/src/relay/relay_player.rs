@@ -10,7 +10,6 @@ use crb::core::Slot;
 use crb::superagent::{Entry, Supervisor, SupervisorSession};
 use futures::SinkExt;
 use libp2p::Stream;
-use ui9::names::Fqn;
 
 pub struct RelayPlayer {
     // State 1
@@ -20,7 +19,6 @@ pub struct RelayPlayer {
     writer: Slot<MessageSink>,
 
     // State 3
-    fqn: Option<Fqn>,
     entry: Slot<Entry<EventFlow>>,
     recorder: Slot<RecorderLink>,
 }
@@ -30,7 +28,6 @@ impl RelayPlayer {
         Self {
             stream: Slot::filled(stream),
             writer: Slot::empty(),
-            fqn: None,
             entry: Slot::empty(),
             recorder: Slot::empty(),
         }
