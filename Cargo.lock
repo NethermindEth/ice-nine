@@ -3499,7 +3499,7 @@ dependencies = [
  "ice9-core",
  "serde",
  "ui9",
- "ui9-tracers",
+ "ui9-dui",
 ]
 
 [[package]]
