@@ -59,7 +59,19 @@ impl DoAsync<Initialize> for StdioApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         self.console.fill(Console::new()?)?;
         let console = self.console.get_mut()?;
-        console.writeln(&"Nine".blue().to_string()).await?;
+        console.write(&"Nine".blue().bold().to_string()).await?;
+        console
+            .write(
+                &" | Nethermind Intelligent Nodes Environment"
+                    .blue()
+                    .to_string(),
+            )
+            .await?;
+        let version = format!(" | version {}", env!("CARGO_PKG_VERSION"))
+            .yellow()
+            .to_string();
+        console.writeln(&version).await?;
+
         self.add_message("Loading the state...");
         self.interval.set_interval_ms(200)?;
         ctx.consume(self.interval.events()?);
@@ -80,6 +92,8 @@ impl DoAsync<News> for StdioApp {
             sleep(Duration::from_millis(400)).await;
             Ok(None)
         } else {
+            // Remove the progress info completely
+            // and prepare to interactions
             console.clear_line().await?;
             if self.waiting {
                 Ok(Some(Next::events()))
@@ -124,7 +138,6 @@ struct Terminate;
 impl DoAsync<Terminate> for StdioApp {
     async fn handle(&mut self, _: Terminate, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let console = self.console.get_mut()?;
-        console.clear_line().await?;
         console.writeln("Closing the session 🙌").await?;
         // To avoid entering the prompt state
         self.waiting = true;

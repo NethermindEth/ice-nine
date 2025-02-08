@@ -75,6 +75,7 @@ impl Console {
         self.writeln(&rendered).await
     }
 
+    /*
     pub async fn move_up(&mut self) -> Result<()> {
         let mut buffer = Vec::new();
         execute!(&mut buffer, cursor::MoveUp(1),)?;
@@ -82,6 +83,7 @@ impl Console {
         self.stdout.flush().await?;
         Ok(())
     }
+    */
 
     pub async fn clear_line(&mut self) -> Result<()> {
         self.stdout.write_all(b"\r\x1B[2K").await?;
