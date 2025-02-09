@@ -15,8 +15,8 @@ use std::time::Duration;
 use tokio::fs;
 use toml::{Table, Value};
 
-const CONFIG_NAME: &str = "ice9.toml";
-const TEMPLATE_NAME: &str = "ice9.example.toml";
+const CONFIG_NAME: &str = "nine.toml";
+const TEMPLATE_NAME: &str = "nine.example.toml";
 
 pub struct ConfigLayer {
     path: Arc<PathBuf>,
@@ -158,16 +158,16 @@ struct Initialize;
 #[async_trait]
 impl DoAsync<Initialize> for ConfigLoader {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        // Global config layer: ~/.config/ice9.toml
+        // Global config layer: ~/.config/nine.toml
         let config_dir = dirs::home_dir()
             .ok_or_else(|| anyhow!("Config dir is not provided."))?
             .join(".config")
-            .join("ice9");
+            .join("nine");
         fs::create_dir_all(&config_dir).await?;
         let global_config = config_dir.join(CONFIG_NAME);
         self.add_layer(global_config, ctx).await?;
 
-        // Local config layer: $PWD/ice9.toml
+        // Local config layer: $PWD/nine.toml
         let local_config = CONFIG_NAME.into();
         self.add_layer(local_config, ctx).await?;
 

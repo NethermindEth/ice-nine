@@ -2,5 +2,5 @@ target
 .cargo
 .env
 .idea
-ice9.toml
-ice9.example.toml
+nine.toml
+nine.example.toml
