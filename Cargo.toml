@@ -32,7 +32,7 @@ env_logger = "0.11.6"
 envy = "0.4.2"
 futures = "0.3.31"
 n9-core = { version = "0.0.1", path = "substance/n9-core" }
-ice9-std = { version = "0.0.1", path = "substance/std" }
+n9-std = { version = "0.0.1", path = "substance/n9-std" }
 libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise", "plaintext", "serde", "tcp", "tokio", "quic", "yamux"] }
 libp2p-stream = "0.3.0-alpha"
 futures-bounded = "0.2.4"

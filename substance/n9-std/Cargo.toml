@@ -1,5 +1,5 @@
 [package]
-name = "ice9-std"
+name = "n9-std"
 description = "Integration with the standard OS environment: files, sockets"
 version.workspace = true
 edition.workspace = true

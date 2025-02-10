@@ -3444,21 +3444,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice9-std"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "dirs",
- "log",
- "notify",
- "tokio",
- "toml",
-]
-
-[[package]]
 name = "ics23"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4706,8 +4691,8 @@ dependencies = [
  "derive_more 1.0.0",
  "dotenvy",
  "envy",
- "ice9-std",
  "log",
+ "n9-std",
  "serde",
  "serde_json",
  "toml",
@@ -4716,6 +4701,21 @@ dependencies = [
  "ui9",
  "ui9-dui",
  "ui9-tracers",
+]
+
+[[package]]
+name = "n9-std"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "dirs",
+ "log",
+ "notify",
+ "tokio",
+ "toml",
 ]
 
 [[package]]
