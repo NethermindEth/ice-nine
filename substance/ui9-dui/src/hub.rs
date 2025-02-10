@@ -20,10 +20,6 @@ pub struct HubLink {
 pub struct Hub {}
 
 impl Hub {
-    pub fn log(msg: &str) {
-        Reporter::log(msg)
-    }
-
     pub fn link() -> Result<&'static HubLink> {
         HUB.get().ok_or_else(|| anyhow!("Hub is not assigned"))
     }

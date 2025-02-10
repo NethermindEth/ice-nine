@@ -127,7 +127,7 @@ where
         let setup = self.get_setup()?;
         let agent = P::construct(setup);
         let _addr = ctx.spawn_agent(agent, Group::Particles);
-        Hub::log(&format!("Particle ***{name}*** is added"));
+        // Hub::log(&format!("Particle ***{name}*** is added"));
         Ok(())
     }
 }

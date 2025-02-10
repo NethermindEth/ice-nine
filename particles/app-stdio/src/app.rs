@@ -9,7 +9,7 @@ use crb::superagent::{Interval, StreamSession, Tick};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use n9_core::{Particle, SubstanceLinks};
 use std::collections::VecDeque;
-use ui9_dui::tracers::live::Live;
+use ui9_dui::tracers::live::{Live, LiveData};
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
@@ -190,10 +190,12 @@ impl OnEvent<SubEvent<Live>> for StdioApp {
                     self.add_message(message);
                 }
             }
-            SubEvent::Event(event) => {
-                let message = String::from(event);
-                self.add_message(&message);
-            }
+            SubEvent::Event(event) => match event {
+                LiveData::Message(msg) => {
+                    self.add_message(&msg);
+                }
+                _ => {}
+            },
             SubEvent::Lost => {}
         }
         Ok(())

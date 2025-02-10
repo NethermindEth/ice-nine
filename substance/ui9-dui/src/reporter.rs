@@ -1,13 +1,50 @@
-use crate::tracers::live::{Live, LiveAction};
+use crate::tracers::live::{Live, LiveData, OperationId};
 use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{EventBridge, StreamSession};
-use derive_more::From;
 use std::sync::LazyLock;
 
 static LOG_BRIDGE: LazyLock<EventBridge<Act<Live>>> = LazyLock::new(|| EventBridge::new());
+
+pub struct Operation {
+    id: OperationId,
+}
+
+impl Drop for Operation {
+    fn drop(&mut self) {
+        self.end_operation();
+    }
+}
+
+impl Operation {
+    pub fn new(task: &str) -> Self {
+        let id = OperationId::new();
+        let mut this = Self { id };
+        this.act(LiveData::Begin {
+            id,
+            task: task.into(),
+        });
+        this
+    }
+
+    pub fn failure(&mut self, reason: &str) {
+        self.act(LiveData::Failure {
+            id: self.id,
+            reason: reason.into(),
+        });
+    }
+
+    fn end_operation(&mut self) {
+        self.act(LiveData::End { id: self.id });
+    }
+
+    fn act(&mut self, action: LiveData) {
+        let event = Act { action };
+        LOG_BRIDGE.send(event);
+    }
+}
 
 pub struct Reporter {
     live: Pub<Live>,
@@ -20,12 +57,14 @@ impl Reporter {
         }
     }
 
+    /*
     pub fn log(msg: &str) {
         let event = Act {
-            action: LiveAction::from(msg),
+            action: LiveData::Message(msg.into()),
         };
         LOG_BRIDGE.send(event);
     }
+    */
 }
 
 impl Agent for Reporter {
@@ -50,7 +89,7 @@ impl DoAsync<Initialize> for Reporter {
 #[async_trait]
 impl OnEvent<Act<Live>> for Reporter {
     async fn handle(&mut self, msg: Act<Live>, _ctx: &mut Context<Self>) -> Result<()> {
-        self.live.event(msg.action.into());
+        self.live.event(msg.action);
         Ok(())
     }
 }

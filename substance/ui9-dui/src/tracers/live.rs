@@ -33,17 +33,6 @@ impl Unified for Live {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct OperationId {
-    id: Ulid,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OperationRecord {
-    pub task: String,
-    pub failures: Vec<String>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Live {
     pub operations: BTreeMap<OperationId, OperationRecord>,
@@ -60,48 +49,57 @@ impl Default for Live {
 }
 
 impl Flow for Live {
-    type Event = LiveEvent;
-    type Action = LiveAction;
+    type Event = LiveData;
+    type Action = LiveData;
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            LiveEvent::Message(message) => {
+            LiveData::Message(message) => {
                 self.messages.push_back(message);
                 if self.messages.len() > LIMIT {
                     self.messages.pop_front();
                 }
+            }
+            LiveData::Begin { id, task } => {
+                let record = OperationRecord {
+                    task: task.into(),
+                    failures: Vec::new(),
+                };
+                self.operations.insert(id, record);
+            }
+            LiveData::Failure { id, reason } => {
+                if let Some(record) = self.operations.get_mut(&id) {
+                    record.failures.push(reason);
+                }
+            }
+            LiveData::End { id } => {
+                self.operations.remove(&id);
             }
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LiveEvent {
+pub enum LiveData {
     Message(String),
+    Begin { id: OperationId, task: String },
+    Failure { id: OperationId, reason: String },
+    End { id: OperationId },
 }
 
-impl From<LiveAction> for LiveEvent {
-    fn from(action: LiveAction) -> Self {
-        match action {
-            LiveAction::Message(message) => Self::Message(message),
-        }
-    }
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct OperationId {
+    id: Ulid,
 }
 
-impl From<LiveEvent> for String {
-    fn from(event: LiveEvent) -> Self {
-        let LiveEvent::Message(message) = event;
-        message
+impl OperationId {
+    pub fn new() -> Self {
+        Self { id: Ulid::new() }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LiveAction {
-    Message(String),
-}
-
-impl From<&str> for LiveAction {
-    fn from(message: &str) -> Self {
-        Self::Message(message.into())
-    }
+pub struct OperationRecord {
+    pub task: String,
+    pub failures: Vec<String>,
 }

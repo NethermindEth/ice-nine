@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{StreamSession, Supervisor};
 use n9_core::{ChatRequest, Particle, SubstanceLinks};
-use ui9_dui::{Act, Hub, Pub};
+use ui9_dui::{Act, Hub, Operation, Pub};
 
 pub struct ChatParticle {
     substance: SubstanceLinks,
@@ -63,15 +63,19 @@ struct Ask {
 #[async_trait]
 impl DoAsync<Ask> for ChatParticle {
     async fn handle(&mut self, msg: Ask, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        Hub::log(&format!("Sending a prompt"));
+        let op = Operation::new("Sending a prompt");
         self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
         let req = self.substance.router.chat(request);
         self.chat.add(msg.question, Role::Request);
-        Hub::log(&format!("Waiting for the response"));
+        drop(op);
+
+        let op = Operation::new("Waiting for the response");
         let resp = req.await?.squash();
         self.chat.add(resp, Role::Response);
         self.chat.thinking(false);
+        drop(op);
+
         Ok(Next::events())
     }
 }

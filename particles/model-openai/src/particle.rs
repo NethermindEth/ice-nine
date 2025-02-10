@@ -10,7 +10,7 @@ use n9_core::{
     ConfigSegmentUpdates, Model, Particle, SubstanceBond, SubstanceLinks, ToolingChatRequest,
     ToolingChatResponse, UpdateConfig,
 };
-use ui9_dui::Hub;
+use ui9_dui::{Hub, Operation};
 
 pub struct OpenAIParticle {
     substance: SubstanceLinks,
@@ -69,10 +69,10 @@ impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
             self.client.take()?;
         }
 
-        Hub::log(&format!("Configuring OpenAI"));
+        let op = Operation::new("Configuring OpenAI");
         let client = Client::with_config(config.extract());
         let _models = client.models().list().await?; // An alternative to ping
-        Hub::log(&format!("OpenAI is active"));
+        drop(op);
         self.client.fill(client)?;
         Ok(())
     }
