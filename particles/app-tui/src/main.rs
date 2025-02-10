@@ -1,6 +1,6 @@
 use anyhow::Result;
 use crb::agent::{InteractiveTask, Runnable};
-use ice9_maker_tui::AppTui;
+use n9_app_tui::AppTui;
 use ui9_maker::App;
 use ui9_mesh::Mesh;
 
