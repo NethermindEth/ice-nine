@@ -3356,61 +3356,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ice-nine-plugin-chat-telegram"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "n9-core",
- "serde",
- "teloxide-core",
-]
-
-[[package]]
-name = "ice-nine-plugin-exchange-dydx"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "dydx",
- "n9-core",
- "serde",
-]
-
-[[package]]
-name = "ice-nine-plugin-model-anthropic"
-version = "0.0.1"
-dependencies = [
- "anthropic-sdk",
- "anyhow",
- "async-trait",
- "crb",
- "dotenvy",
- "n9-core",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "ice-nine-plugin-model-openai"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-openai",
- "async-trait",
- "crb",
- "n9-core",
- "serde",
- "ui9",
- "ui9-dui",
-]
-
-[[package]]
 name = "ice9-maker-gui"
 version = "0.0.1"
 dependencies = [
@@ -4668,6 +4613,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "n9-chat-telegram"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "n9-core",
+ "serde",
+ "teloxide-core",
+]
+
+[[package]]
 name = "n9-control-chat"
 version = "0.0.1"
 dependencies = [
@@ -4701,6 +4659,48 @@ dependencies = [
  "ui9",
  "ui9-dui",
  "ui9-tracers",
+]
+
+[[package]]
+name = "n9-exchange-dydx"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "dydx",
+ "n9-core",
+ "serde",
+]
+
+[[package]]
+name = "n9-model-anthropic"
+version = "0.0.1"
+dependencies = [
+ "anthropic-sdk",
+ "anyhow",
+ "async-trait",
+ "crb",
+ "dotenvy",
+ "n9-core",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "n9-model-openai"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-openai",
+ "async-trait",
+ "crb",
+ "n9-core",
+ "serde",
+ "ui9",
+ "ui9-dui",
 ]
 
 [[package]]
@@ -7630,13 +7630,13 @@ dependencies = [
  "crb",
  "crb-system",
  "env_logger",
- "ice-nine-plugin-chat-telegram",
- "ice-nine-plugin-exchange-dydx",
- "ice-nine-plugin-model-anthropic",
- "ice-nine-plugin-model-openai",
  "n9-app-stdio",
+ "n9-chat-telegram",
  "n9-control-chat",
  "n9-core",
+ "n9-exchange-dydx",
+ "n9-model-anthropic",
+ "n9-model-openai",
  "tokio",
  "ui9-dui",
  "ui9-mesh",

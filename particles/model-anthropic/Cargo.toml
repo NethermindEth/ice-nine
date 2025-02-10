@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-model-anthropic"
+name = "n9-model-anthropic"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

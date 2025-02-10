@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-chat-telegram"
+name = "n9-chat-telegram"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

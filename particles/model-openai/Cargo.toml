@@ -1,5 +1,5 @@
 [package]
-name = "ice-nine-plugin-model-openai"
+name = "n9-model-openai"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

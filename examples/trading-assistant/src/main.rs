@@ -1,11 +1,11 @@
 use anyhow::Result;
 use n9_core::Substance;
-// use ice_nine_plugin_chat_telegram::TelegramParticle;
-use ice_nine_plugin_exchange_dydx::DyDxParticle;
-// use ice_nine_plugin_model_anthropic::AnthropicParticle;
-use ice_nine_plugin_model_openai::OpenAIParticle;
+// use n9_chat_telegram::TelegramParticle;
+use n9_exchange_dydx::DyDxParticle;
+// use n9_model_anthropic::AnthropicParticle;
 use n9_app_stdio::StdioApp;
 use n9_control_chat::ChatParticle;
+use n9_model_openai::OpenAIParticle;
 use ui9_mesh::Mesh;
 
 #[tokio::main]
