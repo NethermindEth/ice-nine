@@ -9,4 +9,6 @@ rust-version.workspace = true
 keywords.workspace = true
 
 [dependencies]
-crb = "0.0.28"
+anyhow.workspace = true
+clap.workspace = true
+crb.workspace = true
