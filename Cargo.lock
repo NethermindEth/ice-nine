@@ -1725,7 +1725,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1145d32e826a7748b69ee8fc62d3e6355ff7f1051df53141e7048162fc90481b"
 dependencies = [
  "data-encoding",
- "syn 1.0.109",
+ "syn 2.0.98",
 ]
 
 [[package]]
@@ -7775,6 +7775,7 @@ dependencies = [
  "typed-slab",
  "ui9",
  "ui9-codec",
+ "ulid",
 ]
 
 [[package]]
@@ -7820,6 +7821,17 @@ dependencies = [
  "crunchy",
  "hex",
  "static_assertions",
+]
+
+[[package]]
+name = "ulid"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ab82fc73182c29b02e2926a6df32f2241dbadb5cfc111fd595515b3598f46bb3"
+dependencies = [
+ "rand 0.9.0",
+ "serde",
+ "web-time",
 ]
 
 [[package]]

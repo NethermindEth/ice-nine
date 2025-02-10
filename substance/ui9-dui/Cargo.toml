@@ -24,3 +24,4 @@ tokio-util = { version = "0.7.13", features = ["codec", "compat"] }
 typed-slab.workspace = true
 ui9.workspace = true
 ui9-codec.workspace = true
+ulid = { version = "1.2.0", features = ["serde"] }

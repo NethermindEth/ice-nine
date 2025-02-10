@@ -3,8 +3,9 @@ use crate::publisher::{Publisher, Tracer};
 use crate::subscriber::{Listener, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
-use std::collections::VecDeque;
+use std::collections::{BTreeMap, VecDeque};
 use ui9::names::Fqn;
+use ulid::Ulid;
 
 static LIMIT: usize = 10;
 
@@ -32,14 +33,27 @@ impl Unified for Live {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct OperationId {
+    id: Ulid,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperationRecord {
+    pub task: String,
+    pub failures: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Live {
+    pub operations: BTreeMap<OperationId, OperationRecord>,
     pub messages: VecDeque<String>,
 }
 
 impl Default for Live {
     fn default() -> Self {
         Self {
+            operations: BTreeMap::new(),
             messages: VecDeque::with_capacity(LIMIT + 1),
         }
     }
@@ -50,42 +64,44 @@ impl Flow for Live {
     type Action = LiveAction;
 
     fn apply(&mut self, event: Self::Event) {
-        let LiveData::Message { message } = event.0;
-        self.messages.push_back(message);
-        if self.messages.len() > LIMIT {
-            self.messages.pop_front();
+        match event {
+            LiveEvent::Message(message) => {
+                self.messages.push_back(message);
+                if self.messages.len() > LIMIT {
+                    self.messages.pop_front();
+                }
+            }
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveEvent(pub LiveData);
+pub enum LiveEvent {
+    Message(String),
+}
 
 impl From<LiveAction> for LiveEvent {
     fn from(action: LiveAction) -> Self {
-        Self(action.0)
+        match action {
+            LiveAction::Message(message) => Self::Message(message),
+        }
     }
 }
 
 impl From<LiveEvent> for String {
     fn from(event: LiveEvent) -> Self {
-        let LiveData::Message { message } = event.0;
+        let LiveEvent::Message(message) = event;
         message
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LiveAction(pub LiveData);
+pub enum LiveAction {
+    Message(String),
+}
 
 impl From<&str> for LiveAction {
     fn from(message: &str) -> Self {
-        Self(LiveData::Message {
-            message: message.into(),
-        })
+        Self::Message(message.into())
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LiveData {
-    Message { message: String },
 }
