@@ -1,0 +1,6 @@
+[book]
+authors = ["Denis Kolodin"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Nine"
