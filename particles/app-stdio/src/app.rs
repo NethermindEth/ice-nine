@@ -6,8 +6,8 @@ use crb::agent::{Agent, Context, DoAsync, DoSync, ManagedContext, Next, OnEvent}
 use crb::core::time::{sleep, Duration};
 use crb::core::Slot;
 use crb::superagent::{Interval, StreamSession, Tick};
-use ice9_core::{Particle, SubstanceLinks};
 use n9_control_chat::{Chat, ChatEvent, Role};
+use n9_core::{Particle, SubstanceLinks};
 use std::collections::VecDeque;
 use ui9_dui::tracers::live::Live;
 use ui9_dui::{State, Sub, SubEvent};

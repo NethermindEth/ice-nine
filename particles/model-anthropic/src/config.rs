@@ -1,6 +1,6 @@
 use anthropic_sdk::Client;
 use dotenvy::dotenv;
-use ice9_core::Config;
+use n9_core::Config;
 use serde::{Deserialize, Serialize};
 use std::env;
 

@@ -6,10 +6,10 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+async-openai = "0.26.0"
 async-trait.workspace = true
 crb.workspace = true
-ice9-core.workspace = true
+n9-core.workspace = true
 serde.workspace = true
-async-openai = "0.26.0"
 ui9.workspace = true
 ui9-dui.workspace = true

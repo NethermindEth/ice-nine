@@ -1,4 +1,4 @@
-use ice9_core::{Message as ModelMessage, Role as ModelRole};
+use n9_core::{Message as ModelMessage, Role as ModelRole};
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "lowercase")]

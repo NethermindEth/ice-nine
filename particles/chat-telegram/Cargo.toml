@@ -9,6 +9,6 @@ anyhow.workspace = true
 async-trait.workspace = true
 crb.workspace = true
 derive_more.workspace = true
-ice9-core.workspace = true
+n9-core.workspace = true
 serde.workspace = true
 teloxide-core = "0.10.1"

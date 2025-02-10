@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next};
 use crb::core::Slot;
 use crb::superagent::{Entry, OnRequest};
-use ice9_core::{
+use n9_core::{
     ConfigSegmentUpdates, Model, Particle, SubstanceBond, SubstanceLinks, ToolingChatRequest,
     ToolingChatResponse, UpdateConfig,
 };

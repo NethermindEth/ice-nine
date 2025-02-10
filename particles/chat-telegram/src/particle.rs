@@ -8,7 +8,7 @@ use crb::core::Slot;
 use crb::superagent::{
     Entry, Interval, OnResponse, Output, StreamSession, Supervisor, SupervisorSession, Tick,
 };
-use ice9_core::{
+use n9_core::{
     ChatRequest, ChatResponse, ConfigSegmentUpdates, Particle, SubstanceBond, SubstanceLinks,
     UpdateConfig,
 };

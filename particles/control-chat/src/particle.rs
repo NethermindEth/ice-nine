@@ -3,7 +3,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{StreamSession, Supervisor};
-use ice9_core::{ChatRequest, Particle, SubstanceLinks};
+use n9_core::{ChatRequest, Particle, SubstanceLinks};
 use ui9_dui::{Act, Hub, Pub};
 
 pub struct ChatParticle {

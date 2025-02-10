@@ -1,6 +1,6 @@
 [package]
-name = "ice9-core"
-description = "Ice-Nine core"
+name = "n9-core"
+description = "Nine Core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

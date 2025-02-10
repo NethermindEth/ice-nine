@@ -1,5 +1,5 @@
 use async_openai::types::*;
-use ice9_core::{Message as ModelMessage, Role as ModelRole};
+use n9_core::{Message as ModelMessage, Role as ModelRole};
 
 pub fn message(from: ModelMessage) -> ChatCompletionRequestMessage {
     match from.role {

@@ -3363,7 +3363,7 @@ dependencies = [
  "async-trait",
  "crb",
  "derive_more 1.0.0",
- "ice9-core",
+ "n9-core",
  "serde",
  "teloxide-core",
 ]
@@ -3377,7 +3377,7 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "dydx",
- "ice9-core",
+ "n9-core",
  "serde",
 ]
 
@@ -3390,7 +3390,7 @@ dependencies = [
  "async-trait",
  "crb",
  "dotenvy",
- "ice9-core",
+ "n9-core",
  "serde",
  "serde_json",
  "tokio",
@@ -3404,41 +3404,10 @@ dependencies = [
  "async-openai",
  "async-trait",
  "crb",
- "ice9-core",
+ "n9-core",
  "serde",
  "ui9",
  "ui9-dui",
-]
-
-[[package]]
-name = "ice9"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "clap",
- "ice9-core",
-]
-
-[[package]]
-name = "ice9-core"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "async-trait",
- "crb",
- "derive_more 1.0.0",
- "dotenvy",
- "envy",
- "ice9-std",
- "log",
- "serde",
- "serde_json",
- "toml",
- "typed-slab",
- "typedmap",
- "ui9",
- "ui9-dui",
- "ui9-tracers",
 ]
 
 [[package]]
@@ -4703,8 +4672,8 @@ dependencies = [
  "crossterm",
  "derive_more 1.0.0",
  "futures",
- "ice9-core",
  "n9-control-chat",
+ "n9-core",
  "rustyline",
  "termimad",
  "tokio",
@@ -4721,10 +4690,32 @@ dependencies = [
  "async-trait",
  "crb",
  "derive_more 1.0.0",
- "ice9-core",
+ "n9-core",
  "serde",
  "ui9",
  "ui9-dui",
+]
+
+[[package]]
+name = "n9-core"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "crb",
+ "derive_more 1.0.0",
+ "dotenvy",
+ "envy",
+ "ice9-std",
+ "log",
+ "serde",
+ "serde_json",
+ "toml",
+ "typed-slab",
+ "typedmap",
+ "ui9",
+ "ui9-dui",
+ "ui9-tracers",
 ]
 
 [[package]]
@@ -7643,9 +7634,9 @@ dependencies = [
  "ice-nine-plugin-exchange-dydx",
  "ice-nine-plugin-model-anthropic",
  "ice-nine-plugin-model-openai",
- "ice9-core",
  "n9-app-stdio",
  "n9-control-chat",
+ "n9-core",
  "tokio",
  "ui9-dui",
  "ui9-mesh",

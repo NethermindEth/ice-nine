@@ -1,5 +1,5 @@
 use async_openai::{config::OpenAIConfig as RawConfig, Client as OpenAIClient};
-use ice9_core::Config;
+use n9_core::Config;
 use serde::{Deserialize, Serialize};
 
 pub type Client = OpenAIClient<RawConfig>;
