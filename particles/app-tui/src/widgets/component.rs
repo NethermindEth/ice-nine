@@ -21,25 +21,23 @@ impl AsRef<str> for Reason {
     }
 }
 
-pub trait Component {
+pub trait Component: Sized {
     fn title(&self) -> Option<&str> {
         None
     }
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason>;
-}
 
-pub struct SmartWidget<'a, C: Component> {
-    widget: &'a C,
-}
-
-impl<'a, C: Component> SmartWidget<'a, C> {
-    pub fn new(widget: &'a C) -> Self {
-        Self { widget }
+    fn widget(&self) -> ComponentWidget<'_, Self> {
+        ComponentWidget { widget: self }
     }
 }
 
-impl<'a, C: Component> SmartWidget<'a, C> {
+pub struct ComponentWidget<'a, C: Component> {
+    widget: &'a C,
+}
+
+impl<'a, C: Component> ComponentWidget<'a, C> {
     fn render_loading(&self, area: Rect, buf: &mut Buffer, spinner: &str) {
         // Create a paragraph with the spinner animation
         let loading_text = Paragraph::new(spinner)
@@ -55,7 +53,7 @@ impl<'a, C: Component> SmartWidget<'a, C> {
     }
 }
 
-impl<'a, C: Component> Widget for SmartWidget<'a, C> {
+impl<'a, C: Component> Widget for ComponentWidget<'a, C> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let title = self.widget.title().unwrap_or("");
         // Create a block with borders

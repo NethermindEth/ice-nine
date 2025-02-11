@@ -1,4 +1,4 @@
-use crate::widgets::{PeerList, SmartWidget};
+use crate::widgets::{Component, PeerList};
 use ratatui::prelude::{Constraint, Direction, Layout};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Frame;
@@ -35,7 +35,7 @@ impl AppState {
         f.render_widget(left_text, chunks[0]);
 
         // Right column: List of peers
-        let widget = SmartWidget::new(&self.peers);
+        let widget = self.peers.widget();
         f.render_widget(widget, chunks[1]);
     }
 }
