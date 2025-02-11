@@ -10,6 +10,39 @@ use derive_more::{Deref, DerefMut, From};
 use libp2p::PeerId;
 use std::sync::LazyLock;
 
+pub trait PlayerGenerator {
+    fn new_player<F: Flow>(
+        &self,
+        peer_id: Option<PeerId>,
+        state: PlayerState<F>,
+    ) -> (Box<dyn Runtime>, StopRecipient<Act<F>>);
+}
+
+struct LocalGenerator;
+
+impl PlayerGenerator for LocalGenerator {
+    fn new_player<F: Flow>(
+        &self,
+        peer_id: Option<PeerId>,
+        state: PlayerState<F>,
+    ) -> (Box<dyn Runtime>, StopRecipient<Act<F>>) {
+        let runtime: Box<dyn Runtime>;
+        let recipient;
+        if let Some(peer_id) = peer_id {
+            let player = RemotePlayer::new(peer_id, state);
+            let agent = RunAgent::new(player);
+            recipient = agent.address().to_stop_address().to_stop_recipient();
+            runtime = Box::new(agent);
+        } else {
+            let player = LocalPlayer::new(state);
+            let agent = RunAgent::new(player);
+            recipient = agent.address().to_stop_address().to_stop_recipient();
+            runtime = Box::new(agent);
+        }
+        (runtime, recipient)
+    }
+}
+
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct HubClientLink {
     hub: Address<HubClient>,
@@ -22,25 +55,13 @@ impl HubClient {
         peer_id: Option<PeerId>,
         state: PlayerState<F>,
     ) -> StopRecipient<Act<F>> {
-        if let Some(peer_id) = peer_id {
-            let player = RemotePlayer::new(peer_id, state);
-            let runtime = RunAgent::new(player);
-            let player = runtime.address();
-            HubClient::add_player(runtime);
-            player.to_stop_address().to_stop_recipient()
-        } else {
-            let player = LocalPlayer::new(state);
-            let runtime = RunAgent::new(player);
-            let player = runtime.address();
-            HubClient::add_player(runtime);
-            player.to_stop_address().to_stop_recipient()
-        }
+        let (runtime, recipient) = LocalGenerator.new_player(peer_id, state);
+        HubClient::add_player(runtime);
+        recipient
     }
 
-    pub fn add_player(runtime: impl Runtime) {
-        let delegate = Delegate {
-            runtime: Box::new(runtime),
-        };
+    pub fn add_player(runtime: Box<dyn Runtime>) {
+        let delegate = Delegate { runtime };
         SUB_BRIDGE.send(delegate);
     }
 }
