@@ -20,6 +20,7 @@ keywords = ["ai", "ai-agent", "framework"]
 [workspace.dependencies]
 anyhow = "1.0.95"
 async-trait = "0.1.86"
+bytes = "1.10.0"
 console-subscriber = "0.4.1"
 clap = { version = "4.5.28", features = ["derive"] }
 crb = { version = "0.0.28", git = "https://github.com/runtime-blocks/crb" }
@@ -30,6 +31,7 @@ eframe = "0.30.0"
 egui = "0.30.0"
 env_logger = "0.11.6"
 envy = "0.4.2"
+flexbuffers = "25.1.24"
 futures = "0.3.31"
 n9-core = { version = "0.0.1", path = "substance/n9-core" }
 n9-std = { version = "0.0.1", path = "substance/n9-std" }
@@ -53,4 +55,5 @@ ui9-dui = { version = "0.0.1", path = "substance/ui9-dui" }
 ui9-codec = { version = "0.0.1", path = "substance/ui9-codec", features = ["flex"] }
 ui9-maker = { version = "0.0.1", path = "substance/ui9-maker" }
 ui9-mesh = { version = "0.0.1", path = "substance/ui9-mesh" }
+ui9-net = { version = "0.0.1", path = "substance/ui9-net" }
 ui9-tracers = { version = "0.0.1", path = "substance/ui9-tracers" }

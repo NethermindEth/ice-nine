@@ -8,3 +8,19 @@ rust-version.workspace = true
 keywords.workspace = true
 
 [dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+bytes.workspace = true
+crb.workspace = true
+derive_more.workspace = true
+flexbuffers.workspace = true
+futures.workspace = true
+libp2p.workspace = true
+libp2p-stream.workspace = true
+libp2p-request-response = { version = "0.28.0", features = ["cbor"] }
+log.workspace = true
+serde.workspace = true
+tokio.workspace = true
+tokio-util = { version = "0.7.13", features = ["codec", "compat"] }
+ui9.workspace = true
+ui9-dui.workspace = true

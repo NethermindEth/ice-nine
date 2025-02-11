@@ -2,8 +2,6 @@ use super::drainer::{from_stream, MessageSink};
 use super::node::MeshNode;
 use super::protocol::{Ui9Message, Ui9Request, Ui9Response};
 use super::PROTOCOL;
-use crate::subscriber::{Act, PlayerState};
-use crate::Flow;
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
@@ -11,6 +9,8 @@ use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use futures::SinkExt;
 use libp2p::PeerId;
+use ui9_dui::subscriber::{Act, PlayerState};
+use ui9_dui::Flow;
 
 pub struct RemotePlayer<F: Flow> {
     peer_id: PeerId,

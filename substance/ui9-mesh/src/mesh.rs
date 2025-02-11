@@ -1,13 +1,12 @@
 use anyhow::Result;
-use ui9_dui::relay::MeshNode;
-use ui9_dui::subscriber::LocalGenerator;
 use ui9_dui::Hub;
+use ui9_net::{MeshNode, RemoteGenerator};
 
 pub struct Mesh {}
 
 impl Mesh {
     pub async fn activate() -> Result<()> {
-        Hub::activate(LocalGenerator).await?;
+        Hub::activate(RemoteGenerator).await?;
         MeshNode::activate().await?;
         Ok(())
     }

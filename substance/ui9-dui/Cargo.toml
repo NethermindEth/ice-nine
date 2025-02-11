@@ -8,10 +8,10 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-bytes = "1.10.0"
-flexbuffers = "25.1.24"
+bytes.workspace = true
 crb.workspace = true
 derive_more.workspace = true
+flexbuffers.workspace = true
 futures.workspace = true
 libp2p.workspace = true
 libp2p-stream.workspace = true

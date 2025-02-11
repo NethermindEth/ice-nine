@@ -1,5 +1,3 @@
-use crate::tracers::peer::Peer;
-use crate::Pub;
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{
@@ -22,6 +20,8 @@ use std::{
     time::Duration,
 };
 use tokio::select;
+use ui9_dui::tracers::peer::Peer;
+use ui9_dui::Pub;
 
 #[derive(Deref, DerefMut, From, Clone)]
 pub struct ConnectorLink {

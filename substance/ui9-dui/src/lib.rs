@@ -1,7 +1,6 @@
 pub mod flow;
 pub mod hub;
 pub mod publisher;
-pub mod relay;
 pub mod reporter;
 pub mod subscriber;
 pub mod tracers;

@@ -7795,6 +7795,29 @@ version = "0.0.1"
 dependencies = [
  "anyhow",
  "ui9-dui",
+ "ui9-net",
+]
+
+[[package]]
+name = "ui9-net"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "bytes",
+ "crb",
+ "derive_more 1.0.0",
+ "flexbuffers",
+ "futures",
+ "libp2p",
+ "libp2p-request-response",
+ "libp2p-stream",
+ "log",
+ "serde",
+ "tokio",
+ "tokio-util",
+ "ui9",
+ "ui9-dui",
 ]
 
 [[package]]
