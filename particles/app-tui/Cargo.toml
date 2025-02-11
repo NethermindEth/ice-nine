@@ -16,3 +16,4 @@ tokio.workspace = true
 ui9-dui.workspace = true
 ui9-maker.workspace = true
 ui9-mesh.workspace = true
+ui9-net.workspace = true

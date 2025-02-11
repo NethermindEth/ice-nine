@@ -9,9 +9,9 @@ use crb::runtime::InteractiveRuntime;
 use crb::superagent::{Drainer, Supervisor, SupervisorSession};
 use std::collections::BTreeMap;
 use ui9_dui::subscriber::{drainer, SubEvent};
-use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::tracers::tree::Tree;
 use ui9_dui::Sub;
+use ui9_net::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_net::RemoteUnifiedExt;
 
 pub struct AppLink {

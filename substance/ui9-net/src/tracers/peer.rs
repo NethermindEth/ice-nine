@@ -1,13 +1,12 @@
-pub use libp2p::{swarm, PeerId};
-
-use crate::flow::{Flow, Unified};
-use crate::publisher::{Publisher, Tracer};
-use crate::subscriber::{Listener, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
+pub use libp2p::{swarm, PeerId};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, BTreeSet};
 use std::num::ParseIntError;
 use ui9::names::Fqn;
+use ui9_dui::flow::{Flow, Unified};
+use ui9_dui::publisher::{Publisher, Tracer};
+use ui9_dui::subscriber::{Listener, Subscriber};
 
 #[derive(Deref, DerefMut, From, Into)]
 pub struct PeerSub {

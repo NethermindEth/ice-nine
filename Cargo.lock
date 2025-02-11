@@ -3370,6 +3370,7 @@ dependencies = [
  "ui9-dui",
  "ui9-maker",
  "ui9-mesh",
+ "ui9-net",
 ]
 
 [[package]]
@@ -4610,6 +4611,7 @@ dependencies = [
  "ui9-dui",
  "ui9-maker",
  "ui9-mesh",
+ "ui9-net",
 ]
 
 [[package]]
@@ -7738,6 +7740,7 @@ dependencies = [
  "log",
  "ui9",
  "ui9-dui",
+ "ui9-net",
 ]
 
 [[package]]
@@ -7765,8 +7768,6 @@ dependencies = [
  "flexbuffers",
  "futures",
  "libp2p",
- "libp2p-request-response",
- "libp2p-stream",
  "log",
  "serde",
  "tokio",

@@ -1,5 +1,5 @@
 use ui9_dui::subscriber::State;
-use ui9_dui::tracers::peer::Peer;
+use ui9_net::tracers::peer::Peer;
 
 /// Ad event sent from `App` to `Ui`
 pub enum UiEvent {
