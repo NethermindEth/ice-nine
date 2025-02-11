@@ -1,6 +1,6 @@
 use crate::publisher::{HubServer, HubServerLink};
 use crate::reporter::Reporter;
-use crate::subscriber::{HubClient, HubClientLink};
+use crate::subscriber::{HubClient, HubClientLink, PlayerGenerator};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -24,7 +24,10 @@ impl Hub {
         HUB.get().ok_or_else(|| anyhow!("Hub is not assigned"))
     }
 
-    pub async fn activate() -> Result<()> {
+    pub async fn activate<G>(generator: G) -> Result<()>
+    where
+        G: PlayerGenerator,
+    {
         let hub = Self::new();
         hub.spawn().ping().await?;
         Ok(())
