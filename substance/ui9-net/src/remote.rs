@@ -2,9 +2,21 @@ use crate::relay::RemotePlayer;
 use crb::agent::{RunAgent, StopRecipient};
 use crb::runtime::{InteractiveRuntime, Runtime};
 use libp2p::PeerId;
-use ui9_dui::subscriber::{LocalPlayer, PlayerGenerator, PlayerState};
-use ui9_dui::{Act, Flow};
+use ui9::names::Fqn;
+use ui9_dui::subscriber::PlayerState;
+use ui9_dui::{Act, Flow, Listener};
 
+pub trait RemoteExt {
+    fn remote(peer: PeerId, fqn: Fqn) -> Self;
+}
+
+impl<F: Flow> RemoteExt for Listener<F> {
+    fn remote(peer: PeerId, fqn: Fqn) -> Self {
+        todo!()
+    }
+}
+
+/*
 pub struct RemoteGenerator;
 
 impl PlayerGenerator for RemoteGenerator {
@@ -29,3 +41,4 @@ impl PlayerGenerator for RemoteGenerator {
         (runtime, recipient)
     }
 }
+*/

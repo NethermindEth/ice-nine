@@ -1,6 +1,6 @@
 use super::client::HubClient;
 use super::drainer;
-use super::{Act, LocalGenerator, LocalPlayer, PlayerGenerator, PlayerState, SubEvent};
+use super::{Act, LocalPlayer, Player, PlayerState, SubEvent};
 use crate::flow::Flow;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};
@@ -18,13 +18,17 @@ pub struct Listener<F: Flow> {
 
 impl<F: Flow> Listener<F> {
     pub fn local(fqn: Fqn) -> Self {
+        Self::new::<LocalPlayer<F>>(fqn)
+    }
+
+    pub fn new<P: Player<F>>(fqn: Fqn) -> Self {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let state = PlayerState {
             fqn,
             state_tx: None,
             event_tx,
         };
-        let player = LocalPlayer::new(state);
+        let player = P::from_state(state);
         let agent = RunAgent::new(player);
         let player = agent.address().to_stop_address().to_stop_recipient();
         HubClient::add_player(agent);

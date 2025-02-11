@@ -1,5 +1,5 @@
-mod generator;
 mod relay;
+mod remote;
 
-pub use generator::RemoteGenerator;
 pub use relay::MeshNode;
+pub use remote::RemoteExt;

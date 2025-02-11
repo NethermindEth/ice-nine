@@ -1,4 +1,4 @@
-use super::{Act, LocalGenerator, PlayerGenerator, PlayerState};
+use super::{Act, PlayerState};
 use crate::flow::Flow;
 use anyhow::Result;
 use async_trait::async_trait;
@@ -19,13 +19,11 @@ impl HubClient {
     }
 }
 
-pub struct HubClient<G = LocalGenerator> {
-    generator: G,
-}
+pub struct HubClient {}
 
-impl<G> HubClient<G> {
-    pub fn new(generator: G) -> Self {
-        Self { generator }
+impl HubClient {
+    pub fn new() -> Self {
+        Self {}
     }
 }
 

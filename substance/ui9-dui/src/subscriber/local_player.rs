@@ -1,4 +1,4 @@
-use super::{Act, PlayerState};
+use super::{Act, Player, PlayerState};
 use crate::flow::{Flow, PackedEvent};
 use crate::hub::Hub;
 use crate::publisher::{EventFlow, RecorderLink};
@@ -8,20 +8,20 @@ use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::core::Slot;
 use crb::superagent::Entry;
 
-pub struct LocalPlayer<F: Flow> {
-    state: PlayerState<F>,
-    recorder: Slot<RecorderLink>,
-    entry: Slot<Entry<EventFlow>>,
-}
-
-impl<F: Flow> LocalPlayer<F> {
-    pub fn new(state: PlayerState<F>) -> Self {
+impl<F: Flow> Player<F> for LocalPlayer<F> {
+    fn from_state(state: PlayerState<F>) -> Self {
         Self {
             state,
             recorder: Slot::empty(),
             entry: Slot::empty(),
         }
     }
+}
+
+pub struct LocalPlayer<F: Flow> {
+    state: PlayerState<F>,
+    recorder: Slot<RecorderLink>,
+    entry: Slot<Entry<EventFlow>>,
 }
 
 impl<F: Flow> Agent for LocalPlayer<F> {

@@ -1,15 +1,14 @@
 mod client;
 pub mod drainer;
-mod generator;
 mod listener;
 mod local_player;
 
 pub use client::HubClient;
-pub use generator::{LocalGenerator, PlayerGenerator};
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
 
 use crate::flow::{Flow, Unified};
+use crb::agent::{Agent, OnEvent};
 use crb::core::{mpsc, watch};
 use derive_more::{Deref, DerefMut, From};
 use libp2p::PeerId;
@@ -104,4 +103,8 @@ impl<F: Flow> PlayerState<F> {
 
 pub struct Act<F: Flow> {
     pub action: F::Action,
+}
+
+pub trait Player<F: Flow>: Agent<Context: Default> + OnEvent<Act<F>> {
+    fn from_state(state: PlayerState<F>) -> Self;
 }
