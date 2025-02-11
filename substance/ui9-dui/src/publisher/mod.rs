@@ -13,7 +13,7 @@ use derive_more::{Deref, DerefMut};
 use ui9::names::Fqn;
 
 pub trait Publisher: Flow + Default {
-    type Driver: From<Tracer<Self>>;
+    type Driver: From<Tracer<Self>> + Send;
 }
 
 #[derive(Deref, DerefMut)]

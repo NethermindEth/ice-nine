@@ -4606,6 +4606,7 @@ dependencies = [
  "crb",
  "crossterm",
  "env_logger",
+ "futures",
  "ratatui",
  "tokio",
  "ui9-dui",

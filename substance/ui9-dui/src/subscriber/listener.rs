@@ -1,6 +1,5 @@
 use super::client::HubClient;
-use super::drainer;
-use super::{Act, LocalPlayer, Player, PlayerState, SubEvent};
+use super::{drainer, Act, LocalPlayer, Player, PlayerState, Ported, State, SubEvent};
 use crate::flow::Flow;
 use anyhow::{anyhow, Result};
 use crb::agent::{RunAgent, StopRecipient};
@@ -45,6 +44,13 @@ impl<F: Flow> Listener<F> {
 
     pub fn events(&mut self) -> Result<Drainer<SubEvent<F>>> {
         self.receiver().map(drainer::from_mpsc)
+    }
+
+    pub fn ported_state(&mut self) -> Result<State<Ported<F>>> {
+        let rx = self.receiver()?;
+        let (state, state_tx) = State::new(Ported::Lost);
+        crb::core::spawn(async {});
+        Ok(state)
     }
 
     pub fn action(&self, action: F::Action) {

@@ -14,7 +14,7 @@ use derive_more::{Deref, DerefMut, From};
 use ui9::names::Fqn;
 
 pub trait Subscriber: Flow + Default {
-    type Driver: From<Listener<Self>>;
+    type Driver: From<Listener<Self>> + Send;
 }
 
 #[derive(Deref, DerefMut)]
@@ -50,18 +50,25 @@ pub enum SubEvent<F: Flow> {
 }
 
 #[derive(Debug)]
-pub struct State<F: Flow> {
-    state_rx: watch::Receiver<F>,
+pub enum Ported<F: Flow> {
+    State(State<F>),
+    Lost,
 }
 
-impl<F: Flow> State<F> {
-    fn new(state_rx: watch::Receiver<F>) -> Self {
-        Self { state_rx }
+#[derive(Debug)]
+pub struct State<T> {
+    state_rx: watch::Receiver<T>,
+}
+
+impl<T> State<T> {
+    fn new(state: T) -> (Self, watch::Sender<T>) {
+        let (state_tx, state_rx) = watch::channel(state);
+        (Self { state_rx }, state_tx)
     }
 }
 
-impl<F: Flow> State<F> {
-    pub fn borrow(&self) -> watch::Ref<F> {
+impl<T> State<T> {
+    pub fn borrow(&self) -> watch::Ref<T> {
         self.state_rx.borrow()
     }
 }
@@ -75,9 +82,8 @@ pub struct PlayerState<F: Flow> {
 
 impl<F: Flow> PlayerState<F> {
     pub fn allocate_state(&mut self, new_state: F) {
-        let (state_tx, state_rx) = watch::channel(new_state);
+        let (state, state_tx) = State::new(new_state);
         self.state_tx = Some(state_tx);
-        let state = State::new(state_rx);
         let event = SubEvent::State(state);
         self.send(event);
     }
