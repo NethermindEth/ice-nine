@@ -4,7 +4,7 @@ mod generator;
 mod listener;
 mod local_player;
 
-pub use client::{HubClient, HubClientLink};
+pub use client::HubClient;
 pub use generator::{LocalGenerator, PlayerGenerator};
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
@@ -25,18 +25,18 @@ pub struct Sub<P: Subscriber> {
 }
 
 impl<P: Subscriber> Sub<P> {
-    pub fn new(peer: Option<PeerId>, fqn: Fqn) -> Self {
-        let tracer = Listener::<P>::new(peer, fqn);
+    pub fn local(fqn: Fqn) -> Self {
+        let tracer = Listener::<P>::local(fqn);
         Self {
             driver: P::Driver::from(tracer),
         }
     }
 
-    pub fn unified(peer: Option<PeerId>) -> Self
+    pub fn unified() -> Self
     where
         P: Unified,
     {
-        Self::new(peer, P::fqn())
+        Self::local(P::fqn())
     }
 }
 

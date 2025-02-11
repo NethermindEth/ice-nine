@@ -40,7 +40,7 @@ impl App {
     pub fn new() -> (RunAgent<Self>, AppLink) {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
-            peers: Sub::unified(None),
+            peers: Sub::unified(),
             ui_events_tx: events_tx,
             trees: BTreeMap::new(),
         };
@@ -83,7 +83,8 @@ impl App {
     fn subscribe_to_peer(&mut self, peer: PeerId, ctx: &mut Context<Self>) -> Result<()> {
         log::info!("Subscribing to peer's tree: {peer}");
         if !self.trees.contains_key(&peer) {
-            let mut sub = Sub::<Tree>::unified(Some(peer));
+            // TODO: Use `remote()`. Connects to itself now.
+            let mut sub = Sub::<Tree>::unified();
 
             let events = sub.events()?;
             ctx.assign(events, (), ());

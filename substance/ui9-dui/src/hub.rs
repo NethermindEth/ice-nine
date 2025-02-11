@@ -1,6 +1,6 @@
 use crate::publisher::{HubServer, HubServerLink};
 use crate::reporter::Reporter;
-use crate::subscriber::{HubClient, HubClientLink, PlayerGenerator};
+use crate::subscriber::{HubClient, LocalGenerator, PlayerGenerator};
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{
@@ -14,7 +14,6 @@ static HUB: OnceLock<HubLink> = OnceLock::new();
 pub struct HubLink {
     pub hub: Address<Hub>,
     pub server: HubServerLink,
-    pub client: HubClientLink,
 }
 
 pub struct Hub {}
@@ -79,8 +78,8 @@ impl DoAsync<Initialize> for Hub {
         let server = HubServer::new();
         let server = stacker.schedule(server, Group::Server);
 
-        let client = HubClient::new();
-        let client = stacker.schedule(client, Group::Client);
+        let client = HubClient::new(LocalGenerator);
+        stacker.schedule(client, Group::Client);
 
         let reporter = Reporter::new();
         stacker.schedule(reporter, Group::Reporter);
@@ -88,7 +87,6 @@ impl DoAsync<Initialize> for Hub {
         let link = HubLink {
             hub: ctx.to_address(),
             server: server.equip(),
-            client: client.equip(),
         };
         HUB.set(link)
             .map_err(|_| anyhow!("Hub is already activated"))?;

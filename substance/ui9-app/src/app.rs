@@ -85,7 +85,7 @@ where
     F::Driver: DerefMut<Target = Listener<F>> + Send,
 {
     async fn handle(&mut self, msg: Subscribe<F>, ctx: &mut Context<Self>) -> Result<()> {
-        let mut sub = Sub::<F>::new(None, msg.fqn);
+        let mut sub = Sub::<F>::local(msg.fqn);
         let events = sub.events()?;
         ctx.assign(events, msg.idx, ());
         self.subs.insert(msg.idx, Box::new(sub));

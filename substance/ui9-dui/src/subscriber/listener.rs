@@ -1,10 +1,11 @@
 use super::client::HubClient;
 use super::drainer;
-use super::{Act, PlayerState, SubEvent};
+use super::{Act, LocalGenerator, LocalPlayer, PlayerGenerator, PlayerState, SubEvent};
 use crate::flow::Flow;
 use anyhow::{anyhow, Result};
-use crb::agent::StopRecipient;
+use crb::agent::{RunAgent, StopRecipient};
 use crb::core::mpsc;
+use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use crb::superagent::Drainer;
 use libp2p::PeerId;
@@ -16,14 +17,17 @@ pub struct Listener<F: Flow> {
 }
 
 impl<F: Flow> Listener<F> {
-    pub fn new(peer_id: Option<PeerId>, fqn: Fqn) -> Self {
+    pub fn local(fqn: Fqn) -> Self {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let state = PlayerState {
             fqn,
             state_tx: None,
             event_tx,
         };
-        let player = HubClient::spawn_player(peer_id, state);
+        let player = LocalPlayer::new(state);
+        let agent = RunAgent::new(player);
+        let player = agent.address().to_stop_address().to_stop_recipient();
+        HubClient::add_player(agent);
         Self {
             player,
             event_rx: Some(event_rx),
