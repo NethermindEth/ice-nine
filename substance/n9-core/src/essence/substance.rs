@@ -13,7 +13,6 @@ use crb::core::Slot;
 use crb::superagent::{InteractExt, OnRequest, Request, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From, Into};
 use std::marker::PhantomData;
-use ui9_dui::Hub;
 
 #[derive(Deref, DerefMut, From, Into, Clone)]
 pub struct SubstanceLink {

@@ -10,7 +10,7 @@ use n9_core::{
     ConfigSegmentUpdates, Model, Particle, SubstanceBond, SubstanceLinks, ToolingChatRequest,
     ToolingChatResponse, UpdateConfig,
 };
-use ui9_dui::{Hub, Operation};
+use ui9_dui::Operation;
 
 pub struct OpenAIParticle {
     substance: SubstanceLinks,

@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{StreamSession, Supervisor};
 use n9_core::{ChatRequest, Particle, SubstanceLinks};
-use ui9_dui::{Act, Hub, Operation, Pub};
+use ui9_dui::{Act, Operation, Pub};
 
 pub struct ChatParticle {
     substance: SubstanceLinks,

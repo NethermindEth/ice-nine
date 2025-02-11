@@ -12,6 +12,7 @@ use ui9_dui::subscriber::{drainer, SubEvent};
 use ui9_dui::tracers::peer::{Peer, PeerEvent, PeerId};
 use ui9_dui::tracers::tree::Tree;
 use ui9_dui::Sub;
+use ui9_net::RemoteUnifiedExt;
 
 pub struct AppLink {
     pub address: Address<App>,
@@ -40,7 +41,7 @@ impl App {
     pub fn new() -> (RunAgent<Self>, AppLink) {
         let (events_tx, events_rx) = mpsc::unbounded_channel();
         let agent = Self {
-            peers: Sub::unified(),
+            peers: Sub::local_unified(),
             ui_events_tx: events_tx,
             trees: BTreeMap::new(),
         };
@@ -83,8 +84,7 @@ impl App {
     fn subscribe_to_peer(&mut self, peer: PeerId, ctx: &mut Context<Self>) -> Result<()> {
         log::info!("Subscribing to peer's tree: {peer}");
         if !self.trees.contains_key(&peer) {
-            // TODO: Use `remote()`. Connects to itself now.
-            let mut sub = Sub::<Tree>::unified();
+            let mut sub = Sub::<Tree>::remote_unified(peer);
 
             let events = sub.events()?;
             ctx.assign(events, (), ());

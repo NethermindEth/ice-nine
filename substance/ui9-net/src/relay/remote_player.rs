@@ -9,23 +9,25 @@ use crb::core::Slot;
 use crb::superagent::{Supervisor, SupervisorSession};
 use futures::SinkExt;
 use libp2p::PeerId;
-use ui9_dui::subscriber::{Act, PlayerState};
+use ui9_dui::subscriber::{Act, Player, PlayerState};
 use ui9_dui::Flow;
 
-pub struct RemotePlayer<F: Flow> {
-    peer_id: PeerId,
-    state: PlayerState<F>,
-    writer: Slot<MessageSink>,
-}
+impl<F: Flow> Player<F> for RemotePlayer<F> {
+    type Args = PeerId;
 
-impl<F: Flow> RemotePlayer<F> {
-    pub fn new(peer_id: PeerId, state: PlayerState<F>) -> Self {
+    fn from_state(peer_id: Self::Args, state: PlayerState<F>) -> Self {
         Self {
             peer_id,
             state,
             writer: Slot::empty(),
         }
     }
+}
+
+pub struct RemotePlayer<F: Flow> {
+    peer_id: PeerId,
+    state: PlayerState<F>,
+    writer: Slot<MessageSink>,
 }
 
 impl<F: Flow> Supervisor for RemotePlayer<F> {

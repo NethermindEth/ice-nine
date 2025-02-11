@@ -9,7 +9,9 @@ use crb::core::Slot;
 use crb::superagent::Entry;
 
 impl<F: Flow> Player<F> for LocalPlayer<F> {
-    fn from_state(state: PlayerState<F>) -> Self {
+    type Args = ();
+
+    fn from_state(_: Self::Args, state: PlayerState<F>) -> Self {
         Self {
             state,
             recorder: Slot::empty(),

@@ -7787,6 +7787,7 @@ dependencies = [
  "crb",
  "log",
  "ui9-dui",
+ "ui9-net",
 ]
 
 [[package]]

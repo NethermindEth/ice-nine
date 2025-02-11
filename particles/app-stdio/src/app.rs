@@ -29,9 +29,9 @@ impl Particle for StdioApp {
             substance,
             console: Slot::empty(),
             messages: VecDeque::new(),
-            chat: Sub::unified(),
+            chat: Sub::local_unified(),
             state: None,
-            live: Sub::unified(),
+            live: Sub::local_unified(),
             interval: Interval::new(),
             waiting: false,
         }

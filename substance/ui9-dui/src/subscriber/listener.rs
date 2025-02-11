@@ -8,7 +8,6 @@ use crb::core::mpsc;
 use crb::runtime::InteractiveRuntime;
 use crb::send::Sender;
 use crb::superagent::Drainer;
-use libp2p::PeerId;
 use ui9::names::Fqn;
 
 pub struct Listener<F: Flow> {
@@ -18,17 +17,17 @@ pub struct Listener<F: Flow> {
 
 impl<F: Flow> Listener<F> {
     pub fn local(fqn: Fqn) -> Self {
-        Self::new::<LocalPlayer<F>>(fqn)
+        Self::new::<LocalPlayer<F>>((), fqn)
     }
 
-    pub fn new<P: Player<F>>(fqn: Fqn) -> Self {
+    pub fn new<P: Player<F>>(args: P::Args, fqn: Fqn) -> Self {
         let (event_tx, event_rx) = mpsc::unbounded_channel();
         let state = PlayerState {
             fqn,
             state_tx: None,
             event_tx,
         };
-        let player = P::from_state(state);
+        let player = P::from_state(args, state);
         let agent = RunAgent::new(player);
         let player = agent.address().to_stop_address().to_stop_recipient();
         HubClient::add_player(agent);

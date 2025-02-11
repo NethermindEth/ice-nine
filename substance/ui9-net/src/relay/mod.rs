@@ -7,7 +7,6 @@ mod relay_player;
 mod remote_player;
 mod router;
 
-pub use connector::{Connector, ConnectorLink};
 pub use node::MeshNode;
 pub use remote_player::RemotePlayer;
 

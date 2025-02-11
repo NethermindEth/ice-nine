@@ -11,7 +11,6 @@ use crate::flow::{Flow, Unified};
 use crb::agent::{Agent, OnEvent};
 use crb::core::{mpsc, watch};
 use derive_more::{Deref, DerefMut, From};
-use libp2p::PeerId;
 use ui9::names::Fqn;
 
 pub trait Subscriber: Flow + Default {
@@ -25,17 +24,21 @@ pub struct Sub<P: Subscriber> {
 
 impl<P: Subscriber> Sub<P> {
     pub fn local(fqn: Fqn) -> Self {
-        let tracer = Listener::<P>::local(fqn);
-        Self {
-            driver: P::Driver::from(tracer),
-        }
+        let listener = Listener::<P>::local(fqn);
+        Self::new(listener)
     }
 
-    pub fn unified() -> Self
+    pub fn local_unified() -> Self
     where
         P: Unified,
     {
         Self::local(P::fqn())
+    }
+
+    pub fn new(listener: Listener<P>) -> Self {
+        Self {
+            driver: P::Driver::from(listener),
+        }
     }
 }
 
@@ -106,5 +109,7 @@ pub struct Act<F: Flow> {
 }
 
 pub trait Player<F: Flow>: Agent<Context: Default> + OnEvent<Act<F>> {
-    fn from_state(state: PlayerState<F>) -> Self;
+    type Args;
+
+    fn from_state(args: Self::Args, state: PlayerState<F>) -> Self;
 }
