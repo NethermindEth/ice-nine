@@ -1,3 +1,4 @@
+use anyhow::Error;
 use ratatui::prelude::{Alignment, Buffer, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
@@ -11,6 +12,14 @@ impl From<&'static str> for Reason {
     fn from(s: &'static str) -> Self {
         Self {
             reason: Cow::Borrowed(s),
+        }
+    }
+}
+
+impl From<Error> for Reason {
+    fn from(err: Error) -> Self {
+        Self {
+            reason: Cow::Owned(err.to_string()),
         }
     }
 }

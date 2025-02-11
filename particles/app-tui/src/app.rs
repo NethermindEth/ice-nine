@@ -83,7 +83,7 @@ impl OnEvent<UiEvent> for AppTui {
     async fn handle(&mut self, event: UiEvent, ctx: &mut Context<Self>) -> Result<()> {
         match event {
             UiEvent::SetState { peers } => {
-                self.state.peers.set_state(peers);
+                // self.state.peers.set_state(peers);
             }
             UiEvent::StateChanged => {}
         }

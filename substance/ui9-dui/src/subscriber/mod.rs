@@ -2,10 +2,12 @@ mod client;
 pub mod drainer;
 mod listener;
 mod local_player;
+mod ported;
 
 pub use client::HubClient;
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
+pub use ported::Ported;
 
 use crate::flow::{Flow, Unified};
 use crb::agent::{Agent, OnEvent};
@@ -46,12 +48,6 @@ impl<P: Subscriber> Sub<P> {
 pub enum SubEvent<F: Flow> {
     State(State<F>),
     Event(F::Event),
-    Lost,
-}
-
-#[derive(Debug)]
-pub enum Ported<F: Flow> {
-    State(State<F>),
     Lost,
 }
 

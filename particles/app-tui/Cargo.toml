@@ -14,6 +14,7 @@ env_logger.workspace = true
 futures.workspace = true
 ratatui = "0.29.0"
 tokio.workspace = true
+ui9.workspace = true
 ui9-dui.workspace = true
 ui9-maker.workspace = true
 ui9-mesh.workspace = true
