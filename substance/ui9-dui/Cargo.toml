@@ -8,18 +8,11 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
-bytes.workspace = true
 crb.workspace = true
 derive_more.workspace = true
-flexbuffers.workspace = true
-futures.workspace = true
-libp2p.workspace = true
 log.workspace = true
 serde.workspace = true
-tokio.workspace = true
-tokio-stream.workspace = true
-tokio-util = { version = "0.7.13", features = ["codec", "compat"] }
-typed-slab.workspace = true
+tokio-stream.workspace = true # TODO: Consider moving this out
 ui9.workspace = true
 ui9-codec.workspace = true
 ulid = { version = "1.2.0", features = ["serde"] }
