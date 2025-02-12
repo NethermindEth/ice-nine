@@ -1,6 +1,6 @@
 use anyhow::Result;
+use n9_chat_telegram::TelegramParticle;
 use n9_core::Substance;
-// use n9_chat_telegram::TelegramParticle;
 use n9_exchange_dydx::DyDxParticle;
 // use n9_model_anthropic::AnthropicParticle;
 use n9_app_stdio::StdioApp;
@@ -29,7 +29,7 @@ async fn main() -> Result<()> {
     substance.add_particle::<TuiApp>()?;
 
     // TODO: Rename to *Chat
-    // substance.add_particle::<TelegramParticle>()?;
+    substance.add_particle::<TelegramParticle>()?;
 
     // Stdio is not compatible with tracing and will be replaced with DUI
     // substance.add_particle::<StdioParticle>()?;

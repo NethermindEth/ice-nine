@@ -85,6 +85,7 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
         request: ToolingChatRequest,
         _: &mut Context<Self>,
     ) -> Result<ToolingChatResponse> {
+        let op = Operation::start("Sending a request to OpenAI");
         let client = self.client.get_mut()?;
         // TODO: Sequental, but could be executed in the reactor
         let messages: Vec<_> = request.messages.into_iter().map(convert::message).collect();
@@ -99,6 +100,7 @@ impl OnRequest<ToolingChatRequest> for OpenAIParticle {
             .filter_map(convert::choice)
             .collect();
         let response = ToolingChatResponse { messages };
+        op.end("A request to OpenAI completed");
         Ok(response)
     }
 }
