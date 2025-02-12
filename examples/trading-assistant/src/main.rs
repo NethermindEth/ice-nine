@@ -13,14 +13,21 @@ async fn main() -> Result<()> {
     env_logger::try_init()?;
     Mesh::activate().await?;
     let mut substance = Substance::arise();
+    // TODO: Rename to *Model
     substance.add_particle::<OpenAIParticle>()?;
-    substance.add_particle::<DyDxParticle>()?;
-    substance.add_particle::<ChatParticle>()?;
-    substance.add_particle::<StdioApp>()?;
-
     // substance.add_particle::<AnthropicParticle>()?;
 
+    // TODO: Rename to *Exchange
+    substance.add_particle::<DyDxParticle>()?;
+
+    // TODO: Rename to *Control
+    substance.add_particle::<ChatParticle>()?;
+
+    substance.add_particle::<StdioApp>()?;
+
+    // TODO: Rename to *Chat
     // substance.add_particle::<TelegramParticle>()?;
+
     // Stdio is not compatible with tracing and will be replaced with DUI
     // substance.add_particle::<StdioParticle>()?;
     substance.join().await?;

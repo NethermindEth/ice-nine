@@ -1,15 +1,15 @@
-use crate::app::AppTui;
+use crate::app::TuiApp;
 use anyhow::Result;
 use crb::agent::{Address, Agent, AgentSession, DoSync, Next, ToAddress};
 use crossterm::event;
 use std::time::Duration;
 
 pub struct EventsDrainer {
-    app: Address<AppTui>,
+    app: Address<TuiApp>,
 }
 
 impl EventsDrainer {
-    pub fn new(app: impl ToAddress<AppTui>) -> Self {
+    pub fn new(app: impl ToAddress<TuiApp>) -> Self {
         Self {
             app: app.to_address(),
         }

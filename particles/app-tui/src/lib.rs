@@ -3,4 +3,4 @@ mod events;
 mod state;
 mod widgets;
 
-pub use app::AppTui;
+pub use app::TuiApp;

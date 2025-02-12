@@ -9,12 +9,12 @@ use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
 
-pub struct AppTui {
+pub struct TuiApp {
     terminal: Slot<DefaultTerminal>,
     state: AppState,
 }
 
-impl AppTui {
+impl TuiApp {
     pub fn new() -> Self {
         Self {
             terminal: Slot::empty(),
@@ -23,12 +23,12 @@ impl AppTui {
     }
 }
 
-impl Supervisor for AppTui {
+impl Supervisor for TuiApp {
     type BasedOn = AgentSession<Self>;
     type GroupBy = ();
 }
 
-impl Agent for AppTui {
+impl Agent for TuiApp {
     type Context = SupervisorSession<Self>;
 
     fn begin(&mut self) -> Next<Self> {
@@ -39,7 +39,7 @@ impl Agent for AppTui {
 struct Initialize;
 
 #[async_trait]
-impl DoAsync<Initialize> for AppTui {
+impl DoAsync<Initialize> for TuiApp {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         let terminal = ratatui::try_init()?;
         self.terminal.fill(terminal)?;
@@ -55,7 +55,7 @@ impl DoAsync<Initialize> for AppTui {
 }
 
 #[async_trait]
-impl OnEvent<Event> for AppTui {
+impl OnEvent<Event> for TuiApp {
     async fn handle(&mut self, event: Event, ctx: &mut Context<Self>) -> Result<()> {
         let next_state = match event {
             Event::Key(event) => match event.code {
@@ -74,7 +74,7 @@ impl OnEvent<Event> for AppTui {
 
 struct Render;
 
-impl DoSync<Render> for AppTui {
+impl DoSync<Render> for TuiApp {
     fn once(&mut self, _: &mut Render) -> Result<Next<Self>> {
         let terminal = self.terminal.get_mut()?;
         terminal.draw(|frame| self.state.render(frame))?;
@@ -85,7 +85,7 @@ impl DoSync<Render> for AppTui {
 struct Terminate;
 
 #[async_trait]
-impl DoAsync<Terminate> for AppTui {
+impl DoAsync<Terminate> for TuiApp {
     async fn handle(&mut self, _: Terminate, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
         ratatui::try_restore()?;
         Ok(Next::done())
