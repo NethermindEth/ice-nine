@@ -7,19 +7,19 @@ use ratatui::{
     widgets::{List, ListItem, Widget},
 };
 use ui9_app::{Ported, PortedExt};
-use ui9_dui::tracers::live::Live;
+use ui9_dui::tracers::job::Job;
 use ui9_dui::{State, Sub};
 
 pub struct ActivityList {
-    live: Sub<Live>,
-    state: State<Ported<Live>>,
+    job: Sub<Job>,
+    state: State<Ported<Job>>,
 }
 
 impl ActivityList {
     pub fn new() -> Self {
-        let mut live = Sub::<Live>::local_unified();
-        let state = live.ported_state().unwrap();
-        Self { live, state }
+        let mut job = Sub::<Job>::local_unified();
+        let state = job.ported_state().unwrap();
+        Self { job, state }
     }
 }
 

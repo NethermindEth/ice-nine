@@ -9,7 +9,7 @@ use crb::superagent::{Interval, StreamSession, Tick};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use n9_core::{Particle, SubstanceLinks};
 use std::collections::VecDeque;
-use ui9_dui::tracers::live::{Live, LiveData};
+use ui9_dui::tracers::job::{Job, JobData};
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
@@ -18,7 +18,7 @@ pub struct StdioApp {
     messages: VecDeque<String>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
-    live: Sub<Live>,
+    job: Sub<Job>,
     interval: Interval,
     waiting: bool,
 }
@@ -31,7 +31,7 @@ impl Particle for StdioApp {
             messages: VecDeque::new(),
             chat: Sub::local_unified(),
             state: None,
-            live: Sub::local_unified(),
+            job: Sub::local_unified(),
             interval: Interval::new(),
             waiting: false,
         }
@@ -76,7 +76,7 @@ impl DoAsync<Initialize> for StdioApp {
         self.interval.set_interval_ms(200)?;
         ctx.consume(self.interval.events()?);
         ctx.consume(self.chat.events()?);
-        ctx.consume(self.live.events()?);
+        ctx.consume(self.job.events()?);
         Ok(Next::events())
     }
 }
@@ -182,8 +182,8 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
 }
 
 #[async_trait]
-impl OnEvent<SubEvent<Live>> for StdioApp {
-    async fn handle(&mut self, event: SubEvent<Live>, _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<SubEvent<Job>> for StdioApp {
+    async fn handle(&mut self, event: SubEvent<Job>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
                 for message in state.borrow().messages.iter() {
@@ -191,7 +191,7 @@ impl OnEvent<SubEvent<Live>> for StdioApp {
                 }
             }
             SubEvent::Event(event) => match event {
-                LiveData::Message(msg) => {
+                JobData::Message(msg) => {
                     self.add_message(&msg);
                 }
                 _ => {}

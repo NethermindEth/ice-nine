@@ -1,4 +1,4 @@
-use crate::tracers::live::{Live, LiveData, OperationId};
+use crate::tracers::job::{Job, JobData, OperationId};
 use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -6,7 +6,7 @@ use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::superagent::{EventBridge, StreamSession};
 use std::sync::LazyLock;
 
-static LOG_BRIDGE: LazyLock<EventBridge<Act<Live>>> = LazyLock::new(|| EventBridge::new());
+static LOG_BRIDGE: LazyLock<EventBridge<Act<Job>>> = LazyLock::new(|| EventBridge::new());
 
 pub struct Operation {
     id: OperationId,
@@ -29,7 +29,7 @@ impl Operation {
             id,
             task: Some(task.into()),
         };
-        this.act(LiveData::Begin {
+        this.act(JobData::Begin {
             id,
             task: task.into(),
         });
@@ -37,7 +37,7 @@ impl Operation {
     }
 
     pub fn failure(&mut self, reason: &str) {
-        self.act(LiveData::Failure {
+        self.act(JobData::Failure {
             id: self.id,
             reason: reason.into(),
         });
@@ -49,33 +49,33 @@ impl Operation {
     }
 
     fn send_end(&mut self, message: String) {
-        self.act(LiveData::End {
+        self.act(JobData::End {
             id: self.id,
             message,
         });
     }
 
-    fn act(&mut self, action: LiveData) {
+    fn act(&mut self, action: JobData) {
         let event = Act { action };
         LOG_BRIDGE.send(event);
     }
 }
 
 pub struct Reporter {
-    live: Pub<Live>,
+    job: Pub<Job>,
 }
 
 impl Reporter {
     pub fn new() -> Self {
         Self {
-            live: Pub::unified(),
+            job: Pub::unified(),
         }
     }
 
     /*
     pub fn log(msg: &str) {
         let event = Act {
-            action: LiveData::Message(msg.into()),
+            action: JobData::Message(msg.into()),
         };
         LOG_BRIDGE.send(event);
     }
@@ -96,15 +96,15 @@ struct Initialize;
 impl DoAsync<Initialize> for Reporter {
     async fn handle(&mut self, _: Initialize, ctx: &mut Context<Self>) -> Result<Next<Self>> {
         ctx.consume(LOG_BRIDGE.events().await?);
-        ctx.consume(self.live.actions()?);
+        ctx.consume(self.job.actions()?);
         Ok(Next::events())
     }
 }
 
 #[async_trait]
-impl OnEvent<Act<Live>> for Reporter {
-    async fn handle(&mut self, msg: Act<Live>, _ctx: &mut Context<Self>) -> Result<()> {
-        self.live.event(msg.action);
+impl OnEvent<Act<Job>> for Reporter {
+    async fn handle(&mut self, msg: Act<Job>, _ctx: &mut Context<Self>) -> Result<()> {
+        self.job.event(msg.action);
         Ok(())
     }
 }

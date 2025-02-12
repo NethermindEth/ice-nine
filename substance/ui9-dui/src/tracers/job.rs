@@ -10,36 +10,36 @@ use ulid::Ulid;
 static LIMIT: usize = 10;
 
 #[derive(Deref, DerefMut, From, Into)]
-pub struct LiveSub {
-    listener: Listener<Live>,
+pub struct JobSub {
+    listener: Listener<Job>,
 }
 
-impl Subscriber for Live {
-    type Driver = LiveSub;
+impl Subscriber for Job {
+    type Driver = JobSub;
 }
 
 #[derive(Deref, DerefMut, From, Into)]
-pub struct LivePub {
-    tracer: Tracer<Live>,
+pub struct JobPub {
+    tracer: Tracer<Job>,
 }
 
-impl Publisher for Live {
-    type Driver = LivePub;
+impl Publisher for Job {
+    type Driver = JobPub;
 }
 
-impl Unified for Live {
+impl Unified for Job {
     fn fqn() -> Fqn {
-        Fqn::root("@live")
+        Fqn::root("@job")
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Live {
+pub struct Job {
     pub operations: BTreeMap<OperationId, OperationRecord>,
     pub messages: VecDeque<String>,
 }
 
-impl Default for Live {
+impl Default for Job {
     fn default() -> Self {
         Self {
             operations: BTreeMap::new(),
@@ -48,31 +48,31 @@ impl Default for Live {
     }
 }
 
-impl Flow for Live {
-    type Event = LiveData;
-    type Action = LiveData;
+impl Flow for Job {
+    type Event = JobData;
+    type Action = JobData;
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            LiveData::Message(message) => {
+            JobData::Message(message) => {
                 self.messages.push_back(message);
                 if self.messages.len() > LIMIT {
                     self.messages.pop_front();
                 }
             }
-            LiveData::Begin { id, task } => {
+            JobData::Begin { id, task } => {
                 let record = OperationRecord {
                     task: task.into(),
                     failures: Vec::new(),
                 };
                 self.operations.insert(id, record);
             }
-            LiveData::Failure { id, reason } => {
+            JobData::Failure { id, reason } => {
                 if let Some(record) = self.operations.get_mut(&id) {
                     record.failures.push(reason);
                 }
             }
-            LiveData::End { id, message } => {
+            JobData::End { id, message } => {
                 self.operations.remove(&id);
                 self.messages.push_back(message);
                 if self.messages.len() > LIMIT {
@@ -84,7 +84,7 @@ impl Flow for Live {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum LiveData {
+pub enum JobData {
     Message(String),
     Begin { id: OperationId, task: String },
     Failure { id: OperationId, reason: String },
