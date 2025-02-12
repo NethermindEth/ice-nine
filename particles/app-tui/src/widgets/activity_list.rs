@@ -38,7 +38,7 @@ impl Component for ActivityList {
             .map(|(_id, record)| {
                 ListItem::new(Line::from(vec![Span::styled(
                     &record.task,
-                    Style::default().fg(Color::Yellow),
+                    Style::default().fg(Color::White),
                 )]))
             })
             .collect();

@@ -7,7 +7,7 @@ use crb::agent::{
 };
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
-use crb::superagent::{Supervisor, SupervisorSession};
+use crb::superagent::{Interval, StreamSession, Supervisor, SupervisorSession, Tick};
 use crossterm::event::{Event, KeyCode};
 use n9_core::{Particle, SubstanceLinks};
 use ratatui::DefaultTerminal;
@@ -16,6 +16,7 @@ pub struct TuiApp {
     substance: SubstanceLinks,
     terminal: Slot<DefaultTerminal>,
     state: AppState,
+    interval: Interval,
 }
 
 impl Particle for TuiApp {
@@ -24,12 +25,13 @@ impl Particle for TuiApp {
             substance,
             terminal: Slot::empty(),
             state: AppState::new(),
+            interval: Interval::new(),
         }
     }
 }
 
 impl Supervisor for TuiApp {
-    type BasedOn = AgentSession<Self>;
+    type BasedOn = StreamSession<Self>;
     type GroupBy = ();
 }
 
@@ -54,6 +56,9 @@ impl DoAsync<Initialize> for TuiApp {
         let mut runtime = RunAgent::new(drainer);
         runtime.level = InterruptionLevel::ABORT;
         ctx.spawn_runtime(runtime, ());
+
+        self.interval.set_interval_ms(200)?;
+        ctx.consume(self.interval.events()?);
 
         Ok(Next::do_sync(Render))
     }
@@ -84,6 +89,14 @@ impl DoSync<Render> for TuiApp {
         let terminal = self.terminal.get_mut()?;
         terminal.draw(|frame| self.state.render(frame))?;
         Ok(Next::events())
+    }
+}
+
+#[async_trait]
+impl OnEvent<Tick> for TuiApp {
+    async fn handle(&mut self, _: Tick, ctx: &mut Context<Self>) -> Result<()> {
+        ctx.do_next(Next::do_sync(Render));
+        Ok(())
     }
 }
 
