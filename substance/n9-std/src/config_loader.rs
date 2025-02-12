@@ -113,7 +113,8 @@ impl ConfigLoader {
         Ok(())
     }
 
-    async fn update_configs(&mut self, all: bool) -> Result<()> {
+    /// Updates and merges config files
+    async fn update_configs(&mut self) -> Result<()> {
         let changed_files = self
             .changed_files
             .take()
@@ -121,7 +122,7 @@ impl ConfigLoader {
             .unwrap_or_default();
         let mut new_merged_config = table();
         for layer in &mut self.layers {
-            if all || changed_files.contains(&layer.path) {
+            if changed_files.contains(&layer.path) {
                 layer.read_config().await?;
             }
             merge_configs(&mut new_merged_config, &layer.config);
@@ -177,7 +178,7 @@ impl DoAsync<Initialize> for ConfigLoader {
         let local_config = CONFIG_NAME.into();
         self.add_layer(local_config, ctx).await?;
 
-        self.update_configs(true).await?;
+        self.update_configs().await?;
 
         Ok(Next::events())
     }
@@ -234,7 +235,7 @@ impl OnEvent<WatchEvent> for ConfigLoader {
 #[async_trait]
 impl OnEvent<Timeout> for ConfigLoader {
     async fn handle(&mut self, _: Timeout, _ctx: &mut Context<Self>) -> Result<()> {
-        self.update_configs(false).await
+        self.update_configs().await
     }
 }
 
