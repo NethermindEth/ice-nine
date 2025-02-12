@@ -1,5 +1,4 @@
 mod app;
-mod component;
 mod events;
 mod state;
 mod widgets;
