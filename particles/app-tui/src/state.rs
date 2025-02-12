@@ -1,27 +1,25 @@
-use crate::widgets::{ActivityList, Component, PeerList};
+use crate::widgets::{ActivityList, ActivityLog, Component, PeerList};
 use ratatui::prelude::{Constraint, Direction, Layout};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Frame;
 
 pub struct AppState {
     pub peers: PeerList,
-    pub activity: ActivityList,
+    pub activity_list: ActivityList,
+    pub activity_log: ActivityLog,
 }
 
 impl AppState {
     pub fn new() -> Self {
         Self {
             peers: PeerList::new(),
-            activity: ActivityList::new(),
+            activity_list: ActivityList::new(),
+            activity_log: ActivityLog::new(),
         }
     }
 
     pub fn render(&self, f: &mut Frame<'_>) {
         self.render_dashboard(f);
-        /*
-        let mut text = String::from("UI9 Dashboard");
-        f.render_widget(text, f.area());
-        */
     }
 
     pub fn render_dashboard(&self, f: &mut Frame<'_>) {
@@ -43,9 +41,17 @@ impl AppState {
         let left_text = Paragraph::new("This is the left panel.").block(left_block);
         f.render_widget(left_text, chunks[0]);
 
+        let vchunks = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Percentage(60), Constraint::Percentage(40)].as_ref())
+            .split(chunks[1]);
+
         // Center column: Activities
-        let widget = self.activity.widget();
-        f.render_widget(widget, chunks[1]);
+        let widget = self.activity_list.widget();
+        f.render_widget(widget, vchunks[0]);
+
+        let widget = self.activity_log.widget();
+        f.render_widget(widget, vchunks[1]);
 
         // Right column: List of peers
         let widget = self.peers.widget();
