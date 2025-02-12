@@ -32,6 +32,10 @@ impl Component for ActivityList {
         let ported = self.state.borrow();
         let state = ported.state_result()?;
 
+        if state.operations.is_empty() {
+            return Err(r#"No active jobs ʕ•́ᴥ•̀ʔ"#.into());
+        }
+
         let items: Vec<ListItem> = state
             .operations
             .iter()

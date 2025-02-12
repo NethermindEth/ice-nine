@@ -35,6 +35,7 @@ impl Component for PeerList {
         if state.peers.is_empty() {
             return Err("No peers connected yet".into());
         }
+
         // Convert peers to ListItems
         let items: Vec<ListItem> = state
             .peers
