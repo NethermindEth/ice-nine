@@ -1,4 +1,4 @@
-use crate::widgets::{ActivityList, ActivityLog, Component, PeerList};
+use crate::widgets::{ActivityList, Component, EventLog, PeerList};
 use ratatui::prelude::{Constraint, Direction, Layout};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Frame;
@@ -6,7 +6,7 @@ use ratatui::Frame;
 pub struct AppState {
     pub peers: PeerList,
     pub activity_list: ActivityList,
-    pub activity_log: ActivityLog,
+    pub event_log: EventLog,
 }
 
 impl AppState {
@@ -14,7 +14,7 @@ impl AppState {
         Self {
             peers: PeerList::new(),
             activity_list: ActivityList::new(),
-            activity_log: ActivityLog::new(),
+            event_log: EventLog::new(),
         }
     }
 
@@ -50,7 +50,7 @@ impl AppState {
         let widget = self.activity_list.widget();
         f.render_widget(widget, vchunks[0]);
 
-        let widget = self.activity_log.widget();
+        let widget = self.event_log.widget();
         f.render_widget(widget, vchunks[1]);
 
         // Right column: List of peers

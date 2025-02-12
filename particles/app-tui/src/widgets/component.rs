@@ -68,7 +68,7 @@ impl<'a, C: Component> Widget for ComponentWidget<'a, C> {
         // Create a block with borders
         let block = Block::default()
             .borders(Borders::ALL)
-            .title(title)
+            .title(format!(" {} ", title))
             .style(Style::default().fg(Color::White));
         let block_inner = block.inner(area);
         block.render(area, buf);

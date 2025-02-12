@@ -3,7 +3,7 @@ use crate::publisher::{Publisher, Tracer};
 use crate::subscriber::{Listener, Subscriber};
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, VecDeque};
+use std::collections::BTreeMap;
 use ui9::names::Fqn;
 use ulid::Ulid;
 
