@@ -72,8 +72,12 @@ impl Flow for Live {
                     record.failures.push(reason);
                 }
             }
-            LiveData::End { id } => {
+            LiveData::End { id, message } => {
                 self.operations.remove(&id);
+                self.messages.push_back(message);
+                if self.messages.len() > LIMIT {
+                    self.messages.pop_front();
+                }
             }
         }
     }
@@ -84,7 +88,7 @@ pub enum LiveData {
     Message(String),
     Begin { id: OperationId, task: String },
     Failure { id: OperationId, reason: String },
-    End { id: OperationId },
+    End { id: OperationId, message: String },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]

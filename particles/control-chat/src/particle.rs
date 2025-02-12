@@ -63,18 +63,18 @@ struct Ask {
 #[async_trait]
 impl DoAsync<Ask> for ChatParticle {
     async fn handle(&mut self, msg: Ask, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
-        let op = Operation::new("Sending a prompt");
+        let op = Operation::start("Sending a prompt");
         self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
         let req = self.substance.router.chat(request);
         self.chat.add(msg.question, Role::Request);
-        drop(op);
+        op.end("Prompt sent");
 
-        let op = Operation::new("Waiting for the response");
+        let op = Operation::start("Waiting for the response");
         let resp = req.await?.squash();
         self.chat.add(resp, Role::Response);
         self.chat.thinking(false);
-        drop(op);
+        op.end("Response received");
 
         Ok(Next::events())
     }

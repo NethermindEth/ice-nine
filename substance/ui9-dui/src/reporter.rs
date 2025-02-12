@@ -10,18 +10,25 @@ static LOG_BRIDGE: LazyLock<EventBridge<Act<Live>>> = LazyLock::new(|| EventBrid
 
 pub struct Operation {
     id: OperationId,
+    /// If taken (empty) the task is considered as completed
+    task: Option<String>,
 }
 
 impl Drop for Operation {
     fn drop(&mut self) {
-        self.end_operation();
+        if let Some(message) = self.task.take() {
+            self.send_end(message);
+        }
     }
 }
 
 impl Operation {
-    pub fn new(task: &str) -> Self {
+    pub fn start(task: &str) -> Self {
         let id = OperationId::new();
-        let mut this = Self { id };
+        let mut this = Self {
+            id,
+            task: Some(task.into()),
+        };
         this.act(LiveData::Begin {
             id,
             task: task.into(),
@@ -36,8 +43,16 @@ impl Operation {
         });
     }
 
-    fn end_operation(&mut self) {
-        self.act(LiveData::End { id: self.id });
+    pub fn end(mut self, message: &str) {
+        self.task.take();
+        self.send_end(message.into());
+    }
+
+    fn send_end(&mut self, message: String) {
+        self.act(LiveData::End {
+            id: self.id,
+            message,
+        });
     }
 
     fn act(&mut self, action: LiveData) {

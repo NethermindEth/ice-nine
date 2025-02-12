@@ -69,11 +69,11 @@ impl UpdateConfig<OpenAIConfig> for OpenAIParticle {
             self.client.take()?;
         }
 
-        let op = Operation::new("Configuring OpenAI");
+        let op = Operation::start("Configuring OpenAI");
         let client = Client::with_config(config.extract());
         let _models = client.models().list().await?; // An alternative to ping
-        drop(op);
         self.client.fill(client)?;
+        op.end("OpenAI configured");
         Ok(())
     }
 }
