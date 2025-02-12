@@ -45,7 +45,7 @@ impl AppState {
 
         // Center column: Activities
         let widget = self.activity.widget();
-        f.render_widget(widget, chunks[2]);
+        f.render_widget(widget, chunks[1]);
 
         // Right column: List of peers
         let widget = self.peers.widget();

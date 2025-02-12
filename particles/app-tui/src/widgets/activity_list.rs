@@ -6,20 +6,19 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_dui::subscriber::State;
 use ui9_dui::tracers::live::Live;
+use ui9_dui::{Ported, State, Sub};
 
 pub struct ActivityList {
-    live: Option<State<Live>>,
+    live: Sub<Live>,
+    state: State<Ported<Live>>,
 }
 
 impl ActivityList {
     pub fn new() -> Self {
-        Self { live: None }
-    }
-
-    pub fn set_state(&mut self, live: State<Live>) {
-        self.live = Some(live);
+        let mut live = Sub::<Live>::local_unified();
+        let state = live.ported_state().unwrap();
+        Self { live, state }
     }
 }
 
@@ -29,6 +28,25 @@ impl Component for ActivityList {
     }
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
+        let ported = self.state.borrow();
+        let state = ported.state_result()?;
+
+        let items: Vec<ListItem> = state
+            .operations
+            .iter()
+            .map(|(_id, record)| {
+                ListItem::new(Line::from(vec![Span::styled(
+                    &record.task,
+                    Style::default().fg(Color::Yellow),
+                )]))
+            })
+            .collect();
+
+        let list = List::new(items);
+        list.render(area, buf);
+
+        for message in &state.messages {}
+
         Ok(())
     }
 }

@@ -29,13 +29,13 @@ impl Component for PeerList {
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         let ported = self.state.borrow();
-        let peers_state = ported.state_result()?;
+        let state = ported.state_result()?;
 
-        if peers_state.peers.is_empty() {
+        if state.peers.is_empty() {
             return Err("No peers connected yet".into());
         }
         // Convert peers to ListItems
-        let items: Vec<ListItem> = peers_state
+        let items: Vec<ListItem> = state
             .peers
             .iter()
             .map(|(peer, _)| {
