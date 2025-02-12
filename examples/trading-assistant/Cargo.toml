@@ -11,6 +11,7 @@ crb-system.workspace = true
 env_logger.workspace = true
 n9-core.workspace = true
 n9-app-stdio.path = "../../particles/app-stdio"
+n9-app-tui.path = "../../particles/app-tui"
 n9-model-anthropic.path = "../../particles/model-anthropic"
 n9-control-chat.path = "../../particles/control-chat"
 n9-exchange-dydx.path = "../../particles/exchange-dydx"

@@ -2,21 +2,26 @@ use crate::events::EventsDrainer;
 use crate::state::AppState;
 use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Agent, AgentSession, Context, DoAsync, DoSync, Next, OnEvent, RunAgent};
+use crb::agent::{
+    Agent, AgentSession, Context, DoAsync, DoSync, ManagedContext, Next, OnEvent, RunAgent,
+};
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
 use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
+use n9_core::{Particle, SubstanceLinks};
 use ratatui::DefaultTerminal;
 
 pub struct TuiApp {
+    substance: SubstanceLinks,
     terminal: Slot<DefaultTerminal>,
     state: AppState,
 }
 
-impl TuiApp {
-    pub fn new() -> Self {
+impl Particle for TuiApp {
+    fn construct(substance: SubstanceLinks) -> Self {
         Self {
+            substance,
             terminal: Slot::empty(),
             state: AppState::new(),
         }
@@ -86,7 +91,9 @@ struct Terminate;
 
 #[async_trait]
 impl DoAsync<Terminate> for TuiApp {
-    async fn handle(&mut self, _: Terminate, _ctx: &mut Context<Self>) -> Result<Next<Self>> {
+    async fn handle(&mut self, _: Terminate, ctx: &mut Context<Self>) -> Result<Next<Self>> {
+        ctx.shutdown();
+        self.substance.substance.interrupt()?;
         ratatui::try_restore()?;
         Ok(Next::done())
     }
