@@ -1,6 +1,6 @@
-use super::{Flow, Listener, State, SubEvent};
 use anyhow::{anyhow, Error, Result};
 use crb::core::watch;
+use ui9_dui::{Flow, Listener, State, SubEvent};
 
 // TODO: Move to the `app` crate
 
@@ -25,8 +25,12 @@ impl<F: Flow> Ported<F> {
     }
 }
 
-impl<F: Flow> Listener<F> {
-    pub fn ported_state(&mut self) -> Result<State<Ported<F>>> {
+pub trait PortedExt<F> {
+    fn ported_state(&mut self) -> Result<State<Ported<F>>>;
+}
+
+impl<F: Flow> PortedExt<F> for Listener<F> {
+    fn ported_state(&mut self) -> Result<State<Ported<F>>> {
         let mut rx = self.receiver()?;
         let (state, state_tx) = State::new(Ported::Loading);
         crb::core::spawn(async move {

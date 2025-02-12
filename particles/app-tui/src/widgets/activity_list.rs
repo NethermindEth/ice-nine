@@ -6,8 +6,9 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
+use ui9_app::{Ported, PortedExt};
 use ui9_dui::tracers::live::Live;
-use ui9_dui::{Ported, State, Sub};
+use ui9_dui::{State, Sub};
 
 pub struct ActivityList {
     live: Sub<Live>,

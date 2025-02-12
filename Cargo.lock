@@ -4610,6 +4610,7 @@ dependencies = [
  "ratatui",
  "tokio",
  "ui9",
+ "ui9-app",
  "ui9-dui",
  "ui9-maker",
  "ui9-mesh",

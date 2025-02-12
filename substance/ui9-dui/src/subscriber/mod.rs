@@ -2,12 +2,10 @@ mod client;
 pub mod drainer;
 mod listener;
 mod local_player;
-mod ported;
 
 pub use client::HubClient;
 pub use listener::Listener;
 pub use local_player::LocalPlayer;
-pub use ported::Ported;
 
 use crate::flow::{Flow, Unified};
 use crb::agent::{Agent, OnEvent};
@@ -57,7 +55,7 @@ pub struct State<T> {
 }
 
 impl<T> State<T> {
-    fn new(state: T) -> (Self, watch::Sender<T>) {
+    pub fn new(state: T) -> (Self, watch::Sender<T>) {
         let (state_tx, state_rx) = watch::channel(state);
         (Self { state_rx }, state_tx)
     }
