@@ -8,19 +8,16 @@ use crb::runtime::InterruptionLevel;
 use crb::superagent::{Supervisor, SupervisorSession};
 use crossterm::event::{Event, KeyCode};
 use ratatui::DefaultTerminal;
-use ui9_maker::{AppLink, UiEvent};
 
 pub struct AppTui {
     terminal: Slot<DefaultTerminal>,
-    link: AppLink,
     state: AppState,
 }
 
 impl AppTui {
-    pub fn new(link: AppLink) -> Self {
+    pub fn new() -> Self {
         Self {
             terminal: Slot::empty(),
-            link,
             state: AppState::new(),
         }
     }
@@ -53,9 +50,6 @@ impl DoAsync<Initialize> for AppTui {
         runtime.level = InterruptionLevel::ABORT;
         ctx.spawn_runtime(runtime, ());
 
-        let ui_events = self.link.drainer()?;
-        ctx.assign(ui_events, (), ());
-
         Ok(Next::do_sync(Render))
     }
 }
@@ -73,21 +67,6 @@ impl OnEvent<Event> for AppTui {
             },
             _ => Next::do_sync(Render),
         };
-        ctx.do_next(next_state);
-        Ok(())
-    }
-}
-
-#[async_trait]
-impl OnEvent<UiEvent> for AppTui {
-    async fn handle(&mut self, event: UiEvent, ctx: &mut Context<Self>) -> Result<()> {
-        match event {
-            UiEvent::SetState { peers } => {
-                // self.state.peers.set_state(peers);
-            }
-            UiEvent::StateChanged => {}
-        }
-        let next_state = Next::do_sync(Render);
         ctx.do_next(next_state);
         Ok(())
     }
