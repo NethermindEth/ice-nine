@@ -7,19 +7,19 @@ use ratatui::{
     widgets::{List, ListItem, Widget},
 };
 use ui9_app::{Ported, PortedExt};
-use ui9_dui::tracers::job::Job;
+use ui9_dui::tracers::event::Event;
 use ui9_dui::{State, Sub};
 
 pub struct ActivityLog {
-    job: Sub<Job>,
-    state: State<Ported<Job>>,
+    event: Sub<Event>,
+    state: State<Ported<Event>>,
 }
 
 impl ActivityLog {
     pub fn new() -> Self {
-        let mut job = Sub::<Job>::local_unified();
-        let state = job.ported_state().unwrap();
-        Self { job, state }
+        let mut event = Sub::<Event>::local_unified();
+        let state = event.ported_state().unwrap();
+        Self { event, state }
     }
 }
 
@@ -33,11 +33,11 @@ impl Component for ActivityLog {
         let state = ported.state_result()?;
 
         let items: Vec<ListItem> = state
-            .messages
+            .events
             .iter()
-            .map(|msg| {
+            .map(|event| {
                 ListItem::new(Line::from(vec![Span::styled(
-                    msg,
+                    event,
                     Style::default().fg(Color::White),
                 )]))
             })

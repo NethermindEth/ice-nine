@@ -7,8 +7,6 @@ use std::collections::{BTreeMap, VecDeque};
 use ui9::names::Fqn;
 use ulid::Ulid;
 
-static LIMIT: usize = 10;
-
 #[derive(Deref, DerefMut, From, Into)]
 pub struct JobSub {
     listener: Listener<Job>,
@@ -36,14 +34,12 @@ impl Unified for Job {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Job {
     pub operations: BTreeMap<OperationId, OperationRecord>,
-    pub messages: VecDeque<String>,
 }
 
 impl Default for Job {
     fn default() -> Self {
         Self {
             operations: BTreeMap::new(),
-            messages: VecDeque::with_capacity(LIMIT + 1),
         }
     }
 }
@@ -54,12 +50,6 @@ impl Flow for Job {
 
     fn apply(&mut self, event: Self::Event) {
         match event {
-            JobData::Message(message) => {
-                self.messages.push_back(message);
-                if self.messages.len() > LIMIT {
-                    self.messages.pop_front();
-                }
-            }
             JobData::Begin { id, task } => {
                 let record = OperationRecord {
                     task: task.into(),
@@ -72,12 +62,8 @@ impl Flow for Job {
                     record.failures.push(reason);
                 }
             }
-            JobData::End { id, message } => {
+            JobData::End { id } => {
                 self.operations.remove(&id);
-                self.messages.push_back(message);
-                if self.messages.len() > LIMIT {
-                    self.messages.pop_front();
-                }
             }
         }
     }
@@ -85,10 +71,9 @@ impl Flow for Job {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum JobData {
-    Message(String),
     Begin { id: OperationId, task: String },
     Failure { id: OperationId, reason: String },
-    End { id: OperationId, message: String },
+    End { id: OperationId },
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash)]

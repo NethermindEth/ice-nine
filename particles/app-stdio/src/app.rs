@@ -9,7 +9,7 @@ use crb::superagent::{Interval, StreamSession, Tick};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use n9_core::{Particle, SubstanceLinks};
 use std::collections::VecDeque;
-use ui9_dui::tracers::job::{Job, JobData};
+use ui9_dui::tracers::event::{Event, EventData};
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {
@@ -18,7 +18,7 @@ pub struct StdioApp {
     messages: VecDeque<String>,
     chat: Sub<Chat>,
     state: Option<State<Chat>>,
-    job: Sub<Job>,
+    event: Sub<Event>,
     interval: Interval,
     waiting: bool,
 }
@@ -31,7 +31,7 @@ impl Particle for StdioApp {
             messages: VecDeque::new(),
             chat: Sub::local_unified(),
             state: None,
-            job: Sub::local_unified(),
+            event: Sub::local_unified(),
             interval: Interval::new(),
             waiting: false,
         }
@@ -76,7 +76,7 @@ impl DoAsync<Initialize> for StdioApp {
         self.interval.set_interval_ms(200)?;
         ctx.consume(self.interval.events()?);
         ctx.consume(self.chat.events()?);
-        ctx.consume(self.job.events()?);
+        ctx.consume(self.event.events()?);
         Ok(Next::events())
     }
 }
@@ -182,20 +182,17 @@ impl OnEvent<SubEvent<Chat>> for StdioApp {
 }
 
 #[async_trait]
-impl OnEvent<SubEvent<Job>> for StdioApp {
-    async fn handle(&mut self, event: SubEvent<Job>, _ctx: &mut Context<Self>) -> Result<()> {
+impl OnEvent<SubEvent<Event>> for StdioApp {
+    async fn handle(&mut self, event: SubEvent<Event>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
-                for message in state.borrow().messages.iter() {
-                    self.add_message(message);
+                for event in state.borrow().events.iter() {
+                    self.add_message(event);
                 }
             }
-            SubEvent::Event(event) => match event {
-                JobData::Message(msg) => {
-                    self.add_message(&msg);
-                }
-                _ => {}
-            },
+            SubEvent::Event(event) => {
+                self.add_message(&event.message);
+            }
             SubEvent::Lost => {}
         }
         Ok(())
