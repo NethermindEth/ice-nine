@@ -4719,6 +4719,7 @@ dependencies = [
  "notify",
  "tokio",
  "toml",
+ "ui9-dui",
 ]
 
 [[package]]

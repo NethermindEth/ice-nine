@@ -14,6 +14,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::fs;
 use toml::{Table, Value};
+use ui9_dui::Operation;
 
 const CONFIG_NAME: &str = "nine.toml";
 const TEMPLATE_NAME: &str = "nine.example.toml";
@@ -26,10 +27,15 @@ pub struct ConfigLayer {
 
 impl ConfigLayer {
     async fn read_config(&mut self) -> Result<()> {
+        let op = Operation::start(&format!("Reading configuration: {}", self.path.display()));
         log::info!("Reading the config layer: {}", self.path.display());
         let content = fs::read_to_string(self.path.as_ref()).await?;
         let config = toml::from_str(&content)?;
         self.config = config;
+        op.end(&format!(
+            "Complete reading the config: {}",
+            self.path.display()
+        ));
         Ok(())
     }
 }

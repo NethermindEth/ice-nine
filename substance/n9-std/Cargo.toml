@@ -16,3 +16,4 @@ log.workspace = true
 notify = "8.0.0"
 tokio.workspace = true
 toml.workspace = true
+ui9-dui.workspace = true
