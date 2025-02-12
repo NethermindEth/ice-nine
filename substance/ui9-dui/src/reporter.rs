@@ -56,12 +56,12 @@ impl Operation {
 
     fn act_job(&mut self, action: JobData) {
         let event = Act::<Job> { action };
-        LOG_BRIDGE.send(event);
+        LOG_BRIDGE.event(event);
     }
 
     fn act_event(&mut self, action: EventData) {
         let event = Act::<Event> { action };
-        LOG_BRIDGE.send(event);
+        LOG_BRIDGE.event(event);
     }
 }
 
