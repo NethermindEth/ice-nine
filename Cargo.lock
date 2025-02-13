@@ -4605,6 +4605,7 @@ dependencies = [
  "async-trait",
  "crb",
  "crossterm",
+ "n9-control-chat",
  "n9-core",
  "ratatui",
  "ui9",

@@ -4,7 +4,7 @@ use crate::widgets::{Render, Component, Reason};
 
 pub struct AutoLayout {
     direction: Direction,
-    comps: Vec<Box<dyn Render>>,
+    comps: Vec<(Box<dyn Render>, u16)>,
     cols: Vec<Constraint>,
 }
 
@@ -13,12 +13,16 @@ impl AutoLayout {
         direction: Direction,
         comps: I,
     ) -> Self
-    where I: IntoIterator<Item = Box<dyn Render>>,
+    where I: IntoIterator<Item = (Box<dyn Render>, u16)>,
     {
         let comps: Vec<_> = comps.into_iter().collect();
-        let total = comps.len();
-        let col = 100 / total as u16;
-        let cols = std::iter::repeat(col).map(Constraint::Percentage).take(total).collect();
+        let total: u16 = comps.iter().map(|(_, x)| x).sum();
+        let point = 100 / total;
+        let mut cols = Vec::new();
+        for (_, size) in comps.iter() {
+            let total_size = point * size;
+            cols.push(Constraint::Percentage(total_size));
+        }
         Self {
             direction,
             comps,
@@ -34,7 +38,7 @@ impl AutoLayout {
             .split(area);
 
         let iter = self.comps.iter().zip(chunks.iter());
-        for (widget, chunk) in iter {
+        for ((widget, _), chunk) in iter {
             widget.render(chunk, buf);
         }
     }

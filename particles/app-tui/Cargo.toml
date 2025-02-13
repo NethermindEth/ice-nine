@@ -11,6 +11,7 @@ async-trait.workspace = true
 crb.workspace = true
 crossterm = "0.28.1"
 n9-core.workspace = true
+n9-control-chat.workspace = true
 ratatui = "0.29.0"
 ui9.workspace = true
 ui9-app.workspace = true
