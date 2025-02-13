@@ -6,20 +6,19 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_app::{Ported, PortedExt};
+use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::tracers::event::Event;
 use ui9_dui::{State, Sub};
 
 pub struct EventLog {
-    event: Sub<Event>,
-    state: State<Ported<Event>>,
+    state: SubState<Event>,
 }
 
 impl EventLog {
     pub fn new() -> Self {
-        let mut event = Sub::<Event>::local_unified();
-        let state = event.ported_state().unwrap();
-        Self { event, state }
+        Self {
+            state: SubState::new_local_unified(),
+        }
     }
 }
 

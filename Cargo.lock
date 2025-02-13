@@ -7740,6 +7740,7 @@ dependencies = [
  "anyhow",
  "async-trait",
  "crb",
+ "derive_more 1.0.0",
  "log",
  "ui9",
  "ui9-dui",
