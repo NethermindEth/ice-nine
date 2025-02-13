@@ -10,12 +10,12 @@ use ui9_app::{Ported, PortedExt};
 use ui9_dui::tracers::job::Job;
 use ui9_dui::{State, Sub};
 
-pub struct ActivityList {
+pub struct JobList {
     job: Sub<Job>,
     state: State<Ported<Job>>,
 }
 
-impl ActivityList {
+impl JobList {
     pub fn new() -> Self {
         let mut job = Sub::<Job>::local_unified();
         let state = job.ported_state().unwrap();
@@ -23,7 +23,7 @@ impl ActivityList {
     }
 }
 
-impl Component for ActivityList {
+impl Component for JobList {
     fn title(&self) -> Option<&str> {
         Some("Activities")
     }

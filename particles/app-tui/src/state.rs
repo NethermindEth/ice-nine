@@ -1,11 +1,11 @@
-use crate::widgets::{ActivityList, Component, EventLog, PeerList};
+use crate::widgets::{Component, EventLog, JobList, PeerList};
 use ratatui::prelude::{Constraint, Direction, Layout};
 use ratatui::widgets::{Block, Borders, Paragraph};
 use ratatui::Frame;
 
 pub struct AppState {
     pub peers: PeerList,
-    pub activity_list: ActivityList,
+    pub job_list: JobList,
     pub event_log: EventLog,
 }
 
@@ -13,7 +13,7 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             peers: PeerList::new(),
-            activity_list: ActivityList::new(),
+            job_list: JobList::new(),
             event_log: EventLog::new(),
         }
     }
@@ -47,7 +47,7 @@ impl AppState {
             .split(chunks[1]);
 
         // Center column: Activities
-        let widget = self.activity_list.widget();
+        let widget = self.job_list.widget();
         f.render_widget(widget, vchunks[0]);
 
         let widget = self.event_log.widget();

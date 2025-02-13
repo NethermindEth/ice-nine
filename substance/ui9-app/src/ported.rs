@@ -2,8 +2,6 @@ use anyhow::{anyhow, Error, Result};
 use crb::core::watch;
 use ui9_dui::{Flow, Listener, State, SubEvent};
 
-// TODO: Move to the `app` crate
-
 #[derive(Debug)]
 pub enum Ported<F> {
     Loading,
