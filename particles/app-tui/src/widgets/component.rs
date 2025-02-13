@@ -4,23 +4,23 @@ use ratatui::prelude::{Alignment, Buffer, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
 
-pub trait Component: Sized {
+pub trait Component: 'static + Sized + Send {
     fn title(&self) -> Option<&str> {
         None
     }
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason>;
 
-    fn widget(&self) -> ComponentWidget<'_, Self> {
-        ComponentWidget { widget: self }
+    fn widget(self) -> Box<dyn Render> {
+        Box::new(ComponentWidget { widget: self })
     }
 }
 
-pub struct ComponentWidget<'a, C: Component> {
-    widget: &'a C,
+pub struct ComponentWidget<C: Component> {
+    widget: C,
 }
 
-impl<'a, C: Component> ComponentWidget<'a, C> {
+impl<C: Component> ComponentWidget<C> {
     fn render_loading(&self, area: Rect, buf: &mut Buffer, spinner: &str) {
         // Create a paragraph with the spinner animation
         let loading_text = Paragraph::new(spinner)
@@ -36,16 +36,20 @@ impl<'a, C: Component> ComponentWidget<'a, C> {
     }
 }
 
-impl<'a, C: Component> Widget for ComponentWidget<'a, C> {
-    fn render(self, area: Rect, buf: &mut Buffer) {
+pub trait Render: Send {
+    fn render(&self, area: &Rect, buf: &mut Buffer);
+}
+
+impl<C: Component> Render for ComponentWidget<C> {
+    fn render(&self, area: &Rect, buf: &mut Buffer) {
         let title = self.widget.title().unwrap_or("");
         // Create a block with borders
         let block = Block::default()
             .borders(Borders::ALL)
             .title(format!(" {} ", title))
             .style(Style::default().fg(Color::White));
-        let block_inner = block.inner(area);
-        block.render(area, buf);
+        let block_inner = block.inner(*area);
+        block.render(*area, buf);
 
         if let Err(err) = self.widget.render(block_inner, buf) {
             self.render_loading(block_inner, buf, err.as_ref());
