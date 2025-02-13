@@ -1,7 +1,7 @@
 mod app;
 mod events;
+mod layouts;
 mod state;
 mod widgets;
-mod layouts;
 
 pub use app::TuiApp;

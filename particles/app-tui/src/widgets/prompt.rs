@@ -1,12 +1,12 @@
 use crate::widgets::{Component, Reason};
+use n9_control_chat::{Chat, ChatEvent, Role};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{List, ListItem, Widget, Paragraph, Block, Borders, Padding},
+    widgets::{Block, Borders, List, ListItem, Padding, Paragraph, Widget},
 };
-use n9_control_chat::{Chat, ChatEvent, Role};
 use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::tracers::event::Event;
 use ui9_dui::{State, Sub};
@@ -35,12 +35,11 @@ impl Component for Prompt {
         let state = ported.state()?;
 
         // TODO: Show the placeholder here
-        let input_widget = Paragraph::new(&*self.text)
-            .block(
-                Block::default()
+        let input_widget = Paragraph::new(&*self.text).block(
+            Block::default()
                 .borders(Borders::NONE)
-                .padding(Padding::uniform(1))
-            );
+                .padding(Padding::uniform(1)),
+        );
         input_widget.render(area, buf);
         Ok(())
     }

@@ -1,15 +1,17 @@
 mod component;
+mod dialog;
 mod event_log;
+mod focus;
 mod job_list;
 mod peers_list;
-mod reason;
-mod dialog;
 mod prompt;
+mod reason;
 
 pub use component::{Component, ComponentWidget, Render};
+pub use dialog::Dialog;
 pub use event_log::EventLog;
+pub use focus::FocusControl;
 pub use job_list::JobList;
 pub use peers_list::PeerList;
-pub use reason::Reason;
-pub use dialog::Dialog;
 pub use prompt::Prompt;
+pub use reason::Reason;

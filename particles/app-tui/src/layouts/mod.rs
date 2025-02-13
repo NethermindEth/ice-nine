@@ -1,6 +1,6 @@
+use crate::widgets::{Component, Reason, Render};
+use ratatui::prelude::{Buffer, Constraint, Direction, Layout, Rect};
 use ratatui::widgets::Widget;
-use ratatui::prelude::{Rect, Buffer, Layout, Direction, Constraint};
-use crate::widgets::{Render, Component, Reason};
 
 pub struct AutoLayout {
     direction: Direction,
@@ -9,11 +9,9 @@ pub struct AutoLayout {
 }
 
 impl AutoLayout {
-    pub fn new<I>(
-        direction: Direction,
-        comps: I,
-    ) -> Self
-    where I: IntoIterator<Item = (Box<dyn Render>, u16)>,
+    pub fn new<I>(direction: Direction, comps: I) -> Self
+    where
+        I: IntoIterator<Item = (Box<dyn Render>, u16)>,
     {
         let comps: Vec<_> = comps.into_iter().collect();
         let total: u16 = comps.iter().map(|(_, x)| x).sum();
@@ -49,5 +47,4 @@ impl Component for AutoLayout {
         AutoLayout::render(self, area, buf);
         Ok(())
     }
-
 }

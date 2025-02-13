@@ -1,5 +1,7 @@
-use super::Reason;
+use super::{FocusControl, Reason};
 use anyhow::Error;
+use crb::core::Unique;
+use crossterm::event::KeyEvent;
 use ratatui::prelude::{Alignment, Buffer, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
@@ -11,12 +13,18 @@ pub trait Component: 'static + Sized + Send {
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason>;
 
+    fn handle(&mut self, _event: KeyEvent, ctrl: &mut FocusControl) {}
+
     fn widget(self) -> Box<dyn Render> {
-        Box::new(ComponentWidget { widget: self })
+        Box::new(ComponentWidget {
+            id: Unique::default(),
+            widget: self,
+        })
     }
 }
 
 pub struct ComponentWidget<C: Component> {
+    id: Unique,
     widget: C,
 }
 
@@ -37,10 +45,16 @@ impl<C: Component> ComponentWidget<C> {
 }
 
 pub trait Render: Send {
+    fn id(&self) -> &Unique;
     fn render(&self, area: &Rect, buf: &mut Buffer);
+    fn handle(&mut self, _event: KeyEvent, ctrl: &mut FocusControl) -> bool;
 }
 
 impl<C: Component> Render for ComponentWidget<C> {
+    fn id(&self) -> &Unique {
+        &self.id
+    }
+
     fn render(&self, area: &Rect, buf: &mut Buffer) {
         let render_area = {
             if let Some(title) = self.widget.title() {
@@ -59,6 +73,16 @@ impl<C: Component> Render for ComponentWidget<C> {
 
         if let Err(err) = self.widget.render(render_area, buf) {
             self.render_loading(render_area, buf, err.as_ref());
+        }
+    }
+
+    fn handle(&mut self, event: KeyEvent, ctrl: &mut FocusControl) -> bool {
+        if ctrl.is_focused(&self.id) {
+            // TODO: Call handle only if the component is in focus
+            self.widget.handle(event, ctrl);
+            true
+        } else {
+            false
         }
     }
 }

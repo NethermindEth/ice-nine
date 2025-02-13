@@ -1,4 +1,5 @@
 use crate::widgets::{Component, Reason};
+use n9_control_chat::{Chat, ChatEvent, Role};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -6,7 +7,6 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use n9_control_chat::{Chat, ChatEvent, Role};
 use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::tracers::event::Event;
 use ui9_dui::{State, Sub};
