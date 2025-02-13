@@ -42,17 +42,23 @@ pub trait Render: Send {
 
 impl<C: Component> Render for ComponentWidget<C> {
     fn render(&self, area: &Rect, buf: &mut Buffer) {
-        let title = self.widget.title().unwrap_or("");
-        // Create a block with borders
-        let block = Block::default()
-            .borders(Borders::ALL)
-            .title(format!(" {} ", title))
-            .style(Style::default().fg(Color::White));
-        let block_inner = block.inner(*area);
-        block.render(*area, buf);
+        let render_area = {
+            if let Some(title) = self.widget.title() {
+                // Create a block with borders
+                let block = Block::default()
+                    .borders(Borders::ALL)
+                    .title(format!(" {} ", title))
+                    .style(Style::default().fg(Color::White));
+                let block_inner = block.inner(*area);
+                block.render(*area, buf);
+                block_inner
+            } else {
+                *area
+            }
+        };
 
-        if let Err(err) = self.widget.render(block_inner, buf) {
-            self.render_loading(block_inner, buf, err.as_ref());
+        if let Err(err) = self.widget.render(render_area, buf) {
+            self.render_loading(render_area, buf, err.as_ref());
         }
     }
 }

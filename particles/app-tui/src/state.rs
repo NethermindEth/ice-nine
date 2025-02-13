@@ -11,11 +11,19 @@ pub struct AppState {
 impl AppState {
     pub fn new() -> Self {
         Self {
-            tab_main: AutoLayout::new([
-                PeerList::new().widget(),
-                JobList::new().widget(),
-                EventLog::new().widget(),
-            ]),
+            tab_main: AutoLayout::new(
+                Direction::Horizontal,
+                [
+                    PeerList::new().widget(),
+                    AutoLayout::new(
+                        Direction::Vertical,
+                        [
+                            JobList::new().widget(),
+                            EventLog::new().widget(),
+                        ],
+                    ).widget(),
+                ],
+            ),
         }
     }
 
