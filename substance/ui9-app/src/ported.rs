@@ -1,6 +1,11 @@
-use anyhow::{anyhow, Error, Result};
+use anyhow::Error;
 use crb::core::watch;
+use thiserror::Error;
 use ui9_dui::{Flow, Listener, State, SubEvent};
+
+#[derive(Debug, Error)]
+#[error("Loading...")]
+pub struct Loading;
 
 #[derive(Debug)]
 pub enum Ported<F> {
@@ -10,7 +15,7 @@ pub enum Ported<F> {
 }
 
 impl<F: Flow> Ported<F> {
-    pub fn state(&self) -> Option<watch::Ref<F>> {
+    pub fn get_state(&self) -> Option<watch::Ref<F>> {
         match self {
             Self::Loading => None,
             Self::Actual(state) => Some(state.borrow()),
@@ -18,17 +23,17 @@ impl<F: Flow> Ported<F> {
         }
     }
 
-    pub fn state_result(&self) -> Result<watch::Ref<F>> {
-        self.state().ok_or_else(|| anyhow!("Loading..."))
+    pub fn state(&self) -> Result<watch::Ref<F>, Loading> {
+        self.get_state().ok_or(Loading)
     }
 }
 
 pub trait PortedExt<F> {
-    fn ported_state(&mut self) -> Result<State<Ported<F>>>;
+    fn ported_state(&mut self) -> Result<State<Ported<F>>, Error>;
 }
 
 impl<F: Flow> PortedExt<F> for Listener<F> {
-    fn ported_state(&mut self) -> Result<State<Ported<F>>> {
+    fn ported_state(&mut self) -> Result<State<Ported<F>>, Error> {
         let mut rx = self.receiver()?;
         let (state, state_tx) = State::new(Ported::Loading);
         crb::core::spawn(async move {

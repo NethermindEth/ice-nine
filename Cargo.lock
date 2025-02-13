@@ -7742,6 +7742,7 @@ dependencies = [
  "crb",
  "derive_more 1.0.0",
  "log",
+ "thiserror 2.0.11",
  "ui9",
  "ui9-dui",
  "ui9-net",

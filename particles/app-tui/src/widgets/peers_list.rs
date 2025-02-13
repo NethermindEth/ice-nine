@@ -6,20 +6,19 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_app::{Ported, PortedExt};
+use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::{State, Sub};
 use ui9_net::tracers::peer::Peer;
 
 pub struct PeerList {
-    peers: Sub<Peer>,
-    state: State<Ported<Peer>>,
+    state: SubState<Peer>,
 }
 
 impl PeerList {
     pub fn new() -> Self {
-        let mut peers = Sub::<Peer>::local_unified();
-        let state = peers.ported_state().unwrap();
-        Self { peers, state }
+        Self {
+            state: SubState::new_local_unified(),
+        }
     }
 }
 
@@ -30,7 +29,7 @@ impl Component for PeerList {
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         let ported = self.state.borrow();
-        let state = ported.state_result()?;
+        let state = ported.state()?;
 
         if state.peers.is_empty() {
             return Err("No peers connected yet".into());

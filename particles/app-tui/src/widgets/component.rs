@@ -1,34 +1,8 @@
+use super::Reason;
 use anyhow::Error;
 use ratatui::prelude::{Alignment, Buffer, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::widgets::{Block, Borders, Paragraph, Widget};
-use std::borrow::Cow;
-
-pub struct Reason {
-    reason: Cow<'static, str>,
-}
-
-impl From<&'static str> for Reason {
-    fn from(s: &'static str) -> Self {
-        Self {
-            reason: Cow::Borrowed(s),
-        }
-    }
-}
-
-impl From<Error> for Reason {
-    fn from(err: Error) -> Self {
-        Self {
-            reason: Cow::Owned(err.to_string()),
-        }
-    }
-}
-
-impl AsRef<str> for Reason {
-    fn as_ref(&self) -> &str {
-        self.reason.as_ref()
-    }
-}
 
 pub trait Component: Sized {
     fn title(&self) -> Option<&str> {

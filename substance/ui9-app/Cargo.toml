@@ -12,6 +12,7 @@ async-trait.workspace = true
 crb.workspace = true
 derive_more.workspace = true
 log.workspace = true
+thiserror.workspace = true
 ui9.workspace = true
 ui9-dui.workspace = true
 ui9-net.workspace = true

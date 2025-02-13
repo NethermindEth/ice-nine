@@ -30,7 +30,7 @@ impl Component for JobList {
 
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         let ported = self.state.borrow();
-        let state = ported.state_result()?;
+        let state = ported.state()?;
 
         if state.operations.is_empty() {
             return Err(r#"No active jobs ʕ•́ᴥ•̀ʔ"#.into());
