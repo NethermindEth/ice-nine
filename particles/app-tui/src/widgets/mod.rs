@@ -3,6 +3,7 @@ mod dialog;
 mod event_log;
 mod focus;
 mod job_list;
+mod markdown;
 mod peers_list;
 mod prompt;
 mod reason;

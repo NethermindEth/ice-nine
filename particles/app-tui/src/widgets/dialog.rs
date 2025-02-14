@@ -1,3 +1,4 @@
+use super::markdown::markdown_to_text;
 use crate::widgets::{Component, Reason};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use ratatui::{
@@ -36,19 +37,19 @@ impl Component for Dialog {
         for msg in &state.messages {
             match msg.role {
                 Role::Request => {
-                    let rendered = termimad::text(&msg.content).to_string();
-                    text.push_str(&format!("\n👤 Request:\n\n{}\n", rendered));
+                    // let rendered = termimad::text(&msg.content).to_string();
+                    text.push_str(&format!("\n👤 Request:\n\n\n{}\n\n", msg.content));
                 }
                 Role::Response => {
-                    let rendered = termimad::text(&msg.content).to_string();
-                    text.push_str(&format!("\n🤖 Response:\n\n{}\n", rendered));
+                    // let rendered = termimad::text(&msg.content).to_string();
+                    text.push_str(&format!("\n🤖 Response:\n\n\n{}\n\n", msg.content));
                 }
             }
         }
         let padding = Block::default()
             .borders(Borders::NONE)
             .padding(Padding::uniform(1));
-        let paragraph = Paragraph::new(text)
+        let paragraph = Paragraph::new(markdown_to_text(&text))
             .block(padding)
             .wrap(Wrap { trim: true });
 
