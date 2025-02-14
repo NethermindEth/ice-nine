@@ -1,10 +1,7 @@
 use crate::layouts::AutoLayout;
-use crate::widgets::{
-    Component, Dialog, EventLog, FocusControl, JobList, PeerList, Prompt, Render,
-};
+use crate::widgets::{Component, Dialog, EventLog, FocusControl, JobList, Prompt, Render};
 use crossterm::event::KeyEvent;
-use ratatui::prelude::{Constraint, Direction, Layout};
-use ratatui::widgets::{Block, Borders, Paragraph};
+use ratatui::prelude::Direction;
 use ratatui::Frame;
 
 pub struct AppState {

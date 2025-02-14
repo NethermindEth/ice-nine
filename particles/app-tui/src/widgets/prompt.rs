@@ -1,16 +1,12 @@
 use crate::widgets::{Component, FocusControl, Reason};
 use crossterm::event::{KeyCode, KeyEvent};
-use n9_control_chat::{Chat, ChatEvent, Role};
+use n9_control_chat::Chat;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style},
-    text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Padding, Paragraph, Widget, Wrap},
+    widgets::{Block, Borders, Padding, Paragraph, Widget, Wrap},
 };
-use ui9_app::{Ported, PortedExt, SubState};
-use ui9_dui::tracers::event::Event;
-use ui9_dui::{State, Sub};
+use ui9_app::SubState;
 
 pub struct Prompt {
     state: SubState<Chat>,

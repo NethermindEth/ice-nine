@@ -1,5 +1,4 @@
 use super::{FocusControl, Reason};
-use anyhow::Error;
 use crb::core::Unique;
 use crossterm::event::KeyEvent;
 use ratatui::prelude::{Alignment, Buffer, Rect};

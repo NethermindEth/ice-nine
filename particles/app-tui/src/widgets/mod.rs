@@ -8,7 +8,7 @@ mod peers_list;
 mod prompt;
 mod reason;
 
-pub use component::{Component, ComponentWidget, Render};
+pub use component::{Component, Render};
 pub use dialog::Dialog;
 pub use event_log::EventLog;
 pub use focus::FocusControl;

@@ -25,7 +25,7 @@ impl<'a> MdRender<'a> {
         self.all_lines.push(Line::from(line));
     }
 
-    pub fn render(mut self, markdown: &'a str) -> Text {
+    pub fn render(mut self, markdown: &'a str) -> Text<'a> {
         // Track the current style (bold, italic, etc.)
         self.current_style = Style::default();
 

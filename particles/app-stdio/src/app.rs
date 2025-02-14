@@ -9,7 +9,7 @@ use crb::superagent::{Interval, StreamSession, Tick};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use n9_core::{Particle, SubstanceLinks};
 use std::collections::VecDeque;
-use ui9_dui::tracers::event::{Event, EventData};
+use ui9_dui::tracers::event::Event;
 use ui9_dui::{State, Sub, SubEvent};
 
 pub struct StdioApp {

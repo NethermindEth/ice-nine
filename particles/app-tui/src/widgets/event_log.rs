@@ -7,9 +7,8 @@ use ratatui::{
     text::{Line, Span},
     widgets::{List, ListItem, Widget},
 };
-use ui9_app::{Ported, PortedExt, SubState};
+use ui9_app::SubState;
 use ui9_dui::tracers::event::Event;
-use ui9_dui::{State, Sub};
 
 pub struct EventLog {
     state: SubState<Event>,

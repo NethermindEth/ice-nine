@@ -1,7 +1,6 @@
 use crate::widgets::{Component, FocusControl, Reason, Render};
 use crossterm::event::KeyEvent;
 use ratatui::prelude::{Buffer, Constraint, Direction, Layout, Rect};
-use ratatui::widgets::Widget;
 
 pub struct AutoLayout {
     direction: Direction,

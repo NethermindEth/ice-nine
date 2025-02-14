@@ -1,15 +1,11 @@
-use anyhow::Error;
-use std::borrow::Cow;
-use ui9_app::Loading;
-
 pub struct Reason {
-    reason: Cow<'static, str>,
+    reason: String,
 }
 
 impl<T: ToString> From<T> for Reason {
     fn from(t: T) -> Self {
         Self {
-            reason: Cow::Owned(t.to_string()),
+            reason: t.to_string(),
         }
     }
 }
