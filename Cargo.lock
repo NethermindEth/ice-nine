@@ -4608,6 +4608,7 @@ dependencies = [
  "n9-control-chat",
  "n9-core",
  "ratatui",
+ "termimad",
  "ui9",
  "ui9-app",
  "ui9-dui",
