@@ -1,4 +1,4 @@
-use super::markdown::markdown_to_text;
+use super::markdown::MdRender;
 use crate::widgets::{Component, Reason};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use ratatui::{
@@ -44,10 +44,11 @@ impl Component for Dialog {
                 }
             }
         }
+        let render = MdRender::new();
         let padding = Block::default()
             .borders(Borders::NONE)
             .padding(Padding::uniform(1));
-        let paragraph = Paragraph::new(markdown_to_text(&text))
+        let paragraph = Paragraph::new(render.render(&text))
             .block(padding)
             .wrap(Wrap { trim: true });
 
