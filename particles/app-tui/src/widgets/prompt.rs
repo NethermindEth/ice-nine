@@ -6,7 +6,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, Padding, Paragraph, Widget},
+    widgets::{Block, Borders, List, ListItem, Padding, Paragraph, Widget, Wrap},
 };
 use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::tracers::event::Event;
@@ -37,11 +37,12 @@ impl Component for Prompt {
 
         // TODO: Show the placeholder here
         let text = format!("{}_", self.input);
-        let input_widget = Paragraph::new(text).block(
-            Block::default()
-                .borders(Borders::NONE)
-                .padding(Padding::uniform(1)),
-        );
+        let padding = Block::default()
+            .borders(Borders::NONE)
+            .padding(Padding::uniform(1));
+        let input_widget = Paragraph::new(text)
+            .block(padding)
+            .wrap(Wrap { trim: true });
         input_widget.render(area, buf);
         Ok(())
     }

@@ -6,26 +6,10 @@ pub struct Reason {
     reason: Cow<'static, str>,
 }
 
-impl From<Loading> for Reason {
-    fn from(load: Loading) -> Self {
+impl<T: ToString> From<T> for Reason {
+    fn from(t: T) -> Self {
         Self {
-            reason: Cow::Borrowed("Loading..."),
-        }
-    }
-}
-
-impl From<&'static str> for Reason {
-    fn from(s: &'static str) -> Self {
-        Self {
-            reason: Cow::Borrowed(s),
-        }
-    }
-}
-
-impl From<Error> for Reason {
-    fn from(err: Error) -> Self {
-        Self {
-            reason: Cow::Owned(err.to_string()),
+            reason: Cow::Owned(t.to_string()),
         }
     }
 }
