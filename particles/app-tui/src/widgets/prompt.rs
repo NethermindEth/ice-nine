@@ -1,4 +1,5 @@
-use crate::widgets::{Component, Reason};
+use crate::widgets::{Component, FocusControl, Reason};
+use crossterm::event::{KeyCode, KeyEvent};
 use n9_control_chat::{Chat, ChatEvent, Role};
 use ratatui::{
     buffer::Buffer,
@@ -13,14 +14,14 @@ use ui9_dui::{State, Sub};
 
 pub struct Prompt {
     state: SubState<Chat>,
-    text: String,
+    input: String,
 }
 
 impl Prompt {
     pub fn new() -> Self {
         Self {
             state: SubState::new_local_unified(),
-            text: String::new(),
+            input: String::new(),
         }
     }
 }
@@ -35,12 +36,29 @@ impl Component for Prompt {
         let state = ported.state()?;
 
         // TODO: Show the placeholder here
-        let input_widget = Paragraph::new(&*self.text).block(
+        let text = format!("{}_", self.input);
+        let input_widget = Paragraph::new(text).block(
             Block::default()
                 .borders(Borders::NONE)
                 .padding(Padding::uniform(1)),
         );
         input_widget.render(area, buf);
         Ok(())
+    }
+
+    fn handle(&mut self, event: KeyEvent, ctrl: &mut FocusControl) {
+        match event.code {
+            KeyCode::Char(c) => self.input.push(c),
+            KeyCode::Backspace => {
+                self.input.pop();
+            }
+            KeyCode::Enter => {
+                let mut input = String::new();
+                std::mem::swap(&mut self.input, &mut input);
+                self.state.sub.request(input);
+            }
+            KeyCode::Esc => {}
+            _ => {}
+        }
     }
 }

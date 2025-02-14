@@ -8,7 +8,7 @@ use crb::agent::{
 use crb::core::Slot;
 use crb::runtime::InterruptionLevel;
 use crb::superagent::{Interval, StreamSession, Supervisor, SupervisorSession, Tick};
-use crossterm::event::{Event, KeyCode};
+use crossterm::event::{Event, KeyCode, KeyModifiers};
 use n9_core::{Particle, SubstanceLinks};
 use ratatui::DefaultTerminal;
 
@@ -67,16 +67,23 @@ impl DoAsync<Initialize> for TuiApp {
 #[async_trait]
 impl OnEvent<Event> for TuiApp {
     async fn handle(&mut self, event: Event, ctx: &mut Context<Self>) -> Result<()> {
-        let next_state = match event {
-            Event::Key(event) => match event.code {
-                KeyCode::Char('q') => Next::do_async(Terminate),
-                _ => {
-                    // TODO: Actions
-                    Next::do_sync(Render)
+        let mut next_state = Next::do_sync(Render);
+        match event {
+            Event::Key(event) => {
+                self.state.handle(event);
+                if event.modifiers.contains(KeyModifiers::CONTROL) {
+                    match event.code {
+                        KeyCode::Char('q') | KeyCode::Char('w') => {
+                            next_state = Next::do_async(Terminate);
+                        }
+                        _ => {
+                            // TODO: Actions
+                        }
+                    }
                 }
-            },
-            _ => Next::do_sync(Render),
-        };
+            }
+            _ => {}
+        }
         ctx.do_next(next_state);
         Ok(())
     }

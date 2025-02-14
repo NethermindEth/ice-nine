@@ -77,9 +77,9 @@ impl<C: Component> Render for ComponentWidget<C> {
     }
 
     fn handle(&mut self, event: KeyEvent, ctrl: &mut FocusControl) -> bool {
+        self.widget.handle(event, ctrl);
         if ctrl.is_focused(&self.id) {
             // TODO: Call handle only if the component is in focus
-            self.widget.handle(event, ctrl);
             true
         } else {
             false

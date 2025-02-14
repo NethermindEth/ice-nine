@@ -1,4 +1,5 @@
-use crate::widgets::{Component, Reason, Render};
+use crate::widgets::{Component, FocusControl, Reason, Render};
+use crossterm::event::KeyEvent;
 use ratatui::prelude::{Buffer, Constraint, Direction, Layout, Rect};
 use ratatui::widgets::Widget;
 
@@ -46,5 +47,11 @@ impl Component for AutoLayout {
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
         AutoLayout::render(self, area, buf);
         Ok(())
+    }
+
+    fn handle(&mut self, event: KeyEvent, ctrl: &mut FocusControl) {
+        for (comp, _) in &mut self.comps {
+            comp.handle(event, ctrl);
+        }
     }
 }

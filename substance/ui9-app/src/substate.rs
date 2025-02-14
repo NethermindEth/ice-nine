@@ -6,10 +6,10 @@ use ui9_dui::{Flow, Listener, State, Sub, Subscriber, Unified};
 
 #[derive(Deref, DerefMut)]
 pub struct SubState<F: Subscriber> {
-    sub: Sub<F>,
+    pub sub: Sub<F>,
     #[deref]
     #[deref_mut]
-    state: State<Ported<F>>,
+    pub state: State<Ported<F>>,
 }
 
 impl<F: Subscriber> SubState<F> {
