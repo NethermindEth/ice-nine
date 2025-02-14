@@ -35,6 +35,8 @@ pub fn markdown_to_text(markdown: &str) -> Text {
                     // You could switch to a "code block style" here if desired
                 }
                 Tag::Heading { .. } => {
+                    all_lines.push(Line::from(""));
+                    current_line = Vec::new();
                     // Example: make headings bold + underlined
                     current_style = current_style
                         .add_modifier(Modifier::BOLD)
@@ -67,6 +69,9 @@ pub fn markdown_to_text(markdown: &str) -> Text {
                     // End code block styling if you started it above
                 }
                 TagEnd::Heading(_level) => {
+                    all_lines.push(Line::from(current_line));
+                    current_line = Vec::new();
+
                     current_style = current_style
                         .remove_modifier(Modifier::BOLD)
                         .remove_modifier(Modifier::UNDERLINED);

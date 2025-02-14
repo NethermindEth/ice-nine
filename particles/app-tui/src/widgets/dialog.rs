@@ -37,12 +37,10 @@ impl Component for Dialog {
         for msg in &state.messages {
             match msg.role {
                 Role::Request => {
-                    // let rendered = termimad::text(&msg.content).to_string();
-                    text.push_str(&format!("\n👤 Request:\n\n\n{}\n\n", msg.content));
+                    text.push_str(&format!("\n# 👤 Request:\n\n\n{}\n\n", msg.content));
                 }
                 Role::Response => {
-                    // let rendered = termimad::text(&msg.content).to_string();
-                    text.push_str(&format!("\n🤖 Response:\n\n\n{}\n\n", msg.content));
+                    text.push_str(&format!("\n# 🤖 Response:\n\n\n{}\n\n", msg.content));
                 }
             }
         }
