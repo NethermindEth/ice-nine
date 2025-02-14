@@ -4,12 +4,14 @@ use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
+use crb::core::time::Instant;
 use crb::superagent::{AgentBridge, StreamSession};
 use std::sync::LazyLock;
 
 static LOG_BRIDGE: LazyLock<AgentBridge<Reporter>> = LazyLock::new(|| AgentBridge::new());
 
 pub struct Operation {
+    started: Instant,
     id: OperationId,
     /// If taken (empty) the task is considered as completed
     task: Option<String>,
@@ -27,6 +29,7 @@ impl Operation {
     pub fn start(task: &str) -> Self {
         let id = OperationId::new();
         let mut this = Self {
+            started: Instant::now(),
             id,
             task: Some(task.into()),
         };
@@ -50,8 +53,9 @@ impl Operation {
     }
 
     fn send_end(&mut self, message: String) {
+        let duration = self.started.elapsed();
         self.act_job(JobData::End { id: self.id });
-        self.act_event(EventData { message });
+        self.act_event(EventData { message, duration });
     }
 
     fn act_job(&mut self, action: JobData) {

@@ -1,6 +1,7 @@
 use crate::flow::{Flow, Unified};
 use crate::publisher::{Publisher, Tracer};
 use crate::subscriber::{Listener, Subscriber};
+use crb::core::time::Duration;
 use derive_more::{Deref, DerefMut, From, Into};
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
@@ -34,7 +35,7 @@ impl Unified for Event {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Event {
-    pub events: VecDeque<String>,
+    pub events: VecDeque<EventData>,
 }
 
 impl Default for Event {
@@ -50,13 +51,9 @@ impl Flow for Event {
     type Action = EventData;
 
     fn apply(&mut self, event: Self::Event) {
-        match event {
-            EventData { message } => {
-                self.events.push_back(message);
-                if self.events.len() > LIMIT {
-                    self.events.pop_front();
-                }
-            }
+        self.events.push_back(event);
+        if self.events.len() > LIMIT {
+            self.events.pop_front();
         }
     }
 }
@@ -64,4 +61,5 @@ impl Flow for Event {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EventData {
     pub message: String,
+    pub duration: Duration,
 }

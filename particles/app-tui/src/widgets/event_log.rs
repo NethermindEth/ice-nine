@@ -1,4 +1,5 @@
 use crate::widgets::{Component, Reason};
+use crb::core::time::Duration;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -35,10 +36,16 @@ impl Component for EventLog {
             .events
             .iter()
             .map(|event| {
-                ListItem::new(Line::from(vec![Span::styled(
-                    event,
-                    Style::default().fg(Color::White),
-                )]))
+                ListItem::new(vec![
+                    Line::from(vec![Span::styled(
+                        render_duration(event.duration),
+                        Style::default().fg(Color::Blue),
+                    )]),
+                    Line::from(vec![Span::styled(
+                        &event.message,
+                        Style::default().fg(Color::White),
+                    )]),
+                ])
             })
             .collect();
 
@@ -46,5 +53,15 @@ impl Component for EventLog {
         list.render(area, buf);
 
         Ok(())
+    }
+}
+
+fn render_duration(duration: Duration) -> String {
+    if duration.as_micros() < 1_000 {
+        format!("{}µs", duration.as_micros())
+    } else if duration.as_millis() < 1_000 {
+        format!("{:.2}ms", duration.as_micros() as f32 / 1_000.0)
+    } else {
+        format!("{:.2}s", duration.as_millis() as f32 / 1_000.0)
     }
 }

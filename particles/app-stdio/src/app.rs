@@ -186,8 +186,8 @@ impl OnEvent<SubEvent<Event>> for StdioApp {
     async fn handle(&mut self, event: SubEvent<Event>, _ctx: &mut Context<Self>) -> Result<()> {
         match event {
             SubEvent::State(state) => {
-                for event in state.borrow().events.iter() {
-                    self.add_message(event);
+                for event_data in state.borrow().events.iter() {
+                    self.add_message(&event_data.message);
                 }
             }
             SubEvent::Event(event) => {
