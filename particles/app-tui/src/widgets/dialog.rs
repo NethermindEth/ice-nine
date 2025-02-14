@@ -5,7 +5,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{List, ListItem, Widget},
+    widgets::{Block, Borders, List, ListItem, Padding, Paragraph, Widget, Wrap},
 };
 use ui9_app::{Ported, PortedExt, SubState};
 use ui9_dui::tracers::event::Event;
@@ -32,19 +32,25 @@ impl Component for Dialog {
         let ported = self.state.borrow();
         let state = ported.state()?;
 
-        let items: Vec<ListItem> = state
-            .messages
-            .iter()
-            .map(|message| {
-                ListItem::new(Line::from(vec![Span::styled(
-                    &message.content,
-                    Style::default().fg(Color::White),
-                )]))
-            })
-            .collect();
+        let mut text = String::new();
+        for msg in &state.messages {
+            match msg.role {
+                Role::Request => {
+                    text.push_str(&format!("\n> {}\n", msg.content));
+                }
+                Role::Response => {
+                    text.push_str(&format!("\n>> {}\n", msg.content));
+                }
+            }
+        }
+        let padding = Block::default()
+            .borders(Borders::NONE)
+            .padding(Padding::uniform(1));
+        let paragraph = Paragraph::new(text)
+            .block(padding)
+            .wrap(Wrap { trim: true });
 
-        let list = List::new(items);
-        list.render(area, buf);
+        paragraph.render(area, buf);
 
         Ok(())
     }
