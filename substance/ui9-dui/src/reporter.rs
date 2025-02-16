@@ -3,6 +3,7 @@ use crate::tracers::job::{Job, JobData, OperationId};
 use crate::{Act, Pub};
 use anyhow::Result;
 use async_trait::async_trait;
+use chrono::{DateTime, Local};
 use crb::agent::{Agent, Context, DoAsync, Next, OnEvent};
 use crb::core::time::Instant;
 use crb::superagent::{AgentBridge, StreamSession};
@@ -11,6 +12,7 @@ use std::sync::LazyLock;
 static LOG_BRIDGE: LazyLock<AgentBridge<Reporter>> = LazyLock::new(|| AgentBridge::new());
 
 pub struct Operation {
+    timestamp: DateTime<Local>,
     started: Instant,
     id: OperationId,
     /// If taken (empty) the task is considered as completed
@@ -29,6 +31,7 @@ impl Operation {
     pub fn start(task: &str) -> Self {
         let id = OperationId::new();
         let mut this = Self {
+            timestamp: Local::now(),
             started: Instant::now(),
             id,
             task: Some(task.into()),

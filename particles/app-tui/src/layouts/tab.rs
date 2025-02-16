@@ -1,8 +1,8 @@
-use crate::widgets::{Render, Component, Reason, FocusControl};
-use ratatui::prelude::{Buffer, Rect, Layout, Constraint::*, Stylize, Widget};
+use crate::widgets::{Component, FocusControl, Reason, Render};
+use crossterm::event::KeyEvent;
+use ratatui::prelude::{Buffer, Constraint::*, Layout, Rect, Stylize, Widget};
 use ratatui::text::Line;
 use ratatui::widgets::Tabs;
-use crossterm::event::KeyEvent;
 
 pub struct TabLayout {
     title: String,
@@ -28,17 +28,16 @@ impl TabLayout {
     }
 
     fn render_tabs(&self, area: Rect, buf: &mut Buffer) {
-        let titles = self.comps.iter().map(|(_, title)| Line::from(title.as_ref()));
-        Tabs::new(titles)
-            .select(self.selected)
-            .render(area, buf);
-
+        let titles = self
+            .comps
+            .iter()
+            .map(|(_, title)| Line::from(title.as_ref()));
+        Tabs::new(titles).select(self.selected).render(area, buf);
     }
 }
 
 impl Component for TabLayout {
     fn render(&self, area: Rect, buf: &mut Buffer) -> Result<(), Reason> {
-
         let vertical = Layout::vertical([Length(1), Min(0), Length(1)]);
         let [header_area, inner_area, footer_area] = vertical.areas(area);
 

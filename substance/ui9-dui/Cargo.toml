@@ -8,6 +8,7 @@ repository.workspace = true
 [dependencies]
 anyhow.workspace = true
 async-trait.workspace = true
+chrono.workspace = true
 crb.workspace = true
 derive_more.workspace = true
 log.workspace = true

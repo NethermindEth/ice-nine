@@ -30,12 +30,8 @@ impl AppState {
         let mut focus = FocusControl::new();
         focus.set(&*tab_main);
 
-        let app_tabs = TabLayout::new(
-            "Nine Dashboard".into(),
-            [
-                (tab_main, "Chat".to_string()),
-            ],
-        ).widget();
+        let app_tabs =
+            TabLayout::new("Nine Dashboard".into(), [(tab_main, "Chat".to_string())]).widget();
 
         Self { app_tabs, focus }
     }
