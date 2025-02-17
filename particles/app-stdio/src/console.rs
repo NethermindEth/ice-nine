@@ -8,8 +8,7 @@ use rustyline::{
     Completer, Editor, Helper, Highlighter, Hinter,
 };
 use tokio::io::{self, AsyncWriteExt, Stdout};
-
-pub static RATE: u64 = 200;
+use ui9_tui::Spinner;
 
 #[derive(Completer, Helper, Highlighter, Hinter)]
 pub struct InputBlocker;
@@ -33,9 +32,7 @@ pub struct Console {
     #[deref_mut]
     editor: Editor<InputBlocker, DefaultHistory>,
     stdout: Stdout,
-    started: Instant,
-    rate: u64,
-    spinner: Box<[char]>,
+    spinner: Spinner,
 }
 
 impl Console {
@@ -45,9 +42,7 @@ impl Console {
         Ok(Self {
             editor,
             stdout: io::stdout(),
-            started: Instant::now(),
-            rate: RATE,
-            spinner: Box::new(['⣷', '⣯', '⣟', '⡿', '⢿', '⣻', '⣽', '⣾']),
+            spinner: Spinner::new(),
         })
     }
 
@@ -90,11 +85,8 @@ impl Console {
     }
 
     pub async fn render_progress(&mut self, reason: &str) -> Result<()> {
-        let elapsed = self.started.elapsed().as_millis() as u64;
-        let len = self.spinner.len() as u64;
-        let idx = elapsed / self.rate % len;
+        let current_char = self.spinner.spinner_char();
         let mut status = String::new();
-        let current_char = self.spinner[idx as usize];
         status.push_str(&current_char.to_string().blue().to_string());
         status.push_str(" ");
         let rendered = termimad::text(reason).to_string();

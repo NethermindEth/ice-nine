@@ -4634,6 +4634,7 @@ dependencies = [
  "tokio-stream",
  "ui9",
  "ui9-dui",
+ "ui9-tui",
 ]
 
 [[package]]
