@@ -1,4 +1,5 @@
 use crate::tracers::event::{Event, EventData};
+use crate::tracers::failure::{Failure, FailureData};
 use crate::tracers::job::{Job, JobData, OperationId};
 use crate::{Act, Pub};
 use anyhow::Result;
@@ -22,6 +23,7 @@ pub struct Operation {
 impl Drop for Operation {
     fn drop(&mut self) {
         if let Some(message) = self.task.take() {
+            // TODO: Send incompleted error
             self.send_end(message);
         }
     }
@@ -70,11 +72,17 @@ impl Operation {
         let event = Act::<Event> { action };
         LOG_BRIDGE.event(event);
     }
+
+    fn act_failure(&mut self, action: FailureData) {
+        let event = Act::<Failure> { action };
+        LOG_BRIDGE.event(event);
+    }
 }
 
 pub struct Reporter {
     job: Pub<Job>,
     event: Pub<Event>,
+    failure: Pub<Failure>,
 }
 
 impl Reporter {
@@ -82,6 +90,7 @@ impl Reporter {
         Self {
             job: Pub::unified(),
             event: Pub::unified(),
+            failure: Pub::unified(),
         }
     }
 
@@ -126,6 +135,14 @@ impl OnEvent<Act<Job>> for Reporter {
 impl OnEvent<Act<Event>> for Reporter {
     async fn handle(&mut self, msg: Act<Event>, _ctx: &mut Context<Self>) -> Result<()> {
         self.event.event(msg.action);
+        Ok(())
+    }
+}
+
+#[async_trait]
+impl OnEvent<Act<Failure>> for Reporter {
+    async fn handle(&mut self, msg: Act<Failure>, _ctx: &mut Context<Self>) -> Result<()> {
+        self.failure.event(msg.action);
         Ok(())
     }
 }

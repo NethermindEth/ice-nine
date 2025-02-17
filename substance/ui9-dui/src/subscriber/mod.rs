@@ -10,7 +10,7 @@ pub use local_player::LocalPlayer;
 use crate::flow::{Flow, Unified};
 use crb::agent::{Agent, OnEvent};
 use crb::core::{mpsc, watch};
-use derive_more::{Deref, DerefMut, From};
+use derive_more::{Deref, DerefMut};
 use ui9::names::Fqn;
 
 pub trait Subscriber: Flow + Default {
