@@ -23,8 +23,9 @@ pub struct Operation {
 impl Drop for Operation {
     fn drop(&mut self) {
         if let Some(message) = self.task.take() {
-            // TODO: Send incompleted error
-            self.send_end(message);
+            // Operations must be explicitly completed
+            let data = FailureData { message };
+            self.act_failure(data);
         }
     }
 }
