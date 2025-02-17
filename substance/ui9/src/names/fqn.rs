@@ -1,9 +1,8 @@
 use crate::names::Pqn;
 use nom::{
     bytes::complete::{tag, take_while1},
-    character::is_alphanumeric,
     multi::separated_list1,
-    IResult,
+    AsChar, IResult, Parser,
 };
 use serde::{Deserialize, Serialize};
 use std::fmt;
@@ -13,12 +12,12 @@ use thiserror::Error;
 
 /// Helper function to parse a valid identifier component
 fn identifier(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| is_alphanumeric(c as u8) || c == '_')(input)
+    take_while1(|c: char| c.is_alphanum() || c == '_')(input)
 }
 
 /// Function to parse an FQN
 fn fqn(input: &str) -> IResult<&str, Vec<&str>> {
-    separated_list1(tag("."), identifier)(input)
+    separated_list1(tag("."), identifier).parse(input)
 }
 
 #[derive(Error, Debug)]

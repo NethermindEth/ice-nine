@@ -1,5 +1,5 @@
 use crate::ported::{Ported, PortedExt};
-use derive_more::{Deref, DerefMut};
+use derive_more::with_trait::{Deref, DerefMut};
 use ui9_dui::{Listener, State, Sub, Subscriber, Unified};
 
 #[derive(Deref, DerefMut)]

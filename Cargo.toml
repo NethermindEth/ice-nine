@@ -23,16 +23,16 @@ async-trait = "0.1.86"
 bytes = "1.10.0"
 chrono = "0.4.39"
 console-subscriber = "0.4.1"
-clap = { version = "4.5.28", features = ["derive"] }
+clap = { version = "4.5.29", features = ["derive"] }
 crb = { version = "0.0.28", git = "https://github.com/runtime-blocks/crb" }
 crb-system = { version = "0.0.28", git = "https://github.com/runtime-blocks/crb" }
-derive_more = { version = "1.0.0", features = ["full"] }
+derive_more = { version = "2.0.1", features = ["full"] }
 dotenvy = "0.15.7"
-eframe = "0.30.0"
-egui = "0.30.0"
+eframe = "0.31.0"
+egui = "0.31.0"
 env_logger = "0.11.6"
 envy = "0.4.2"
-flexbuffers = "25.1.24"
+flexbuffers = "25.2.10"
 futures = "0.3.31"
 n9-core = { version = "0.0.1", path = "substance/n9-core" }
 n9-control-chat = { version = "0.0.1", path = "particles/control-chat" }
@@ -41,9 +41,9 @@ libp2p = { version = "0.55.0", features = ["gossipsub", "macros", "mdns", "noise
 libp2p-stream = "0.3.0-alpha"
 futures-bounded = "0.2.4"
 log = "0.4.25"
-serde = "1.0.217"
+serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.138"
-smallvec = "1.13.2"
+smallvec = "1.14.0"
 thiserror = "2.0.11"
 tokio = "1.43.0"
 tokio-stream = "0.1.17"
