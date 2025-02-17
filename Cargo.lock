@@ -4655,6 +4655,7 @@ dependencies = [
  "ui9-maker",
  "ui9-mesh",
  "ui9-net",
+ "ui9-tui",
 ]
 
 [[package]]
