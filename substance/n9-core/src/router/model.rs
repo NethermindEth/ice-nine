@@ -34,6 +34,7 @@ impl<M: Model> ModelAddress for Address<M> {
 
 impl RouterLink {
     // TODO: Return model detacher (calls remove_model)
+    // Use subscriptions management to control model existence
     pub fn add_model<M>(&mut self, addr: Address<M>) -> Result<()>
     where
         M: Model,

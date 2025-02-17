@@ -1,16 +1,19 @@
 pub mod model;
+pub mod session;
 pub mod tool;
 pub mod types;
 
 use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, AgentSession, Context, Next};
+use crb::core::sync::Mutex;
 use crb::superagent::{
     Interaction, OnRequest, OnResponse, Output, Responder, Supervisor, SupervisorSession,
 };
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
 use std::collections::HashMap;
+use std::sync::Arc;
 use tool::{ToolId, ToolInfo, ToolRecord};
 use typed_slab::TypedSlab;
 use types::{ChatRequest, ChatResponse, ToolingChatResponse};
@@ -32,8 +35,8 @@ pub struct ReasoningRouter {
 impl ReasoningRouter {
     pub fn new() -> Self {
         Self {
-            models: Vec::new(),
-            tools: HashMap::new(),
+            models: Vec::default(),
+            tools: HashMap::default(),
             requests: TypedSlab::default(),
         }
     }
