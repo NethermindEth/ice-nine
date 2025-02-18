@@ -1,11 +1,17 @@
-use super::{ChatRequest, RouterLink};
-use anyhow::Result;
+use super::{ChatRequest, ChatResponse, RouterLink};
+use anyhow::{anyhow, Result};
 use async_trait::async_trait;
 use crb::agent::{Agent, AgentSession, Context, Next};
 use crb::superagent::{Interaction, OnRequest};
 
 pub struct ReasoningSession {
     router: RouterLink,
+}
+
+impl ReasoningSession {
+    pub fn new(router: RouterLink) -> Self {
+        Self { router }
+    }
 }
 
 impl Agent for ReasoningSession {
@@ -18,12 +24,12 @@ impl Agent for ReasoningSession {
 
 #[async_trait]
 impl OnRequest<ChatRequest> for ReasoningSession {
-    async fn handle(
+    async fn on_request(
         &mut self,
-        lookup: Interaction<ChatRequest>,
+        request: ChatRequest,
         ctx: &mut Context<Self>,
-    ) -> Result<()> {
+    ) -> Result<ChatResponse> {
         // ctx.do_next(Next::do_async(SendingRequest));
-        Ok(())
+        Err(anyhow!("Not implemented"))
     }
 }
