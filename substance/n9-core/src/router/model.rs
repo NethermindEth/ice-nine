@@ -1,10 +1,10 @@
-use super::types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatResponse};
+use super::types::{ToolingChatRequest, ToolingChatResponse};
 use super::{ReasoningRouter, RouterLink};
 use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Context, Equip, OnEvent};
 use crb::superagent::{Fetcher, InteractExt, OnRequest, Request};
-use derive_more::{Deref, DerefMut, From};
+use derive_more::{Deref, DerefMut};
 use std::sync::Arc;
 
 pub trait Model: OnRequest<ToolingChatRequest> {}
@@ -47,11 +47,6 @@ impl RouterLink {
 
     pub async fn get_model(&mut self) -> Result<ModelLink> {
         self.interact(GetModel).await.map_err(Error::from)
-    }
-
-    // TODO: Replace with session
-    pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatResponse> {
-        self.interact(request)
     }
 }
 

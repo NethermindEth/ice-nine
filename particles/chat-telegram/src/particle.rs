@@ -111,7 +111,9 @@ impl OnEvent<Message> for TelegramParticle {
             client.typing(chat_id).await.ok();
 
             let request = ChatRequest::user(&text);
-            let task = self.substance.router.chat(request);
+            let session = self.substance.router.new_session().await?;
+            let task = session.chat(request);
+
             ctx.assign(task, (), chat_id);
         }
         Ok(())

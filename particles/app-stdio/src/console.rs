@@ -1,6 +1,5 @@
 use anyhow::{Error, Result};
 use colored::Colorize;
-use crb::core::time::Instant;
 use derive_more::{Deref, DerefMut};
 use rustyline::{
     history::DefaultHistory,

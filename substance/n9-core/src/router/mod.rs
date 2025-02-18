@@ -3,20 +3,17 @@ pub mod session;
 pub mod tool;
 pub mod types;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Error, Result};
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, Next};
-use crb::core::sync::Mutex;
-use crb::superagent::{
-    Interaction, OnRequest, OnResponse, Output, Responder, Supervisor, SupervisorSession,
-};
+use crb::agent::{Address, Agent, AgentSession, Context, Equip, Next};
+use crb::superagent::{InteractExt, OnRequest, Request, Responder, Supervisor, SupervisorSession};
 use derive_more::{Deref, DerefMut, From, Into};
 use model::ModelLink;
+use session::{ReasoningSession, SessionLink};
 use std::collections::HashMap;
-use std::sync::Arc;
-use tool::{ToolId, ToolInfo, ToolRecord};
+use tool::{ToolId, ToolRecord};
 use typed_slab::TypedSlab;
-use types::{ChatRequest, ChatResponse, ToolingChatResponse};
+use types::{ChatRequest, ChatResponse};
 
 #[derive(From, Into)]
 pub struct ReqId(usize);
@@ -55,50 +52,24 @@ impl Agent for ReasoningRouter {
     }
 }
 
-impl ReasoningRouter {
-    fn tools(&self) -> Vec<ToolInfo> {
-        self.tools
-            .values()
-            .map(|record| record.info.clone())
-            .collect()
+impl RouterLink {
+    pub async fn new_session(&self) -> Result<SessionLink> {
+        self.interact(NewSession).await.map_err(Error::from)
     }
 }
 
-#[async_trait]
-impl OnRequest<ChatRequest> for ReasoningRouter {
-    async fn handle(
-        &mut self,
-        lookup: Interaction<ChatRequest>,
-        ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        // TODO: Picking model strategy
-        let model = self
-            .models
-            .first()
-            .ok_or_else(|| anyhow!("Models are not installed"))?;
+struct NewSession;
 
-        let req_id = self.requests.insert(lookup.interplay.responder);
-        let tools = self.tools();
-        let request = lookup.interplay.request.with_tools(tools);
-        ctx.assign(model.chat(request), (), req_id);
-        Ok(())
-    }
+impl Request for NewSession {
+    type Response = SessionLink;
 }
 
 #[async_trait]
-impl OnResponse<ToolingChatResponse, ReqId> for ReasoningRouter {
-    async fn on_response(
-        &mut self,
-        resp: Output<ToolingChatResponse>,
-        req_id: ReqId,
-        _ctx: &mut Context<Self>,
-    ) -> Result<()> {
-        let responder = self
-            .requests
-            .remove(req_id)
-            .ok_or_else(|| anyhow!("No responder"))?;
-        let response = resp?.without_tools();
-        responder.send(response)?;
-        Ok(())
+impl OnRequest<NewSession> for ReasoningRouter {
+    async fn on_request(&mut self, _: NewSession, ctx: &mut Context<Self>) -> Result<SessionLink> {
+        let link = ctx.equip();
+        let session = ReasoningSession::new(link);
+        let addr = ctx.spawn_agent(session, ());
+        Ok(addr.equip())
     }
 }

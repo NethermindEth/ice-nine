@@ -66,7 +66,8 @@ impl DoAsync<SendRequest> for ChatParticle {
         let op = Operation::start("Sending a prompt");
         self.chat.thinking(true);
         let request = ChatRequest::user(&msg.question);
-        let req = self.substance.router.chat(request);
+        let session = self.substance.router.new_session().await?;
+        let req = session.chat(request);
         self.chat.add(msg.question, Role::Request);
         op.end("Prompt sent");
         let state = WaitResponse { req };

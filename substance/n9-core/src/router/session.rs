@@ -1,31 +1,9 @@
-use super::{ChatRequest, ChatResponse, ReasoningRouter, RouterLink};
-use anyhow::{anyhow, Error, Result};
+use super::{ChatRequest, ChatResponse, RouterLink};
+use anyhow::Result;
 use async_trait::async_trait;
-use crb::agent::{Address, Agent, AgentSession, Context, Equip, Next, StopAddress, ToAddress};
-use crb::superagent::{Fetcher, InteractExt, Interaction, OnRequest, Request};
-use derive_more::{Deref, DerefMut, From};
-
-impl RouterLink {
-    pub async fn new_session(&self) -> Result<SessionLink> {
-        self.interact(NewSession).await.map_err(Error::from)
-    }
-}
-
-struct NewSession;
-
-impl Request for NewSession {
-    type Response = SessionLink;
-}
-
-#[async_trait]
-impl OnRequest<NewSession> for ReasoningRouter {
-    async fn on_request(&mut self, _: NewSession, ctx: &mut Context<Self>) -> Result<SessionLink> {
-        let link = ctx.equip();
-        let session = ReasoningSession::new(link);
-        let addr = ctx.spawn_agent(session, ());
-        Ok(addr.equip())
-    }
-}
+use crb::agent::{Address, Agent, AgentSession, Context, Next, StopAddress};
+use crb::superagent::{Fetcher, InteractExt, OnRequest};
+use derive_more::{Deref, DerefMut};
 
 #[derive(Deref, DerefMut)]
 pub struct SessionLink {
