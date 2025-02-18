@@ -1,5 +1,5 @@
 use super::{ReasoningRouter, RouterLink};
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Agent, Context, MessageFor};
 use crb::send::{Recipient, Sender};
@@ -116,6 +116,10 @@ impl RouterLink {
         let response = self.address.interact(msg).await?;
         Ok(response.info.id.clone())
     }
+
+    pub async fn get_tools(&mut self) -> Result<Vec<ToolInfo>> {
+        self.interact(GetTools).await.map_err(Error::from)
+    }
 }
 
 pub type ToolId = String;
@@ -197,5 +201,23 @@ where
 {
     async fn handle(self: Box<Self>, agent: &mut A, ctx: &mut Context<A>) -> Result<()> {
         agent.handle_request(self.interaction, ctx).await
+    }
+}
+
+struct GetTools;
+
+impl Request for GetTools {
+    type Response = Vec<ToolInfo>;
+}
+
+#[async_trait]
+impl OnRequest<GetTools> for ReasoningRouter {
+    async fn on_request(&mut self, _: GetTools, ctx: &mut Context<Self>) -> Result<Vec<ToolInfo>> {
+        // TODO: Keep info in `Arc`s
+        Ok(self
+            .tools
+            .values()
+            .map(|record| record.info.clone())
+            .collect())
     }
 }

@@ -29,7 +29,11 @@ impl OnRequest<ChatRequest> for ReasoningSession {
         request: ChatRequest,
         ctx: &mut Context<Self>,
     ) -> Result<ChatResponse> {
-        // ctx.do_next(Next::do_async(SendingRequest));
-        Err(anyhow!("Not implemented"))
+        let model = self.router.get_model().await?;
+        let tools = self.router.get_tools().await?;
+        let request = request.with_tools(tools);
+        let response = model.chat(request).await?;
+        let response = response.without_tools();
+        Ok(response)
     }
 }

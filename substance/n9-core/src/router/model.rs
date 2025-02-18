@@ -1,9 +1,9 @@
 use super::types::{ChatRequest, ChatResponse, ToolingChatRequest, ToolingChatResponse};
 use super::{ReasoningRouter, RouterLink};
-use anyhow::Result;
+use anyhow::{anyhow, Error, Result};
 use async_trait::async_trait;
 use crb::agent::{Address, Context, Equip, OnEvent};
-use crb::superagent::{Fetcher, InteractExt, OnRequest};
+use crb::superagent::{Fetcher, InteractExt, OnRequest, Request};
 use derive_more::{Deref, DerefMut, From};
 use std::sync::Arc;
 
@@ -45,6 +45,11 @@ impl RouterLink {
         Ok(())
     }
 
+    pub async fn get_model(&mut self) -> Result<ModelLink> {
+        self.interact(GetModel).await.map_err(Error::from)
+    }
+
+    // TODO: Replace with session
     pub fn chat(&self, request: ChatRequest) -> Fetcher<ChatResponse> {
         self.interact(request)
     }
@@ -59,5 +64,21 @@ impl OnEvent<AddModel> for ReasoningRouter {
     async fn handle(&mut self, msg: AddModel, _ctx: &mut Context<Self>) -> Result<()> {
         self.models.push(msg.link);
         Ok(())
+    }
+}
+
+struct GetModel;
+
+impl Request for GetModel {
+    type Response = ModelLink;
+}
+
+#[async_trait]
+impl OnRequest<GetModel> for ReasoningRouter {
+    async fn on_request(&mut self, _: GetModel, ctx: &mut Context<Self>) -> Result<ModelLink> {
+        self.models
+            .first()
+            .cloned()
+            .ok_or_else(|| anyhow!("Models are not installed"))
     }
 }
